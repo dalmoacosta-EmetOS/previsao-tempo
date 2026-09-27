@@ -44,12 +44,12 @@ Objetivo secundário (o mais importante para o treinamento): **registrar o proce
 | RF-12 | Detalhes do dia | Nascer/pôr do sol, índice UV máx, chance de chuva máx, neve prevista (cm) |
 | RF-13 | Risco de tempestade | Indicador derivado (ver seção 4) — **não é probabilidade oficial** |
 | RF-14 | Avisos para a população | Avisos calculados por limites (calor, frio extremo, UV alto, vento forte, tempestade, neve) — ver seção 4 |
+| RF-16 | Radar animado de chuva (últimas 2 h) + direção do vento | Pedido do Dalmo — ADR-012 |
 | RF-15 | Lembrar última cidade | Salva no navegador; ao abrir, já carrega essa cidade |
 
 ### WON'T (fora desta versão)
 
 - Alertas **oficiais** da Defesa Civil / INMET / NWS (ver seção 4)
-- Radar e mapas animados
 - Login, contas, backend próprio
 - Notificações push
 - App instalável (PWA)

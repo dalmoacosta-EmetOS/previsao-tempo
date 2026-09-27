@@ -307,11 +307,12 @@ body.is-loading.has-data .progress { animation: progress 1.2s ease-out forwards;
     align-items: start;
   }
   /* Blocos de largura total; ocultos não criam linha vazia */
-  #current, #status, #alerts, #hourly { grid-column: 1 / -1; }
+  #current, #status, #alerts, #hourly, #radar { grid-column: 1 / -1; }
 }
 
 #status:empty, #alerts[hidden] { display: none; }
 body:not(.has-data) #hourly,
+body:not(.has-data) #radar,
 body:not(.has-data) #daily,
 body:not(.has-data) #details,
 body:not(.has-data) #alerts { display: none; }
@@ -554,4 +555,89 @@ body:not(.has-data) #alerts { display: none; }
   .segmented button { padding: 7px 9px; }
   .day { grid-template-columns: 58px 30px 34px 34px minmax(24px, 1fr) 34px; gap: 6px; }
   .badge { display: none; }
+}
+
+/* ---------------- Radar (ADR-012) ---------------- */
+.radar__wrap { position: relative; }
+.radar__map {
+  height: 360px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #1b2433;
+}
+@media (min-width: 900px) { .radar__map { height: 440px; } }
+.radar__status {
+  position: absolute; inset: 0;
+  display: grid; place-items: center;
+  padding: 16px;
+  text-align: center;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  background: rgba(8, 20, 42, 0.55);
+  border-radius: 12px;
+  z-index: 500;
+}
+.radar__status[hidden] { display: none; }
+.radar__controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.radar__play {
+  flex: none;
+  width: 42px; height: 42px;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--bar);
+  font-size: 1rem;
+  font-weight: 800;
+}
+.radar__play:disabled, .radar__slider:disabled { opacity: 0.4; }
+.radar__slider { flex: 1; min-width: 0; accent-color: var(--accent); }
+.radar__time { flex: none; min-width: 108px; text-align: right; font-size: 0.85rem; font-weight: 600; }
+.radar__foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 10px;
+  font-size: 0.8rem;
+  color: var(--text-soft);
+}
+.radar__legend { display: flex; align-items: center; gap: 8px; }
+.radar__legend i {
+  display: block;
+  width: 110px; height: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #9be1ff, #33a8ff, #0063d1, #ffe14d, #ff9a1f, #ff3b30);
+}
+.radar__wind { font-weight: 600; color: var(--text); }
+.radar__note { margin: 8px 0 0; font-size: 0.72rem; color: var(--text-faint); }
+.radar__note a { color: var(--text-soft); }
+
+.wind-pin { position: relative; width: 64px; height: 64px; }
+.wind-pin__dot {
+  position: absolute; left: 50%; top: 50%;
+  width: 14px; height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 5px rgba(255, 200, 61, 0.3);
+}
+/* Anel que gira para a direção do vento; o triângulo fica na borda de cima */
+.wind-pin__rot {
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  border: 2px dashed rgba(255, 255, 255, 0.35);
+}
+.wind-pin__rot b {
+  position: absolute; left: 50%; top: -9px;
+  transform: translateX(-50%);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
 }

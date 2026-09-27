@@ -14,6 +14,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 08:43–08:49 | Dalmo publicou no GitHub Pages; testou com chuva real em Boston e mandou vídeo comparando com Weather Channel e iPhone | Diagnóstico: v1.0 decidia o céu só pelo código de tempo, que pode dizer "nublado" com chuva caindo | **Primeiro defeito achado com dado real, não com simulação** → ADR-011 | 6 min |
 | 27/09 08:50–08:54 | Correção ADR-011 | Céu considera chuva medida + próximos 30 min; frase "chuva para em ~X min"; auto-atualização 10 min; demos `garoa` e `temporal` | 24/24 testes automáticos | 15 min |
 | 27/09 08:54–08:58 | Dalmo gravou o site real: "está chovendo mas mostra nublado" | Duas causas: (1) gravou 40 s depois do envio da correção, antes de o Pages atualizar; (2) sinal ainda não usado: hora atual = garoa 95% | v1.2: 4º sinal + versão no rodapé. 27/27 testes, incluindo o caso real de Malden reproduzido | 11 min |
+| 27/09 10:10 | Dalmo pediu radar como o do Weather Channel (direção da chuva e do vento) | IA verificou o serviço gratuito (RainViewer): só passado 2 h, zoom máx. 7 → ADR-012 | v1.3: radar animado + seta do vento; isolado para não derrubar o site. 35/35 testes | 20 min |
 | | | | | |
 
 ## Lições (preencher ao final)

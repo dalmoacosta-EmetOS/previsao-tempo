@@ -12,8 +12,9 @@ import { renderDetails } from './ui/details.js';
 import { renderAlerts } from './ui/alerts.js';
 import { renderError, showToast } from './ui/status.js';
 import { setupSearch } from './ui/search.js';
+import { mountRadar, updateRadar } from './ui/radar.js';
 
-export const VERSION = '1.2';
+export const VERSION = '1.3';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
@@ -47,6 +48,7 @@ function render(state) {
   renderHourly(sections.hourly, state);
   renderDaily(sections.daily, state, (days) => setState({ days }));
   renderDetails(sections.details, state);
+  updateRadar(state);
 }
 
 // ---------- Ações ----------
@@ -100,6 +102,7 @@ function locate({ auto = false } = {}) {
 // ---------- Início ----------
 function init() {
   subscribe(render);
+  mountRadar(document.getElementById('radar'));
   $('version').textContent = `versão ${VERSION}`;
 
   // Modo demonstração: ?demo=chuva | neve | tempestade | noite | sol | nublado | neblina | parcial

@@ -23,6 +23,7 @@ flowchart LR
     SVC -->|busca cidade| GEO[Open-Meteo<br/>Geocoding API]
     SVC -.->|nome da localização<br/>opcional| RG[BigDataCloud<br/>Reverse Geocoding]
     SVC -->|previsão| FC[Open-Meteo<br/>Forecast API]
+    SVC -.->|radar 2 h| RV[RainViewer<br/>radar]
     APP -->|posição| GPS[Geolocalização<br/>do navegador]
 
     HOST[GitHub Pages<br/>hospedagem estática] -. entrega os arquivos .-> Navegador
@@ -54,7 +55,8 @@ previsao-tempo/
 │   ├── api/
 │   │   ├── http.js         # fetch com tempo-limite e erros classificados
 │   │   ├── geocoding.js    # busca de cidade + nome da localização
-│   │   └── forecast.js     # previsão + normalização
+│   │   ├── forecast.js     # previsão + normalização
+│   │   └── radar.js        # quadros do radar (RainViewer)
 │   ├── domain/
 │   │   ├── weather-codes.js
 │   │   ├── units.js
@@ -71,6 +73,7 @@ previsao-tempo/
 │       ├── details.js      # "Hoje em detalhe"
 │       ├── alerts.js
 │       ├── background.js   # céu animado + modo demo
+│       ├── radar.js        # mapa + animação do radar (ADR-012)
 │       └── status.js       # erros e avisos rápidos
 ├── docs/ (01 a 05)
 └── README.md

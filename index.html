@@ -7,7 +7,7 @@
   <meta name="description" content="Previsão do tempo: agora, por hora, 7 e 15 dias. Exercício construído 100% com IA.">
   <meta name="theme-color" content="#0b2a55">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='26' cy='24' r='12' fill='%23FFC83D'/%3E%3Cpath d='M20 50h26a10 10 0 0 0 0-20 14 14 0 0 0-27-3A11 11 0 0 0 20 50z' fill='%23fff'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css?v=1.2">
+  <link rel="stylesheet" href="css/styles.css?v=1.3">
 </head>
 <body data-scene="cloudy" data-time="day" class="is-booting">
 
@@ -54,18 +54,19 @@
     <div id="status"></div>
     <section id="alerts" class="alerts" aria-label="Avisos"></section>
     <section id="hourly" class="card card--wide" aria-label="Previsão por hora"></section>
+    <section id="radar" class="card card--wide" aria-label="Radar de chuva"></section>
     <section id="daily" class="card" aria-label="Previsão diária"></section>
     <section id="details" class="card" aria-label="Detalhes de hoje"></section>
   </main>
 
   <footer class="footer">
-    <p>Dados de previsão: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (uso não comercial) · Nome da localização: <a href="https://www.bigdatacloud.com/" target="_blank" rel="noopener">BigDataCloud</a></p>
+    <p>Dados de previsão: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (uso não comercial) · Nome da localização: <a href="https://www.bigdatacloud.com/" target="_blank" rel="noopener">BigDataCloud</a> · Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">Weather data by RainViewer</a></p>
     <p>Exercício do Treinamento de IA · construído 100% com IA · <a href="https://github.com/dalmoacosta-EmetOS/previsao-tempo" target="_blank" rel="noopener">código e documentação</a> · <span id="version"></span></p>
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   <div class="demo-badge" id="demo-badge" hidden>DEMO</div>
 
-  <script type="module" src="js/app.js?v=1.2"></script>
+  <script type="module" src="js/app.js?v=1.3"></script>
 </body>
 </html>

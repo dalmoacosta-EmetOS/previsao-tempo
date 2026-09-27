@@ -84,3 +84,15 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Extras:** frase de curtíssimo prazo ("Chuva deve parar em ~45 min" / "começar em ~15 min"), como no app do iPhone; atualização automática a cada 10 min.
 **Consequências:** + site condizente com o que a pessoa vê pela janela. − Dados de 15 em 15 min são medidos de fato só na América do Norte e Europa Central; no resto do mundo são interpolados (menos precisos).
 **Limite honesto:** o site mostra o que o **modelo** diz, não um radar. Se o modelo errar, o site erra junto.
+
+## ADR-012 — Radar animado de chuva (RainViewer + Leaflet)
+**Status:** Aceita · 27/09/2026 · pedido do Dalmo ("uso muito o radar do Weather Channel para ver para onde a chuva vai")
+
+**Contexto:** o radar mostra o movimento real das áreas de chuva — algo que a previsão numérica sozinha não mostra.
+**Decisão:** cartão "Radar de chuva" com mapa (Leaflet, via cdnjs) + camadas de radar da **RainViewer** (grátis, sem chave, atribuição obrigatória "Weather data by RainViewer"). Animação das **últimas ~2 horas**, de 10 em 10 min, com ▶/❚❚ e barra de tempo. Marcador da cidade com seta da direção do vento.
+**Alternativas:** radar do Weather Channel/Apple (pagos, sem API aberta); NOAA/NWS (só EUA, mais complexo); OpenWeatherMap (exige chave).
+**Limites honestos:**
+- Mostra o **passado** (2 h), não o futuro. O "3-Day Future Radar" do Weather Channel é pago.
+- Zoom do radar vai até nível 7 (visão regional). Aproximando mais, a imagem fica "quadriculada".
+- Serviço sem garantia de disponibilidade.
+**Isolamento:** módulo separado (`api/radar.js`, `ui/radar.js`). A biblioteca de mapa só é baixada quando o cartão aparece na tela. Se o radar falhar, só o cartão mostra aviso — o restante do site continua (testado).
