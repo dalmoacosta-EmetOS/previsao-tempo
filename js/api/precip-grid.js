@@ -1,4 +1,4 @@
-import { getJSON } from './http.js?v=2.2';
+import { getJSON } from './http.js?v=2.3';
 
 // "Radar futuro" (ADR-013): chuva e neve PREVISTAS pelo modelo, hora a hora,
 // numa grade de pontos ao redor da cidade. Uma única chamada multi-ponto à Open-Meteo.

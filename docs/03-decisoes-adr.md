@@ -202,3 +202,10 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Discordância registrada:** o Dalmo sugeriu 30 km/h para o vento; a IA recomendou 40 km/h, porque 30 km/h é brisa comum (Beaufort 4–5) — o painel ficaria vermelho quase todo dia e perderia o efeito de alerta.
 **Honestidade:** recomendações gerais de segurança no estilo Defesa Civil, **não texto de lei**; rotuladas na tela, com as referências.
 **Mapa:** chuva fraca desenhada em verde mais forte e opaco (antes quase transparente), aproximando a leitura do Weather Channel.
+
+## ADR-023 — Legenda muda com o quadro (radar azul × previsão verde)
+**Status:** Aceita · 27/09/2026 · defeito achado pelo Dalmo (16:25)
+
+**Problema:** no quadro "agora (radar)" o mapa mostrava chuva em **azul**, mas a legenda dizia "azul = neve". A imagem do radar vem pronta da RainViewer; o esquema de cores 4 (verde, estilo Weather Channel) foi **recusado pelo serviço gratuito** e o site voltou sozinho ao esquema 2 (azul) — sem ajustar a legenda (ADR-018 assumiu que o 4 funcionaria; nunca foi verificado com o serviço real).
+**Decisão:** duas legendas, e só aparece a do quadro na tela: **Radar** (azul-claro → azul → amarelo → vermelho) e **Previsão** (verde → verde-escuro → amarelo → vermelho + neve). Neve da previsão passa a **lilás** para não confundir com o azul do radar. Radar fixado no esquema 2 (sem tentativa inútil do 4).
+**Lição:** a hipótese "o esquema 4 funciona" ficou sem teste real por 5 versões. Testes com dados simulados não validam um serviço de terceiros.

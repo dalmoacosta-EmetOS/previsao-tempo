@@ -3,12 +3,12 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el, fill } from './dom.js?v=2.2';
-import { getRadarFrames } from '../api/radar.js?v=2.2';
-import { getPrecipGrid } from '../api/precip-grid.js?v=2.2';
-import { speed, windDirection } from '../domain/units.js?v=2.2';
-import { showToast } from './status.js?v=2.2';
-import { load, save } from '../storage.js?v=2.2';
+import { el, fill } from './dom.js?v=2.3';
+import { getRadarFrames } from '../api/radar.js?v=2.3';
+import { getPrecipGrid } from '../api/precip-grid.js?v=2.3';
+import { speed, windDirection } from '../domain/units.js?v=2.3';
+import { showToast } from './status.js?v=2.3';
+import { load, save } from '../storage.js?v=2.3';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -30,7 +30,15 @@ export const LEGEND = [
   { label: 'Forte', from: 7.6, rgb: [255, 214, 0] },
   { label: 'Muito forte', from: 15, rgb: [235, 45, 35] },
 ];
-const SNOW_RGB = [70, 190, 255];
+const SNOW_RGB = [196, 150, 255]; // lilás: não confunde com o azul da chuva do radar
+// Cores do RADAR (imagem pronta da RainViewer, esquema "Universal Blue"): chuva em AZUL → amarelo → vermelho.
+export const RADAR_LEGEND = [
+  { label: 'Fraca', rgb: [136, 221, 238] },
+  { label: 'Moderada', rgb: [0, 119, 187] },
+  { label: 'Forte', rgb: [255, 221, 0] },
+  { label: 'Muito forte', rgb: [255, 68, 0] },
+];
+let legendRadar, legendModel;
 const STOPS = LEGEND.map((l) => [l.from, l.rgb]);
 const DEBUG_GRID = new URLSearchParams(location.search).get('debug') === 'grade';
 let debugLayer = null;
@@ -76,8 +84,15 @@ export function mountRadar(container) {
     ]),
     modelNote,
     el('div', { class: 'radar__foot' }, [
-      el('ul', { class: 'radar__legend', 'aria-label': 'Legenda' }, [
-        el('li', { class: 'radar__legend-title', text: 'Chuva:' }),
+      // Duas legendas: a que vale é a do quadro que está na tela (ADR-023)
+      legendRadar = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda do radar' }, [
+        el('li', { class: 'radar__legend-title', text: 'Radar · chuva:' }),
+        ...RADAR_LEGEND.map((l) => el('li', {}, [
+          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
+        ])),
+      ]),
+      legendModel = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda da previsão', hidden: true }, [
+        el('li', { class: 'radar__legend-title', text: 'Previsão · chuva:' }),
         ...LEGEND.map((l) => el('li', {}, [
           el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
         ])),
@@ -222,6 +237,8 @@ function show(i) {
   kindEl.textContent = f.kind === 'radar' ? (f.nowcast ? 'RADAR · projeção curta' : 'RADAR') : 'PREVISÃO DO MODELO';
   kindEl.className = `radar__kind radar__kind--${f.kind}`;
   modelNote.hidden = f.kind !== 'model';
+  legendRadar.hidden = f.kind !== 'radar';
+  legendModel.hidden = f.kind !== 'model';
 }
 
 function label(f, i) {

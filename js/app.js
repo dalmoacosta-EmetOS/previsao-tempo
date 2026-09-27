@@ -1,22 +1,22 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=2.2';
-import { load, save } from './storage.js?v=2.2';
-import { getOfficialAlerts } from './api/official-alerts.js?v=2.2';
-import { getForecast } from './api/forecast.js?v=2.2';
-import { reverseGeocode } from './api/geocoding.js?v=2.2';
-import { resolveWeatherNow } from './domain/scene.js?v=2.2';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=2.2';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=2.2';
-import { renderHourly } from './ui/hourly.js?v=2.2';
-import { renderDaily } from './ui/daily.js?v=2.2';
-import { renderDetails } from './ui/details.js?v=2.2';
-import { renderAlerts } from './ui/alerts.js?v=2.2';
-import { renderError, showToast } from './ui/status.js?v=2.2';
-import { setupSearch } from './ui/search.js?v=2.2';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=2.2';
-import { mountRadar, updateRadar } from './ui/radar.js?v=2.2';
+import { getState, setState, subscribe } from './state.js?v=2.3';
+import { load, save } from './storage.js?v=2.3';
+import { getOfficialAlerts } from './api/official-alerts.js?v=2.3';
+import { getForecast } from './api/forecast.js?v=2.3';
+import { reverseGeocode } from './api/geocoding.js?v=2.3';
+import { resolveWeatherNow } from './domain/scene.js?v=2.3';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=2.3';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=2.3';
+import { renderHourly } from './ui/hourly.js?v=2.3';
+import { renderDaily } from './ui/daily.js?v=2.3';
+import { renderDetails } from './ui/details.js?v=2.3';
+import { renderAlerts } from './ui/alerts.js?v=2.3';
+import { renderError, showToast } from './ui/status.js?v=2.3';
+import { setupSearch } from './ui/search.js?v=2.3';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=2.3';
+import { mountRadar, updateRadar } from './ui/radar.js?v=2.3';
 
-export const VERSION = '2.2';
+export const VERSION = '2.3';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };

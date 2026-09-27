@@ -945,3 +945,4 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding: 8px 16px; }
 .care__reason { margin: 6px 0 8px; color: var(--text-soft); font-size: 0.88rem; }
 .care__list { margin: 0 0 8px; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 0.9rem; line-height: 1.4; }
 .care small { display: block; color: var(--text-faint); font-size: 0.68rem; line-height: 1.35; }
+.radar__legend[hidden] { display: none; }

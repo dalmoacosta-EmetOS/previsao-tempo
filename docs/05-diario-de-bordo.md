@@ -25,6 +25,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 13:53–14:20 | Dalmo: "quero um pouco mais" — detalhe ao tocar na hora, Dia/Noite ao tocar no dia, alerta de enchente (prints do Weather Channel) | IA avisou: alertas oficiais só existem para os EUA; resumos serão automáticos, não de meteorologista → ADR-019/020 | v2.0. Revisão visual pegou "false" solto na tela → corrigido + teste. 68/68 testes | 27 min |
 | 27/09 15:59–16:15 | Dalmo testou v2.0 no iPhone e no Mac; pediu resumo do "agora" ao lado da cidade | Horas ilegíveis no iPhone (visual de botão do sistema); teste automático achou contradição no resumo; arquivo órfão da 1ª escrita removido → ADR-021 | v2.1. 72/72 testes | 16 min |
 | 27/09 16:15–16:35 | Dalmo: alerta oficial apareceu ✅; pediu quadros em vermelho com recomendações (vento > 30 km/h etc.) | IA discordou dos 30 km/h (brisa comum) e propôs limites de referência (Beaufort, OMS, INMET) → ADR-022. Teste revelou texto em km/h com site em °F → corrigido | v2.2. 77/77 testes | 20 min |
+| 27/09 16:25 | Dalmo: "azul no radar com certeza não é neve" | Legenda única descrevia só a previsão; radar vem em azul porque o esquema verde foi recusado pelo serviço → ADR-023 | v2.3: legenda troca com o quadro; neve em lilás. 78/78 testes | 6 min |
 | | | | | |
 
 ## Lições (preencher ao final)
