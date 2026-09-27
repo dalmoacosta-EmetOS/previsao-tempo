@@ -24,6 +24,7 @@ flowchart LR
     SVC -.->|nome da localização<br/>opcional| RG[BigDataCloud<br/>Reverse Geocoding]
     SVC -->|previsão| FC[Open-Meteo<br/>Forecast API]
     SVC -.->|radar 2 h| RV[RainViewer<br/>radar]
+    SVC -.->|grade 169 pontos<br/>24 h| FC
     APP -->|posição| GPS[Geolocalização<br/>do navegador]
 
     HOST[GitHub Pages<br/>hospedagem estática] -. entrega os arquivos .-> Navegador
@@ -56,7 +57,8 @@ previsao-tempo/
 │   │   ├── http.js         # fetch com tempo-limite e erros classificados
 │   │   ├── geocoding.js    # busca de cidade + nome da localização
 │   │   ├── forecast.js     # previsão + normalização
-│   │   └── radar.js        # quadros do radar (RainViewer)
+│   │   ├── radar.js        # quadros do radar (RainViewer)
+│   │   └── precip-grid.js  # grade 13×13 de chuva prevista (ADR-013)
 │   ├── domain/
 │   │   ├── weather-codes.js
 │   │   ├── units.js
@@ -73,7 +75,7 @@ previsao-tempo/
 │       ├── details.js      # "Hoje em detalhe"
 │       ├── alerts.js
 │       ├── background.js   # céu animado + modo demo
-│       ├── radar.js        # mapa + animação do radar (ADR-012)
+│       ├── radar.js        # mapa, linha do tempo −2 h → +24 h (ADR-012/013)
 │       └── status.js       # erros e avisos rápidos
 ├── docs/ (01 a 05)
 └── README.md

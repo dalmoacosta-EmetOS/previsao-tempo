@@ -92,7 +92,19 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Decisão:** cartão "Radar de chuva" com mapa (Leaflet, via cdnjs) + camadas de radar da **RainViewer** (grátis, sem chave, atribuição obrigatória "Weather data by RainViewer"). Animação das **últimas ~2 horas**, de 10 em 10 min, com ▶/❚❚ e barra de tempo. Marcador da cidade com seta da direção do vento.
 **Alternativas:** radar do Weather Channel/Apple (pagos, sem API aberta); NOAA/NWS (só EUA, mais complexo); OpenWeatherMap (exige chave).
 **Limites honestos:**
-- Mostra o **passado** (2 h), não o futuro. O "3-Day Future Radar" do Weather Channel é pago.
+- Mostra o **passado** (2 h). O futuro foi resolvido no ADR-013. *(Correção do Dalmo: no app do Weather Channel o radar futuro de 24 h é gratuito; só o de 72 h é pago.)*
 - Zoom do radar vai até nível 7 (visão regional). Aproximando mais, a imagem fica "quadriculada".
 - Serviço sem garantia de disponibilidade.
 **Isolamento:** módulo separado (`api/radar.js`, `ui/radar.js`). A biblioteca de mapa só é baixada quando o cartão aparece na tela. Se o radar falhar, só o cartão mostra aviso — o restante do site continua (testado).
+
+## ADR-013 — "Radar futuro" de 24 h com a previsão do modelo
+**Status:** Aceita · 27/09/2026 · pedido do Dalmo ("6 horas já seria ótimo; o ideal seria 24 h")
+
+**Contexto:** o "Future Radar" dos apps de clima não é radar: é a chuva **prevista pelo modelo** desenhada no mapa. Não há serviço gratuito e sem chave que entregue essas imagens prontas.
+**Decisão:** montar o próprio "radar futuro": **uma única chamada** à Open-Meteo com uma grade de **13 × 13 = 169 pontos** ao redor da cidade (±3,2° lat, ±4,4° lon), pedindo chuva e neve hora a hora para as **próximas 24 h**. O navegador desenha cada hora num `canvas` com interpolação suave e sobrepõe ao mapa. Mesma escala de cores do radar; neve em lilás.
+**Linha do tempo única:** −2 h (radar real) → **agora** → +24 h (previsão). ▶ conta a história inteira. Selo no mapa diz **RADAR** ou **PREVISÃO DO MODELO**, e um aviso explica que a previsão é aproximada.
+**Custos e limites:**
+- Cada carga da grade conta como 169 chamadas na cota gratuita da Open-Meteo (10.000/dia por IP). Por isso a grade só é recarregada a cada **60 min** ou ao trocar de cidade.
+- Resolução ≈ 30–50 km por ponto: mostra **para onde as áreas de chuva vão**, não a rua exata.
+- A área calculada cobre ~700 × 700 km; afastando muito o mapa, a previsão acaba numa borda esfumaçada.
+**Isolamento:** radar e previsão falham de forma independente — se um cair, o outro continua; se os dois caírem, só o cartão mostra aviso (testado).

@@ -5,7 +5,7 @@ Exercício do Treinamento de IA (linha de base) — construído 100% com IA.
 **Autor:** Dalmo Costa · **Início:** 27/09/2026
 
 ## O que faz
-Busca de cidade com autocompletar, radar animado de chuva, localização atual, clima agora, previsão por hora (24h), 7 e 15 dias, °C/°F, avisos automáticos e fundo que muda conforme o clima.
+Busca de cidade com autocompletar, radar de chuva com linha do tempo (2 h atrás → 24 h à frente), localização atual, clima agora, previsão por hora (24h), 7 e 15 dias, °C/°F, avisos automáticos e fundo que muda conforme o clima.
 
 ## Documentação
 1. [Requisitos](docs/01-requisitos.md)

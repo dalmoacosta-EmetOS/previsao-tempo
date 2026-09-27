@@ -15,6 +15,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 08:50–08:54 | Correção ADR-011 | Céu considera chuva medida + próximos 30 min; frase "chuva para em ~X min"; auto-atualização 10 min; demos `garoa` e `temporal` | 24/24 testes automáticos | 15 min |
 | 27/09 08:54–08:58 | Dalmo gravou o site real: "está chovendo mas mostra nublado" | Duas causas: (1) gravou 40 s depois do envio da correção, antes de o Pages atualizar; (2) sinal ainda não usado: hora atual = garoa 95% | v1.2: 4º sinal + versão no rodapé. 27/27 testes, incluindo o caso real de Malden reproduzido | 11 min |
 | 27/09 10:10 | Dalmo pediu radar como o do Weather Channel (direção da chuva e do vento) | IA verificou o serviço gratuito (RainViewer): só passado 2 h, zoom máx. 7 → ADR-012 | v1.3: radar animado + seta do vento; isolado para não derrubar o site. 35/35 testes | 20 min |
+| 27/09 10:24 | Dalmo corrigiu a IA: radar futuro de 24 h é grátis no Weather Channel (só 72 h é pago); pediu 6–24 h | IA errou ao generalizar "futuro = pago". Solução: grade de 169 pontos do modelo desenhada no mapa → ADR-013 | v1.4: linha do tempo −2 h → +24 h. 40/40 testes. Teste revelou que ▶ deveria começar do passado — ajustado | 25 min |
 | | | | | |
 
 ## Lições (preencher ao final)
