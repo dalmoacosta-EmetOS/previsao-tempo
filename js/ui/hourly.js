@@ -9,7 +9,7 @@ export function renderHourly(root, { data, unit }) {
   const now = resolveWeatherNow(data);
   const iconFor = (h, i) => {
     // "Agora" segue o céu atual quando há chuva medida (ADR-011)
-    if (i === 0 && now.byMeasure) return now.intensity === 'heavy' ? 'heavy-rain' : 'rain';
+    if (i === 0 && now.byMeasure && !['drizzle','rain','heavy-rain','showers','sleet','snow'].includes(describe(h.code).icon)) return now.scene === 'snow' ? 'snow' : now.intensity === 'heavy' ? 'heavy-rain' : 'rain';
     return describe(h.code).icon;
   };
   const items = data.hourly.map((h, i) =>

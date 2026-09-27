@@ -12,8 +12,9 @@ export function renderCurrent(root, { place, data, unit }) {
   const info = { ...describe(c.code) };
   // Se o modelo mede chuva mas o código diz "nublado", mostramos a chuva (ADR-011).
   if (now.byMeasure) {
-    info.label = now.intensity === 'light' ? 'Chuva fraca' : now.intensity === 'heavy' ? 'Chuva forte' : 'Chuva';
-    info.icon = now.intensity === 'heavy' ? 'heavy-rain' : 'rain';
+    info.label = now.label;
+    info.icon = now.scene === 'snow' ? 'snow'
+      : now.intensity === 'heavy' ? 'heavy-rain' : now.label === 'Garoa' ? 'drizzle' : 'rain';
   }
   const nowcast = nowcastText(data);
   const where = [place.region, place.country].filter(Boolean).join(', ');

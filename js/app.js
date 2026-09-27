@@ -13,6 +13,8 @@ import { renderAlerts } from './ui/alerts.js';
 import { renderError, showToast } from './ui/status.js';
 import { setupSearch } from './ui/search.js';
 
+export const VERSION = '1.2';
+
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
 
@@ -98,6 +100,7 @@ function locate({ auto = false } = {}) {
 // ---------- Início ----------
 function init() {
   subscribe(render);
+  $('version').textContent = `versão ${VERSION}`;
 
   // Modo demonstração: ?demo=chuva | neve | tempestade | noite | sol | nublado | neblina | parcial
   const demoKey = new URLSearchParams(location.search).get('demo');

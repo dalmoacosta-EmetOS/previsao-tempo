@@ -14,15 +14,27 @@ export function resolveWeatherNow(data) {
   const precipNow = Math.max(c.precip, next30[0]?.precip ?? 0);
   const snowNow = c.snowfall > 0 || next30.some((n) => n.snow > 0);
   const rainSoon = next30.some((n) => n.precip >= WET_MM);
+  // 4º sinal: a previsão da HORA atual diz chuva com alta chance (caso real de 27/09 em Malden:
+  // código atual "nublado", hora atual "garoa" com 95%).
+  const hourNow = data.hourly[0] || {};
+  const hourIcon = describe(hourNow.code).icon;
+  const hourSnow = hourIcon === 'snow' && (hourNow.pop ?? 0) >= 50;
+  const hourRain = RAIN_ICONS.includes(hourIcon) && (hourNow.pop ?? 0) >= 50;
+  const mmPerHour = Math.max(precipNow * 4, hourNow.precip ?? 0);
   const time = c.isDay ? 'day' : 'night';
 
   if (STORM_CODES.includes(c.code)) return { scene: 'storm', time, intensity: 'heavy', wet: true };
-  if (icon === 'snow' || snowNow) return { scene: 'snow', time, intensity: precipNow > 1 ? 'heavy' : 'normal', wet: true };
-  if (RAIN_ICONS.includes(icon) || precipNow >= WET_MM || rainSoon) {
-    // mm em 15 min → intensidade aproximada
-    const intensity = precipNow >= 1.5 || icon === 'heavy-rain' ? 'heavy'
-      : precipNow >= 0.4 || icon === 'rain' || icon === 'showers' ? 'normal' : 'light';
-    return { scene: 'rain', time, intensity, wet: true, byMeasure: !RAIN_ICONS.includes(icon) };
+  if (icon === 'snow' || snowNow || hourSnow) return { scene: 'snow', time, intensity: mmPerHour > 4 ? 'heavy' : 'normal', wet: true, byMeasure: icon !== 'snow', label: icon !== 'snow' ? 'Neve' : null };
+  if (RAIN_ICONS.includes(icon) || precipNow >= WET_MM || rainSoon || hourRain) {
+    // mm/h aproximado → intensidade
+    const heavy = mmPerHour >= 6 || icon === 'heavy-rain' || hourIcon === 'heavy-rain';
+    const normal = mmPerHour >= 1.5 || ['rain', 'showers'].includes(icon) || ['rain', 'showers'].includes(hourIcon);
+    const intensity = heavy ? 'heavy' : normal ? 'normal' : 'light';
+    const byMeasure = !RAIN_ICONS.includes(icon);
+    const label = !byMeasure ? null
+      : intensity === 'heavy' ? 'Chuva forte' : intensity === 'normal' ? 'Chuva'
+      : hourIcon === 'drizzle' ? 'Garoa' : 'Chuva fraca';
+    return { scene: 'rain', time, intensity, wet: true, byMeasure, label };
   }
   const scene = { clear: 'clear', 'mostly-clear': 'clear', partly: 'partly', cloudy: 'cloudy', fog: 'fog' }[icon] || 'cloudy';
   return { scene, time, intensity: 'normal', wet: false };

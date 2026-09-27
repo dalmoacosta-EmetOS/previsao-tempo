@@ -29,7 +29,7 @@ export function applyScene({ scene, time, intensity = 'normal' }) {
   const kind = scene === 'snow' ? 'flake' : (scene === 'rain' || scene === 'storm') ? 'drop' : null;
   if (!kind) return;
 
-  const factor = { light: 0.45, normal: 1, heavy: 1.8 }[intensity] || 1;
+  const factor = { light: 0.7, normal: 1.1, heavy: 1.8 }[intensity] || 1;
   const count = Math.round((kind === 'drop' ? (scene === 'storm' ? 110 : 80) : 60) * factor);
   const frag = document.createDocumentFragment();
   for (let i = 0; i < count; i++) {

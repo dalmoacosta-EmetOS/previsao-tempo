@@ -80,6 +80,7 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 
 **Contexto:** em 27/09, 08:47, chovia em Malden/Boston (Weather Channel e app Tempo do iPhone mostravam chuva), mas o site não mostrava chuva. A v1.0 decidia o cenário **só pelo código de tempo atual** (`weather_code`), que às vezes diz "nublado" enquanto o modelo já registra chuva.
 **Decisão:** o cenário passa a considerar três sinais: (1) código de tempo; (2) chuva medida pelo modelo nos últimos 15 min (`current.precipitation`); (3) chuva prevista para os próximos 30 min (`minutely_15`). A partir de 0,1 mm em 15 min, o céu chove. A intensidade (garoa / chuva / temporal) muda a quantidade e o tamanho das gotas.
+**Revisão 1.2 (09:00):** o 2º vídeo do Dalmo (site real em Malden) mostrou código atual = "nublado", mas a **hora atual** prevista como garoa com 95% de chance. Acrescentado 4º sinal: previsão da hora atual com chuva/neve e chance ≥ 50%. Número da versão no rodapé para saber qual versão o celular está exibindo (o GitHub Pages guarda cópia por até 10 min).
 **Extras:** frase de curtíssimo prazo ("Chuva deve parar em ~45 min" / "começar em ~15 min"), como no app do iPhone; atualização automática a cada 10 min.
 **Consequências:** + site condizente com o que a pessoa vê pela janela. − Dados de 15 em 15 min são medidos de fato só na América do Norte e Europa Central; no resto do mundo são interpolados (menos precisos).
 **Limite honesto:** o site mostra o que o **modelo** diz, não um radar. Se o modelo errar, o site erra junto.
