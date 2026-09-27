@@ -21,6 +21,7 @@ flowchart LR
     end
 
     SVC -->|busca cidade| GEO[Open-Meteo<br/>Geocoding API]
+    SVC -.->|nome da localização<br/>opcional| RG[BigDataCloud<br/>Reverse Geocoding]
     SVC -->|previsão| FC[Open-Meteo<br/>Forecast API]
     APP -->|posição| GPS[Geolocalização<br/>do navegador]
 
@@ -45,31 +46,32 @@ flowchart LR
 previsao-tempo/
 ├── index.html
 ├── css/
-│   └── styles.css
+│   └── styles.css          # visual + cenários do céu
 ├── js/
-│   ├── app.js
-│   ├── state.js
+│   ├── app.js              # controlador
+│   ├── state.js            # estado único
+│   ├── storage.js          # localStorage seguro (nunca quebra)
 │   ├── api/
-│   │   ├── geocoding.js
-│   │   └── forecast.js
+│   │   ├── http.js         # fetch com tempo-limite e erros classificados
+│   │   ├── geocoding.js    # busca de cidade + nome da localização
+│   │   └── forecast.js     # previsão + normalização
 │   ├── domain/
 │   │   ├── weather-codes.js
 │   │   ├── units.js
-│   │   └── alerts.js
+│   │   ├── time.js         # horários no fuso da cidade
+│   │   └── alerts.js       # risco de tempestade + avisos
 │   └── ui/
+│       ├── dom.js          # cria elementos com texto seguro
+│       ├── icons.js        # ícones SVG próprios
 │       ├── search.js
 │       ├── current.js
 │       ├── hourly.js
 │       ├── daily.js
+│       ├── details.js      # "Hoje em detalhe"
 │       ├── alerts.js
-│       ├── background.js
-│       └── status.js
-├── docs/
-│   ├── 01-requisitos.md
-│   ├── 02-arquitetura.md
-│   ├── 03-decisoes-adr.md
-│   ├── 04-plano-e-testes.md
-│   └── 05-diario-de-bordo.md
+│       ├── background.js   # céu animado + modo demo
+│       └── status.js       # erros e avisos rápidos
+├── docs/ (01 a 05)
 └── README.md
 ```
 
@@ -89,7 +91,8 @@ sequenceDiagram
     alt tem
         S-->>A: cidade (nome, lat, lon)
     else não tem
-        A-->>A: usa cidade padrão
+        A->>A: pede localização ao navegador
+        Note over A: negada ou > 8 s → Boston, MA (ADR-008)
     end
     A->>A: status = carregando (mostra skeleton)
     A->>F: GET /v1/forecast (lat, lon, 16 dias)

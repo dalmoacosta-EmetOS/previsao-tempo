@@ -1,0 +1,25 @@
+// Estado único da aplicação. A interface sempre se redesenha a partir dele.
+import { load } from './storage.js';
+
+const state = {
+  place: null,        // { name, region, country, lat, lon, isGeo }
+  data: null,         // previsão normalizada
+  unit: load('unit') || 'C',
+  days: 7,            // 7 ou 15
+  status: 'idle',     // 'idle' | 'loading' | 'ok' | 'error'
+  error: null,        // { kind, retry }
+  demo: null,         // cenário forçado via ?demo=
+};
+
+const listeners = new Set();
+
+export const getState = () => state;
+
+export function setState(patch) {
+  Object.assign(state, patch);
+  listeners.forEach((fn) => fn(state));
+}
+
+export function subscribe(fn) {
+  listeners.add(fn);
+}

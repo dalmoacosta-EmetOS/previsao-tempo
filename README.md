@@ -14,6 +14,9 @@ Busca de cidade com autocompletar, localização atual, clima agora, previsão p
 4. [Plano e testes](docs/04-plano-e-testes.md)
 5. [Diário de bordo](docs/05-diario-de-bordo.md)
 
+## Modo demonstração
+Acrescente `?demo=` ao endereço para forçar o céu: `sol`, `parcial`, `nublado`, `neblina`, `chuva`, `neve`, `tempestade`, `noite`.
+
 ## Stack
 HTML, CSS e JavaScript puro (módulos ES), sem build. Dados: [Open-Meteo](https://open-meteo.com) (uso não comercial). Hospedagem: GitHub Pages.
 

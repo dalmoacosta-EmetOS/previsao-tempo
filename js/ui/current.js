@@ -1,0 +1,46 @@
+import { el } from './dom.js';
+import { icon } from './icons.js';
+import { describe } from '../domain/weather-codes.js';
+import { temp, speed, percent, windDirection } from '../domain/units.js';
+import { hourLabel } from '../domain/time.js';
+
+export function renderCurrent(root, { place, data, unit }) {
+  const c = data.current;
+  const today = data.daily[0];
+  const info = describe(c.code);
+  const where = [place.region, place.country].filter(Boolean).join(', ');
+
+  root.replaceChildren(
+    el('div', { class: 'hero__place' }, [
+      el('h1', { class: 'hero__city', text: place.name }),
+      where && el('p', { class: 'hero__region', text: where }),
+      el('p', { class: 'hero__updated', text: `Atualizado às ${hourLabel(c.time)} · horário local (${data.timezoneAbbr || data.timezone})` }),
+    ]),
+    el('div', { class: 'hero__main' }, [
+      el('div', { class: 'hero__icon', html: icon(info.icon, c.isDay) }),
+      el('div', {}, [
+        el('div', { class: 'hero__temp', text: temp(c.temp, unit) }),
+        el('div', { class: 'hero__label', text: info.label }),
+      ]),
+    ]),
+    el('dl', { class: 'hero__facts' }, [
+      fact('Sensação', temp(c.feels, unit)),
+      fact('Máx / Mín', `${temp(today.max, unit)} / ${temp(today.min, unit)}`),
+      fact('Umidade', percent(c.humidity)),
+      fact('Vento', `${windDirection(c.windDir)} ${speed(c.wind, unit)}`.trim()),
+    ]),
+  );
+}
+
+function fact(label, value) {
+  return el('div', { class: 'fact' }, [el('dt', { text: label }), el('dd', { text: value })]);
+}
+
+export function renderHeroSkeleton(root) {
+  root.replaceChildren(
+    el('div', { class: 'skeleton skeleton--title' }),
+    el('div', { class: 'skeleton skeleton--line' }),
+    el('div', { class: 'skeleton skeleton--big' }),
+    el('div', { class: 'skeleton skeleton--line' }),
+  );
+}

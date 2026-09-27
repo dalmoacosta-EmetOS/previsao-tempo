@@ -38,7 +38,7 @@ Objetivo secundário (o mais importante para o treinamento): **registrar o proce
 
 | ID | Requisito | Observação |
 |----|-----------|------------|
-| RF-09 | Fundo que muda conforme o clima | Sol, nublado, chuva, neve, tempestade, noite |
+| RF-09 | Fundo que muda conforme o clima | Sol, nublado, chuva, neve, tempestade, noite — **promovido à v1.0 (ADR-009)** |
 | RF-10 | **Modo demonstração** do fundo | Seletor escondido (ou `?demo=chuva` na URL) para mostrar todos os fundos na apresentação, sem depender do clima real |
 | RF-11 | Gráfico de temperatura das próximas 24h | Linha com temperatura + barras de chance de chuva |
 | RF-12 | Detalhes do dia | Nascer/pôr do sol, índice UV máx, chance de chuva máx, neve prevista (cm) |
@@ -80,4 +80,5 @@ Verificado na documentação da Open-Meteo em 27/09/2026:
 
 - A apresentação será feita de um computador com internet.
 - Um link público é suficiente para demonstrar (não é necessário domínio próprio).
-- Cidade padrão ao abrir (sem permissão de localização e sem cidade salva): **a definir pelo Dalmo** — sugestão: Brasília.
+- Cidade padrão: **localização do usuário**; se não for possível, **Boston, MA** (decisão do Dalmo — ADR-008).
+- Visual: acompanha o clima do local; referência estética geral em portais de clima como o The Weather Channel (ADR-009).

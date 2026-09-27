@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Previsão do Tempo</title>
+  <meta name="description" content="Previsão do tempo: agora, por hora, 7 e 15 dias. Exercício construído 100% com IA.">
+  <meta name="theme-color" content="#0b2a55">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='26' cy='24' r='12' fill='%23FFC83D'/%3E%3Cpath d='M20 50h26a10 10 0 0 0 0-20 14 14 0 0 0-27-3A11 11 0 0 0 20 50z' fill='%23fff'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body data-scene="cloudy" data-time="day" class="is-booting">
+
+  <!-- Céu animado: muda conforme o clima da cidade -->
+  <div class="sky" aria-hidden="true">
+    <div class="sky__sun"></div>
+    <div class="sky__stars"></div>
+    <div class="sky__clouds"><span></span><span></span><span></span></div>
+    <div class="sky__fog"></div>
+    <div class="sky__precip" id="precip"></div>
+    <div class="sky__flash"></div>
+  </div>
+
+  <div class="progress" id="progress" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <div class="topbar__inner">
+      <a class="brand" href="./" aria-label="Previsão do Tempo — início">
+        <svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true"><circle cx="26" cy="24" r="12" fill="#FFC83D"/><path d="M20 50h26a10 10 0 0 0 0-20 14 14 0 0 0-27-3A11 11 0 0 0 20 50z" fill="#fff"/></svg>
+        <span>Previsão<span class="brand__light"> do Tempo</span></span>
+      </a>
+
+      <div class="search" id="search">
+        <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="search-input" type="search" autocomplete="off" spellcheck="false"
+               placeholder="Buscar cidade" aria-label="Buscar cidade"
+               role="combobox" aria-expanded="false" aria-controls="search-list" aria-autocomplete="list">
+        <ul class="search__list" id="search-list" role="listbox" hidden></ul>
+      </div>
+
+      <button class="icon-btn" id="locate-btn" type="button" title="Usar minha localização" aria-label="Usar minha localização">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="segmented" role="group" aria-label="Unidade de temperatura">
+        <button type="button" data-unit="C" aria-pressed="true">°C</button>
+        <button type="button" data-unit="F" aria-pressed="false">°F</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="layout" id="app">
+    <section class="hero" id="current" aria-live="polite"></section>
+    <div id="status"></div>
+    <section id="alerts" class="alerts" aria-label="Avisos"></section>
+    <section id="hourly" class="card card--wide" aria-label="Previsão por hora"></section>
+    <section id="daily" class="card" aria-label="Previsão diária"></section>
+    <section id="details" class="card" aria-label="Detalhes de hoje"></section>
+  </main>
+
+  <footer class="footer">
+    <p>Dados de previsão: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (uso não comercial) · Nome da localização: <a href="https://www.bigdatacloud.com/" target="_blank" rel="noopener">BigDataCloud</a></p>
+    <p>Exercício do Treinamento de IA · construído 100% com IA · <a href="https://github.com/dalmoacosta-EmetOS/previsao-tempo" target="_blank" rel="noopener">código e documentação</a></p>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <div class="demo-badge" id="demo-badge" hidden>DEMO</div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

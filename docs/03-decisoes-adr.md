@@ -21,7 +21,7 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Consequências:** + abre em qualquer navegador, deploy é só subir arquivos, código fácil de mostrar. − Menos pronto para crescer; se o projeto evoluir, migrar para framework (ver backlog).
 
 ## ADR-003 — Hospedagem: GitHub Pages
-**Status:** Proposta — **aguarda decisão do Dalmo**
+**Status:** Aceita · 27/09/2026 (repositório `dalmoacosta-EmetOS/previsao-tempo` criado pelo Dalmo)
 
 **Contexto:** precisa de link público, HTTPS (geolocalização exige) e custo zero.
 **Decisão proposta:** repositório público no GitHub do Dalmo + GitHub Pages.
@@ -53,3 +53,24 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Contexto:** na apresentação o clima real pode ser só "nublado", e ninguém veria os outros fundos.
 **Decisão:** parâmetro de URL `?demo=sol|nublado|chuva|neve|tempestade|noite` força o fundo, sem alterar os dados.
 **Consequências:** + apresentação previsível. − Precisa deixar claro na tela que é modo demo (selo "DEMO").
+
+## ADR-008 — Abertura: localização do usuário, com Boston como reserva
+**Status:** Aceita · 27/09/2026 · decisão do Dalmo
+
+**Contexto:** o Dalmo quer que o site abra na cidade de quem está usando. A localização depende de o navegador pedir permissão e de a pessoa aceitar.
+**Decisão:** ordem de abertura: (1) última cidade pesquisada, se houver; (2) localização do navegador; (3) **Boston, MA** se a localização for negada, indisponível ou demorar mais de 8 s — com aviso na tela.
+**Consequências:** + o site nunca abre vazio, inclusive na apresentação. − Quem nega a localização vê Boston primeiro e precisa buscar a cidade.
+
+## ADR-009 — Visual que acompanha o clima, inspirado em portais de clima
+**Status:** Aceita · 27/09/2026 · decisão do Dalmo
+
+**Contexto:** o Dalmo pediu um visual que acompanhe a previsão do local e citou o The Weather Channel **como referência**.
+**Decisão:** céu animado por cenário (sol, parcial, nublado, neblina, chuva, neve, tempestade × dia/noite) e cartões translúcidos sobre ele. Da referência vieram só o padrão geral: barra superior azul-escura, temperatura grande em destaque e faixa horizontal por hora. Sem logotipo, nome, cores exatas ou layout copiado. Ícones desenhados do zero.
+**Consequências:** RF-09 (fundo dinâmico) passou de "diferencial" para parte da identidade da versão 1.0. Animações respeitam a configuração "reduzir movimento" do sistema.
+
+## ADR-010 — Nome da cidade na localização: BigDataCloud
+**Status:** Aceita · 27/09/2026
+
+**Contexto:** a Open-Meteo não converte coordenadas em nome de cidade. Sem isso, a tela mostraria "Sua localização".
+**Decisão:** usar a API gratuita e sem chave da BigDataCloud (`reverse-geocode-client`), só para descobrir o nome. Se falhar, segue com "Sua localização".
+**Consequências:** + experiência melhor. − Mais um serviço externo (opcional, não bloqueia nada). Atribuição no rodapé.

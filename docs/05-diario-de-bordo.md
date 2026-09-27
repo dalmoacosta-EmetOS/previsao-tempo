@@ -8,6 +8,9 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 07:40 | Dalmo: colou o enunciado do Galeno para avaliação | Leitura: exercício é linha de base "antes/depois"; processo importa | Mudou a abordagem: Dalmo especifica, IA constrói | 5 min |
 | 27/09 07:50 | Dalmo: aprovou lista, acrescentou 15 dias, neve, tempestade, alertas, modo simulação; pediu arquitetura e documentação antes do código | Docs 01–05 | IA verificou a API: **não existe % de tempestade nem de neve, nem alertas oficiais** → decisões ADR-005/006 | — |
 | 27/09 08:03–08:15 | Dalmo: criar repositório no GitHub e conectar à IA | Passo a passo; 1ª tentativa de envio recusada (app do Claude não instalado) | Dalmo autorizou o app no GitHub → envio funcionou | 12 min |
+| 27/09 08:24 | Dalmo: cidade padrão = minha localização; visual que acompanha o clima, referência The Weather Channel | Registrou ADR-008/009; IA alertou que localização depende de permissão → cidade reserva | Dalmo definiu Boston como reserva | 5 min |
+| 27/09 08:26–08:45 | Construção da v1.0 (código completo) | 22 arquivos: API, domínio, interface, céu animado, modo demo | Ambiente da IA não acessa as APIs → testes com dados simulados no mesmo formato. 17/17 testes automáticos passaram | 20 min |
+| 27/09 08:45 | Revisão visual das capturas de tela | 3 defeitos que os testes automáticos **não** pegaram: espaço vazio no desktop, aviso cobrindo selo DEMO, quadro "Sensação máx." com dado errado | Corrigidos e retestados | 5 min |
 | | | | | |
 
 ## Lições (preencher ao final)
