@@ -1,9 +1,9 @@
-import { el } from './dom.js?v=1.7.1';
-import { icon } from './icons.js?v=1.7.1';
-import { describe } from '../domain/weather-codes.js?v=1.7.1';
-import { temp, speed, percent, windDirection } from '../domain/units.js?v=1.7.1';
-import { hourLabel } from '../domain/time.js?v=1.7.1';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=1.7.1';
+import { el } from './dom.js?v=1.8';
+import { icon } from './icons.js?v=1.8';
+import { describe } from '../domain/weather-codes.js?v=1.8';
+import { temp, speed, percent, windDirection } from '../domain/units.js?v=1.8';
+import { hourLabel } from '../domain/time.js?v=1.8';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=1.8';
 
 export function renderCurrent(root, { place, data, unit }) {
   const c = data.current;

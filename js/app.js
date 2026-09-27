@@ -1,20 +1,21 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=1.7.1';
-import { load, save } from './storage.js?v=1.7.1';
-import { getForecast } from './api/forecast.js?v=1.7.1';
-import { reverseGeocode } from './api/geocoding.js?v=1.7.1';
-import { resolveWeatherNow } from './domain/scene.js?v=1.7.1';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=1.7.1';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=1.7.1';
-import { renderHourly } from './ui/hourly.js?v=1.7.1';
-import { renderDaily } from './ui/daily.js?v=1.7.1';
-import { renderDetails } from './ui/details.js?v=1.7.1';
-import { renderAlerts } from './ui/alerts.js?v=1.7.1';
-import { renderError, showToast } from './ui/status.js?v=1.7.1';
-import { setupSearch } from './ui/search.js?v=1.7.1';
-import { mountRadar, updateRadar } from './ui/radar.js?v=1.7.1';
+import { getState, setState, subscribe } from './state.js?v=1.8';
+import { load, save } from './storage.js?v=1.8';
+import { getForecast } from './api/forecast.js?v=1.8';
+import { reverseGeocode } from './api/geocoding.js?v=1.8';
+import { resolveWeatherNow } from './domain/scene.js?v=1.8';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=1.8';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=1.8';
+import { renderHourly } from './ui/hourly.js?v=1.8';
+import { renderDaily } from './ui/daily.js?v=1.8';
+import { renderDetails } from './ui/details.js?v=1.8';
+import { renderAlerts } from './ui/alerts.js?v=1.8';
+import { renderError, showToast } from './ui/status.js?v=1.8';
+import { setupSearch } from './ui/search.js?v=1.8';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=1.8';
+import { mountRadar, updateRadar } from './ui/radar.js?v=1.8';
 
-export const VERSION = '1.7.1';
+export const VERSION = '1.8';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
@@ -44,6 +45,7 @@ function render(state) {
 
   applyScene(state.demo || resolveWeatherNow(state.data));
   renderCurrent(sections.current, state);
+  renderCityBar(state);
   renderAlerts(sections.alerts, state);
   const onTempMode = (tempMode) => { save('tempMode', tempMode); setState({ tempMode }); };
   renderHourly(sections.hourly, state, onTempMode);
@@ -104,6 +106,7 @@ function locate({ auto = false } = {}) {
 function init() {
   subscribe(render);
   mountRadar(document.getElementById('radar'));
+  setupScrollHelpers();
   $('version').textContent = `versão ${VERSION}`;
 
   // Modo demonstração: ?demo=chuva | neve | tempestade | noite | sol | nublado | neblina | parcial

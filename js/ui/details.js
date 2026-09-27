@@ -1,7 +1,7 @@
-import { el } from './dom.js?v=1.7.1';
-import { speed, percent, snow, uvLevel } from '../domain/units.js?v=1.7.1';
-import { hourLabel } from '../domain/time.js?v=1.7.1';
-import { todayStormRisk } from '../domain/alerts.js?v=1.7.1';
+import { el } from './dom.js?v=1.8';
+import { speed, percent, snow, uvLevel } from '../domain/units.js?v=1.8';
+import { hourLabel } from '../domain/time.js?v=1.8';
+import { todayStormRisk } from '../domain/alerts.js?v=1.8';
 
 const RISK_TEXT = { alto: 'Alto', moderado: 'Moderado', baixo: 'Baixo' };
 

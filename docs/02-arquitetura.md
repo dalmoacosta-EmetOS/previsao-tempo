@@ -75,6 +75,8 @@ previsao-tempo/
 │       ├── details.js      # "Hoje em detalhe"
 │       ├── alerts.js
 │       ├── background.js   # céu animado + modo demo
+│       ├── navigation.js   # boas-vindas, barra fixa da cidade, voltar ao topo
+│       ├── temp-tabs.js    # abas Temperatura | Sensação
 │       ├── radar.js        # mapa, linha do tempo −2 h → +24 h (ADR-012/013)
 │       └── status.js       # erros e avisos rápidos
 ├── docs/ (01 a 05)

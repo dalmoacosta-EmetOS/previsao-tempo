@@ -1,6 +1,6 @@
 // Busca com autocompletar (RF-01): espera 300 ms, mínimo 2 letras, teclado acessível.
-import { el } from './dom.js?v=1.7.1';
-import { searchCities } from '../api/geocoding.js?v=1.7.1';
+import { el } from './dom.js?v=1.8';
+import { searchCities } from '../api/geocoding.js?v=1.8';
 
 export function setupSearch({ input, list, onSelect }) {
   let timer;
@@ -44,7 +44,9 @@ export function setupSearch({ input, list, onSelect }) {
         id: `opt-${i}`,
         role: 'option',
         'aria-selected': 'false',
-        onmousedown: (e) => { e.preventDefault(); choose(i); },
+        // pointerdown responde ao toque NA HORA (o antigo mousedown chegava atrasado no iPhone);
+        // preventDefault evita que o campo perca o foco antes da escolha.
+        onpointerdown: (e) => { e.preventDefault(); choose(i); },
       }, [
         el('strong', { text: r.name }),
         el('span', { text: [r.region, r.country].filter(Boolean).join(', ') }),
@@ -84,5 +86,5 @@ export function setupSearch({ input, list, onSelect }) {
     else if (e.key === 'Escape') close();
   });
 
-  input.addEventListener('blur', () => setTimeout(close, 150));
+  input.addEventListener('blur', () => setTimeout(close, 250));
 }

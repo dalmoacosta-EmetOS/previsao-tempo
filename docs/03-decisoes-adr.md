@@ -136,3 +136,11 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Contexto:** o rodapé mostrava 1.7, mas o celular usava **cópias antigas** de arquivos internos (ex.: `hourly.js`) guardadas em cache — só o arquivo principal tinha `?v=`. Resultado: versão "nova" com peças velhas.
 **Decisão:** script `tools/versao.sh X.Y.Z` carimba `?v=X.Y.Z` em **todos** os `import`, no `index.html` e no rodapé. Toda publicação passa por ele.
 **Lição:** "a versão no rodapé" só é confiável se todos os arquivos mudarem de endereço juntos.
+
+## ADR-017 — Toque imediato na busca, boas-vindas e navegação
+**Status:** Aceita · 27/09/2026 · pedidos do Dalmo (11:22)
+
+- **Defeito corrigido:** no iPhone, tocar na cidade sugerida só funcionava "depois de alguns segundos". A lista reagia a `mousedown`, que no celular chega atrasado após o toque. Trocado por `pointerdown` (responde ao toque na hora) — teste mede < 1,5 s.
+- **Boas-vindas** no topo: saudação pelo horário ("Bom dia! Seja bem-vindo.") + razão de ser: *"A previsão do tempo clara e confiável, para você se manter bem informado e planejar o seu dia com tranquilidade."* (a partir do texto do Dalmo).
+- **Barra fixa da cidade:** ao rolar, cidade + ícone + temperatura + condição ficam presos no topo. Tocar nela volta ao topo.
+- **Voltar ao topo:** botão com seta no fim da página.
