@@ -1,9 +1,9 @@
-import { el } from './dom.js?v=1.9';
-import { icon } from './icons.js?v=1.9';
-import { describe } from '../domain/weather-codes.js?v=1.9';
-import { temp, speed, percent, windDirection } from '../domain/units.js?v=1.9';
-import { hourLabel } from '../domain/time.js?v=1.9';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=1.9';
+import { el, fill } from './dom.js?v=2.0';
+import { icon } from './icons.js?v=2.0';
+import { describe } from '../domain/weather-codes.js?v=2.0';
+import { temp, speed, percent, windDirection } from '../domain/units.js?v=2.0';
+import { hourLabel } from '../domain/time.js?v=2.0';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=2.0';
 
 export function renderCurrent(root, { place, data, unit }) {
   const c = data.current;
@@ -19,7 +19,7 @@ export function renderCurrent(root, { place, data, unit }) {
   const nowcast = nowcastText(data);
   const where = [place.region, place.country].filter(Boolean).join(', ');
 
-  root.replaceChildren(
+  fill(root,
     el('div', { class: 'hero__place' }, [
       el('h1', { class: 'hero__city', text: place.name }),
       where && el('p', { class: 'hero__region', text: where }),
@@ -47,7 +47,7 @@ function fact(label, value) {
 }
 
 export function renderHeroSkeleton(root) {
-  root.replaceChildren(
+  fill(root,
     el('div', { class: 'skeleton skeleton--title' }),
     el('div', { class: 'skeleton skeleton--line' }),
     el('div', { class: 'skeleton skeleton--big' }),

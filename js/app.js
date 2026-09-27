@@ -1,21 +1,22 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=1.9';
-import { load, save } from './storage.js?v=1.9';
-import { getForecast } from './api/forecast.js?v=1.9';
-import { reverseGeocode } from './api/geocoding.js?v=1.9';
-import { resolveWeatherNow } from './domain/scene.js?v=1.9';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=1.9';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=1.9';
-import { renderHourly } from './ui/hourly.js?v=1.9';
-import { renderDaily } from './ui/daily.js?v=1.9';
-import { renderDetails } from './ui/details.js?v=1.9';
-import { renderAlerts } from './ui/alerts.js?v=1.9';
-import { renderError, showToast } from './ui/status.js?v=1.9';
-import { setupSearch } from './ui/search.js?v=1.9';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=1.9';
-import { mountRadar, updateRadar } from './ui/radar.js?v=1.9';
+import { getState, setState, subscribe } from './state.js?v=2.0';
+import { load, save } from './storage.js?v=2.0';
+import { getOfficialAlerts } from './api/official-alerts.js?v=2.0';
+import { getForecast } from './api/forecast.js?v=2.0';
+import { reverseGeocode } from './api/geocoding.js?v=2.0';
+import { resolveWeatherNow } from './domain/scene.js?v=2.0';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=2.0';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=2.0';
+import { renderHourly } from './ui/hourly.js?v=2.0';
+import { renderDaily } from './ui/daily.js?v=2.0';
+import { renderDetails } from './ui/details.js?v=2.0';
+import { renderAlerts } from './ui/alerts.js?v=2.0';
+import { renderError, showToast } from './ui/status.js?v=2.0';
+import { setupSearch } from './ui/search.js?v=2.0';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=2.0';
+import { mountRadar, updateRadar } from './ui/radar.js?v=2.0';
 
-export const VERSION = '1.9';
+export const VERSION = '2.0';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
@@ -48,8 +49,9 @@ function render(state) {
   renderCityBar(state);
   renderAlerts(sections.alerts, state);
   const onTempMode = (tempMode) => { save('tempMode', tempMode); setState({ tempMode }); };
-  renderHourly(sections.hourly, state, onTempMode);
-  renderDaily(sections.daily, state, (days) => setState({ days }), onTempMode);
+  renderHourly(sections.hourly, state, onTempMode, (hourSel) => setState({ hourSel }));
+  renderDaily(sections.daily, state, (days) => setState({ days }), onTempMode,
+    (daySel) => setState({ daySel, dayPart: 'day' }), (dayPart) => setState({ dayPart }));
   renderDetails(sections.details, state);
   updateRadar(state);
 }
@@ -59,7 +61,12 @@ async function loadPlace(place, { remember = true } = {}) {
   setState({ status: 'loading', error: null, place: getState().data ? getState().place : place });
   try {
     const data = await getForecast(place.lat, place.lon);
-    setState({ place, data, status: 'ok' });
+    const samePlace = getState().place && getState().place.lat === place.lat && getState().place.lon === place.lon;
+    setState({ place, data, status: 'ok', ...(samePlace ? {} : { hourSel: null, daySel: null, official: [] }) });
+    // Alertas oficiais em paralelo; se falharem, o site segue (ADR-020)
+    getOfficialAlerts(place.lat, place.lon)
+      .then((official) => { if (getState().place === place || getState().place?.lat === place.lat) setState({ official }); })
+      .catch(() => {});
     if (remember && !place.isGeo) save('place', place);
     document.title = `${place.name} · Previsão do Tempo`;
   } catch (err) {

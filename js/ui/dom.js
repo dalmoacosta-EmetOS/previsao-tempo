@@ -15,3 +15,8 @@ export function el(tag, attrs = {}, children = []) {
   }
   return node;
 }
+
+/** Substitui o conteúdo ignorando itens vazios (null/false) — evita aparecer "false" na tela. */
+export function fill(root, ...children) {
+  root.replaceChildren(...children.flat().filter((c) => c != null && c !== false && c !== ''));
+}

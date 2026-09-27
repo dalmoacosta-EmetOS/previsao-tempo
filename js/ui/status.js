@@ -1,4 +1,4 @@
-import { el } from './dom.js?v=1.9';
+import { el, fill } from './dom.js?v=2.0';
 
 const MESSAGES = {
   offline: ['Sem conexão', 'Verifique sua internet e tente de novo.'],
@@ -13,7 +13,7 @@ export function renderError(root, error) {
     return;
   }
   const [title, text] = MESSAGES[error.kind] || MESSAGES.network;
-  root.replaceChildren(
+  fill(root,
     el('div', { class: 'card error', role: 'alert' }, [
       el('strong', { text: title }),
       el('p', { text }),

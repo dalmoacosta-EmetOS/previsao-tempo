@@ -3,12 +3,12 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el } from './dom.js?v=1.9';
-import { getRadarFrames } from '../api/radar.js?v=1.9';
-import { getPrecipGrid } from '../api/precip-grid.js?v=1.9';
-import { speed, windDirection } from '../domain/units.js?v=1.9';
-import { showToast } from './status.js?v=1.9';
-import { load, save } from '../storage.js?v=1.9';
+import { el, fill } from './dom.js?v=2.0';
+import { getRadarFrames } from '../api/radar.js?v=2.0';
+import { getPrecipGrid } from '../api/precip-grid.js?v=2.0';
+import { speed, windDirection } from '../domain/units.js?v=2.0';
+import { showToast } from './status.js?v=2.0';
+import { load, save } from '../storage.js?v=2.0';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -63,7 +63,7 @@ export function mountRadar(container) {
   windEl = el('span', { class: 'radar__wind' });
   modelNote = el('p', { class: 'radar__warn', hidden: true, text: 'Previsão do modelo: áreas aproximadas (cada quadradinho ≈ 30–50 km). Não é radar.' });
 
-  root.replaceChildren(
+  fill(root,
     el('header', { class: 'card__head' }, [
       el('h2', { text: 'Radar de chuva' }),
       styleBox,

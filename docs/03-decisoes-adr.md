@@ -155,3 +155,20 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - **Faltava legenda** → legenda com Fraca / Moderada / Forte / Muito forte / Neve, nas cores que o público conhece (verde → amarelo → vermelho; neve em azul). Limites usuais de intensidade: 2,5 · 7,6 · 15 mm/h. A escala anterior pintava chuva moderada (4 mm/h) de amarelo e 16 mm/h de vermelho — exagerava a intensidade.
 - Radar tenta o esquema de cores 4 (estilo Weather Channel) da RainViewer; se o serviço gratuito recusar, volta sozinho ao esquema 2.
 - **Mancha centrada em Boston em +13 h e +20 h** (o Weather Channel mostrava chuva espalhada): teste com chuva uniforme simulada saiu uniforme → o desenho está certo; a mancha veio dos **dados**. Hipóteses: tempestade estacionária real ou diferença entre modelos. **Não confirmado.** Criado `?debug=grade`, que escreve no mapa o valor previsto (mm/h) em cada ponto, para conferir com dado real.
+
+## ADR-019 — Detalhe da hora e resumo Dia/Noite
+**Status:** Aceita · 27/09/2026 · pedido do Dalmo (referência: Weather Channel)
+
+- **Tocar numa hora** abre o detalhe: chance e quantidade de chuva, vento (com seta), rajadas, umidade, nuvens, índice UV e visibilidade. Tocar de novo (ou no ×) fecha.
+- **Tocar num dia** abre as abas **Dia (06–18 h) | Noite (18–06 h)** com um resumo escrito: condição dominante (e mudança "no início… depois…"), máxima/mínima, vento com direção média e faixa de velocidade, rajadas fortes, chance de chuva e acumulado.
+- **Honestidade:** no Weather Channel esses textos são de meteorologistas; os nossos são **gerados automaticamente** a partir dos números da previsão — e dizem isso na tela.
+- A API passou a trazer, por hora: umidade, vento, direção, rajadas, nuvens, UV, visibilidade e neve (mesma chamada única — ADR-004).
+- **Defeito achado na revisão visual:** aparecia "false" solto na tela quando um item opcional não existia. Criado `fill()` em `ui/dom.js`, que ignora itens vazios; teste automático procura "false" na página.
+
+## ADR-020 — Alertas oficiais (NWS, só EUA)
+**Status:** Aceita · 27/09/2026 · pedido do Dalmo ("alerta de enchente, como no Weather Channel")
+
+**Decisão:** para cidades dentro dos EUA, buscar os alertas ativos do **National Weather Service** (`api.weather.gov/alerts/active?point=…`, grátis, sem chave). Exibir antes dos avisos automáticos, com selo **OFICIAL**, título em português (tabela com ~40 tipos de alerta), validade no horário da cidade e o **texto original em inglês** ao tocar.
+**Fora dos EUA:** nenhuma chamada; ficam só os avisos automáticos (ADR-005). Não há serviço equivalente gratuito e simples para o Brasil.
+**Isolamento:** a busca roda em paralelo à previsão; se falhar, o site segue sem ela.
+**Limite:** tradução só do título; o corpo do alerta fica em inglês (traduzir texto oficial automaticamente poderia distorcer instruções de segurança).

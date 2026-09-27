@@ -1,7 +1,7 @@
-import { el } from './dom.js?v=1.9';
-import { speed, percent, snow, uvLevel } from '../domain/units.js?v=1.9';
-import { hourLabel } from '../domain/time.js?v=1.9';
-import { todayStormRisk } from '../domain/alerts.js?v=1.9';
+import { el, fill } from './dom.js?v=2.0';
+import { speed, percent, snow, uvLevel } from '../domain/units.js?v=2.0';
+import { hourLabel } from '../domain/time.js?v=2.0';
+import { todayStormRisk } from '../domain/alerts.js?v=2.0';
 
 const RISK_TEXT = { alto: 'Alto', moderado: 'Moderado', baixo: 'Baixo' };
 
@@ -9,7 +9,7 @@ export function renderDetails(root, { data, unit }) {
   const d = data.daily[0];
   const risk = todayStormRisk(data);
 
-  root.replaceChildren(
+  fill(root,
     el('header', { class: 'card__head' }, [el('h2', { text: 'Hoje em detalhe' })]),
     el('dl', { class: 'tiles' }, [
       tile('Nascer do sol', d.sunrise ? hourLabel(d.sunrise) : '--'),

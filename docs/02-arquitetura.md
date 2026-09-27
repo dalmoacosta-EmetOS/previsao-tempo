@@ -24,6 +24,7 @@ flowchart LR
     SVC -.->|nome da localização<br/>opcional| RG[BigDataCloud<br/>Reverse Geocoding]
     SVC -->|previsão| FC[Open-Meteo<br/>Forecast API]
     SVC -.->|radar 2 h| RV[RainViewer<br/>radar]
+    SVC -.->|alertas oficiais<br/>só EUA| NWS[National Weather Service]
     SVC -.->|grade 169 pontos<br/>24 h| FC
     APP -->|posição| GPS[Geolocalização<br/>do navegador]
 
@@ -57,6 +58,7 @@ previsao-tempo/
 │   │   ├── http.js         # fetch com tempo-limite e erros classificados
 │   │   ├── geocoding.js    # busca de cidade + nome da localização
 │   │   ├── forecast.js     # previsão + normalização
+│   │   ├── official-alerts.js # alertas oficiais NWS (EUA) — ADR-020
 │   │   ├── radar.js        # quadros do radar (RainViewer)
 │   │   └── precip-grid.js  # grade 13×13 de chuva prevista (ADR-013)
 │   ├── domain/
@@ -64,6 +66,7 @@ previsao-tempo/
 │   │   ├── units.js
 │   │   ├── time.js         # horários no fuso da cidade
 │   │   ├── scene.js        # o que o céu mostra agora (ADR-011)
+│   │   ├── summary.js      # resumo escrito Dia/Noite (ADR-019)
 │   │   └── alerts.js       # risco de tempestade + avisos
 │   └── ui/
 │       ├── dom.js          # cria elementos com texto seguro

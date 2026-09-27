@@ -1,10 +1,11 @@
-import { getJSON } from './http.js?v=1.9';
+import { getJSON } from './http.js?v=2.0';
 
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 
 const CURRENT = 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,is_day,precipitation,rain,showers,snowfall';
 const MINUTELY = 'precipitation,snowfall';
-const HOURLY = 'temperature_2m,apparent_temperature,precipitation_probability,precipitation,weather_code,is_day,cape';
+const HOURLY = 'temperature_2m,apparent_temperature,precipitation_probability,precipitation,snowfall,weather_code,is_day,cape,'
+  + 'relative_humidity_2m,wind_speed_10m,wind_direction_10m,wind_gusts_10m,cloud_cover,uv_index,visibility';
 const DAILY = 'weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_probability_max,snowfall_sum,uv_index_max,sunrise,sunset,wind_speed_10m_max,wind_gusts_10m_max';
 
 /**
@@ -49,19 +50,27 @@ export function normalize(raw) {
   const nowHour = c.time.slice(0, 13) + ':00';
   let start = h.time.findIndex((t) => t >= nowHour);
   if (start < 0) start = 0;
-  const hourly = [];
-  for (let i = start; i < Math.min(start + 24, h.time.length); i++) {
-    hourly.push({
-      time: h.time[i],
-      temp: h.temperature_2m[i],
-      feels: h.apparent_temperature?.[i] ?? null,
-      pop: h.precipitation_probability?.[i] ?? null,
-      precip: h.precipitation?.[i] ?? 0,
-      code: h.weather_code[i],
-      isDay: h.is_day[i] === 1,
-      cape: h.cape?.[i] ?? null,
-    });
-  }
+  // Todas as horas dos 16 dias (usadas nos resumos Dia/Noite — ADR-019)…
+  const hours = h.time.map((time, i) => ({
+    time,
+    temp: h.temperature_2m[i],
+    feels: h.apparent_temperature?.[i] ?? null,
+    pop: h.precipitation_probability?.[i] ?? null,
+    precip: h.precipitation?.[i] ?? 0,
+    snow: h.snowfall?.[i] ?? 0,
+    code: h.weather_code[i],
+    isDay: h.is_day[i] === 1,
+    cape: h.cape?.[i] ?? null,
+    humidity: h.relative_humidity_2m?.[i] ?? null,
+    wind: h.wind_speed_10m?.[i] ?? null,
+    windDir: h.wind_direction_10m?.[i] ?? null,
+    gust: h.wind_gusts_10m?.[i] ?? null,
+    cloud: h.cloud_cover?.[i] ?? null,
+    uv: h.uv_index?.[i] ?? null,
+    visibility: h.visibility?.[i] ?? null,
+  }));
+  // …e as próximas 24 h a partir de agora.
+  const hourly = hours.slice(start, start + 24);
 
   const daily = d.time.map((date, i) => ({
     date,
@@ -84,6 +93,7 @@ export function normalize(raw) {
     timezoneAbbr: raw.timezone_abbreviation,
     current,
     nowcast,
+    hours,
     hourly,
     daily,
   };

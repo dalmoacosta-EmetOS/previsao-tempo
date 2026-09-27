@@ -22,6 +22,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 11:05–11:10 | Dalmo: "estou na 1.7 e não acho o botão" | Simulação no celular mostrava o botão → causa: cache misturando arquivos novos e velhos (só o principal tinha versão) → ADR-016 | v1.7.1: versão em todos os arquivos + script `tools/versao.sh`. 51/51 testes | 5 min |
 | 27/09 11:22–11:30 | Dalmo: toque na cidade demora; boas-vindas; cidade fixa ao rolar; seta para o topo | Causa do atraso: evento de mouse no celular → ADR-017 | v1.8. 57/57 testes (inclui tempo de resposta do toque) | 8 min |
 | 27/09 11:29–11:45 | Dalmo testou a v1.8 real em Boston com prints e comparou com o Weather Channel | ✅ **Céu chovendo confirmado com dado real** (pendente desde a v1.2). Problemas: animação lenta, "play" no mapa (era a seta do vento), sem legenda, mancha centrada em Boston | v1.9: legenda padrão verde→vermelho, 350 ms, seta do vento na legenda, `?debug=grade` para investigar a mancha. 59/59 testes | 16 min |
+| 27/09 13:53–14:20 | Dalmo: "quero um pouco mais" — detalhe ao tocar na hora, Dia/Noite ao tocar no dia, alerta de enchente (prints do Weather Channel) | IA avisou: alertas oficiais só existem para os EUA; resumos serão automáticos, não de meteorologista → ADR-019/020 | v2.0. Revisão visual pegou "false" solto na tela → corrigido + teste. 68/68 testes | 27 min |
 | | | | | |
 
 ## Lições (preencher ao final)

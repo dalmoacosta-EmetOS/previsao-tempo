@@ -799,3 +799,77 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding: 8px 16px; }
   font: 700 10px/16px system-ui, sans-serif; text-align: center;
   color: #000; background: rgba(255,255,255,.85); border-radius: 4px;
 }
+
+/* ---------------- Detalhe da hora e Dia/Noite (ADR-019) ---------------- */
+.hour { padding: 0; }
+.hour__btn {
+  width: 100%;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 4px;
+  border: 0; border-radius: 12px;
+  background: transparent;
+  color: inherit; font: inherit;
+}
+.hour:first-child .hour__btn { background: rgba(255, 255, 255, 0.12); }
+.hour.is-open .hour__btn { background: #fff; color: var(--bar); }
+.hour.is-open .hour__pop, .hour.is-open .hour__time { color: var(--bar); }
+.hour:first-child { background: none; }
+.card__hint--tip { margin: 6px 0 0; font-size: 0.75rem; }
+
+.detail {
+  margin-top: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+}
+.detail__head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.detail__head > div { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.detail__head span { color: var(--text-soft); font-size: 0.85rem; }
+.detail__icon .wx-icon { width: 40px; height: 40px; display: block; }
+.detail__close {
+  flex: none; width: 34px; height: 34px;
+  border: 0; border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15); color: #fff;
+  font-size: 1.3rem; line-height: 1;
+}
+@media (min-width: 700px) { .tiles--4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+.day { cursor: pointer; border-radius: 10px; }
+.day:hover { background: rgba(255, 255, 255, 0.05); }
+.day.is-open { background: rgba(255, 255, 255, 0.1); }
+.day-panel {
+  padding: 10px 12px 12px;
+  margin: 0 0 6px;
+  border-radius: 0 0 12px 12px;
+  background: rgba(255, 255, 255, 0.1);
+}
+.day-panel__text { margin: 10px 0 6px; line-height: 1.5; }
+.day-panel__icon .wx-icon { width: 34px; height: 34px; float: left; margin: 0 8px 0 0; }
+.day-panel small { color: var(--text-faint); font-size: 0.7rem; }
+.segmented button:disabled { opacity: 0.4; }
+
+/* ---------------- Alertas oficiais (ADR-020) ---------------- */
+.alert--official { padding: 0; }
+.alert--official summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;
+  padding: 12px 14px 12px 16px;
+}
+.alert--official summary::-webkit-details-marker { display: none; }
+.alert--official summary small { flex-basis: 100%; }
+.alert__badge {
+  padding: 2px 7px; border-radius: 999px;
+  background: var(--danger); color: #fff;
+  font-size: 0.65rem; font-weight: 800; letter-spacing: 0.06em;
+}
+.alert--warning .alert__badge { background: var(--warning); color: #10223d; }
+.alert--info .alert__badge { background: var(--info); color: #10223d; }
+.alert__orig { color: var(--text-faint); font-size: 0.8rem; }
+.alert__when { color: var(--text); font-size: 0.85rem; font-weight: 600; }
+.alert__body { padding: 0 16px 14px; font-size: 0.85rem; color: var(--text-soft); white-space: pre-line; }
+.alert__note { margin: 0 0 6px; font-size: 0.72rem; color: var(--text-faint); text-transform: uppercase; letter-spacing: 0.05em; }
+.alert__headline { margin: 0 0 8px; font-weight: 700; color: var(--text); }
+.alert__desc { margin: 0 0 8px; }
+.alert__area { margin: 0; font-size: 0.75rem; color: var(--text-faint); }

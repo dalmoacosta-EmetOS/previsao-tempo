@@ -48,6 +48,5 @@ Regra: **segunda-feira às 15h, congela.** O que não estiver pronto vira backlo
 | Item | Por que ficou para depois |
 |---|---|
 | Idioma PT/EN com botão próprio (ADR-015) | ~100 textos; risco na véspera |
-| Alertas oficiais do NWS para cidades dos EUA | Nova fonte de dados; decidir depois da apresentação |
 | Teste automático no repositório (hoje roda no ambiente da IA) | Organização do projeto |
 | Limitar o acesso do app do Claude no GitHub só a este repositório | Segurança da conta |

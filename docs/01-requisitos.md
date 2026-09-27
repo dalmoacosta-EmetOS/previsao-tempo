@@ -48,11 +48,13 @@ Objetivo secundário (o mais importante para o treinamento): **registrar o proce
 | RF-17 | "Radar futuro": chuva/neve prevista no mapa, próximas 24 h | Pedido do Dalmo — ADR-013 |
 | RF-18 | Mapa navegável (mundo → cidade) com nomes e botões casa/minha localização | Pedido do Dalmo — ADR-014 |
 | RF-19 | Boas-vindas, cidade fixa ao rolar e voltar ao topo | Pedido do Dalmo — ADR-017 |
+| RF-20 | Detalhe ao tocar na hora; resumo Dia/Noite ao tocar no dia | Pedido do Dalmo — ADR-019 |
+| RF-21 | Alertas oficiais do NWS (cidades dos EUA) | Pedido do Dalmo — ADR-020 |
 | RF-15 | Lembrar última cidade | Salva no navegador; ao abrir, já carrega essa cidade |
 
 ### WON'T (fora desta versão)
 
-- Alertas **oficiais** da Defesa Civil / INMET / NWS (ver seção 4)
+- Alertas oficiais da Defesa Civil / INMET (Brasil) — sem API simples e gratuita. *(NWS dos EUA entrou na v2.0 — ADR-020)*
 - Login, contas, backend próprio
 - Notificações push
 - App instalável (PWA)
