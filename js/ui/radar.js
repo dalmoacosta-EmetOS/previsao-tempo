@@ -8,10 +8,11 @@ import { getRadarFrames } from '../api/radar.js';
 import { getPrecipGrid } from '../api/precip-grid.js';
 import { speed, windDirection } from '../domain/units.js';
 import { showToast } from './status.js';
+import { load, save } from '../storage.js';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-// OpenStreetMap: grátis, sem chave (atribuição obrigatória). Escurecido por CSS (.base-tiles).
+// OpenStreetMap: grátis, sem chave (atribuição obrigatória). Claro por padrão; "Escuro" aplica filtro CSS.
 // Obs.: o CARTO passou a exigir chave — descoberto no teste real de 27/09 (ADR-012).
 const BASE_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const RADAR_MAX_ZOOM = 7;   // limite do serviço gratuito
@@ -27,6 +28,8 @@ const STOPS = [
   [4, [255, 225, 77]], [8, [255, 154, 31]], [16, [255, 59, 48]],
 ];
 
+let mapStyle = load('mapStyle') || 'light'; // 'light' | 'dark' (ADR-015)
+let styleBox;
 let root, mapBox, statusEl, timeEl, kindEl, slider, playBtn, windEl, modelNote;
 let L, map, marker, meMarker, modelOverlay;
 let centeredKey = ''; // só recentraliza quando a CIDADE muda (não a cada atualização da tela)
@@ -39,7 +42,12 @@ let pending = null;
 
 export function mountRadar(container) {
   root = container;
-  mapBox = el('div', { class: 'radar__map', role: 'img', 'aria-label': 'Mapa do radar de chuva' });
+  mapBox = el('div', { class: `radar__map radar__map--${mapStyle}`, role: 'img', 'aria-label': 'Mapa do radar de chuva' });
+  styleBox = el('div', { class: 'segmented segmented--small', role: 'group', 'aria-label': 'Estilo do mapa' },
+    [['light', 'Claro'], ['dark', 'Escuro']].map(([key, text]) => el('button', {
+      type: 'button', 'aria-pressed': String(mapStyle === key), text,
+      onclick: () => setMapStyle(key),
+    })));
   statusEl = el('div', { class: 'radar__status', text: 'Carregando radar…' });
   kindEl = el('span', { class: 'radar__kind' });
   playBtn = el('button', { class: 'radar__play', type: 'button', 'aria-label': 'Reproduzir animação', text: '▶', onclick: togglePlay });
@@ -51,8 +59,9 @@ export function mountRadar(container) {
   root.replaceChildren(
     el('header', { class: 'card__head' }, [
       el('h2', { text: 'Radar de chuva' }),
-      el('span', { class: 'card__hint', text: 'agora → próximas 24 h' }),
+      styleBox,
     ]),
+    el('p', { class: 'card__hint card__hint--line', text: 'Agora → próximas 24 h' }),
     el('div', { class: 'radar__wrap' }, [mapBox, kindEl, statusEl]),
     el('div', { class: 'radar__controls' }, [playBtn, slider, timeEl]),
     el('div', { class: 'radar__marks', 'aria-hidden': 'true' }, [
@@ -323,6 +332,14 @@ function applyPlace() {
   const icon = L.divIcon({ className: '', html, iconSize: [64, 64], iconAnchor: [32, 32] });
   if (marker) marker.setLatLng(ll).setIcon(icon);
   else marker = L.marker(ll, { icon, keyboard: false, interactive: false }).addTo(map);
+}
+
+function setMapStyle(key) {
+  mapStyle = key;
+  save('mapStyle', key);
+  mapBox.classList.toggle('radar__map--dark', key === 'dark');
+  mapBox.classList.toggle('radar__map--light', key === 'light');
+  styleBox.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', String(['light', 'dark'][i] === key)));
 }
 
 // Botões "voltar para a cidade" e "minha localização", abaixo do + / −.

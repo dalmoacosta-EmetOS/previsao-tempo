@@ -3,11 +3,15 @@ import { icon } from './icons.js';
 import { describe } from '../domain/weather-codes.js';
 import { temp, percent } from '../domain/units.js';
 import { dayLabel, dayMonth } from '../domain/time.js';
+import { tempTabs, pick } from './temp-tabs.js';
 
 const TREND_FROM = 7; // índice 7 = 8º dia (ADR-006)
 
-export function renderDaily(root, { data, unit, days }, onDaysChange) {
-  const list = data.daily.slice(0, days);
+export function renderDaily(root, { data, unit, days, tempMode }, onDaysChange, onTempMode) {
+  // Na aba "Sensação", máx/mín usam a sensação térmica do dia.
+  const list = data.daily.slice(0, days).map((d) => ({
+    ...d, min: pick(d.min, d.feelsMin, tempMode), max: pick(d.max, d.feelsMax, tempMode),
+  }));
   const lo = Math.min(...list.map((d) => d.min));
   const hi = Math.max(...list.map((d) => d.max));
   const span = Math.max(hi - lo, 1);
@@ -49,6 +53,7 @@ export function renderDaily(root, { data, unit, days }, onDaysChange) {
 
   root.replaceChildren(
     el('header', { class: 'card__head' }, [el('h2', { text: `Próximos ${days} dias` }), toggle]),
+    el('div', { class: 'card__subhead' }, [tempTabs(tempMode, onTempMode)]),
     el('ol', { class: 'days' }, rows),
   );
 }

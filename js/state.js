@@ -6,6 +6,7 @@ const state = {
   data: null,         // previsão normalizada
   unit: load('unit') || 'C',
   days: 7,            // 7 ou 15
+  tempMode: load('tempMode') || 'real', // 'real' (temperatura) | 'feels' (sensação térmica)
   status: 'idle',     // 'idle' | 'loading' | 'ok' | 'error'
   error: null,        // { kind, retry }
   demo: null,         // cenário forçado via ?demo=

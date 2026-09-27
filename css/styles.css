@@ -691,7 +691,8 @@ body:not(.has-data) #alerts { display: none; }
 }
 
 /* Mapa base do OpenStreetMap em tons escuros (só o fundo; radar e previsão mantêm as cores) */
-.base-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.35); }
+.radar__map--dark .base-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.35); }
+.radar__map--light { background: #aad3df; } /* cor do mar do OpenStreetMap enquanto carrega */
 
 /* Botões casa / minha localização no mapa */
 .radar-home { margin-top: 10px !important; }
@@ -712,4 +713,12 @@ body:not(.has-data) #alerts { display: none; }
   background: #2f8bff;
   border: 3px solid #fff;
   box-shadow: 0 0 0 6px rgba(47, 139, 255, 0.3);
+}
+
+/* Abas Temperatura | Sensação */
+.card__hint--line { margin: -4px 0 10px; }
+.card__subhead { display: flex; justify-content: flex-end; margin: -4px 0 8px; }
+.segmented button[aria-selected="true"] { background: #fff; color: var(--bar); }
+@media (max-width: 560px) {
+  #hourly .card__head { flex-wrap: wrap; }
 }

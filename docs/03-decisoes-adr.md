@@ -122,3 +122,10 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - **Defeito corrigido:** o mapa recentralizava sozinho a cada atualização da tela (trocar °C/°F, atualização automática), o que impediria a navegação. Agora só recentraliza quando a **cidade** muda.
 - Linha do tempo passa a ser **agora → +24 h**. Do passado fica só o quadro de radar mais recente, que é o **"agora"** — o único dado observado de verdade (discordância registrada: sem ele, até o presente seria estimativa).
 **Limite:** a previsão desenhada cobre ~700 km ao redor da cidade selecionada; navegando para longe, aparece só o radar (onde houver cobertura).
+
+## ADR-015 — Abas Temperatura/Sensação, mapa claro e idioma (adiado)
+**Status:** Aceita · 27/09/2026 · pedidos do Dalmo (10:58–10:59)
+
+- **Abas "Temperatura | Sensação"** nas 24 h e nos dias (sincronizadas, lembradas no navegador). Sensação térmica = `apparent_temperature` (vento, umidade e sol incluídos).
+- **Mapa claro por padrão**, com botão **Claro | Escuro**. O filtro escuro da v1.5 deixava nomes e chuva pouco legíveis ("tô achando a imagem escura").
+- **Idioma ligado à unidade (°C = português, °F = inglês): recusado.** Motivo: são escolhas independentes (ex.: brasileiro nos EUA quer °F em português). Alternativa proposta: botão de idioma PT/EN separado, iniciando pelo idioma do navegador. **Adiado para depois da apresentação**: > 100 textos para traduzir e testar em todas as telas na véspera — risco alto, ganho pequeno para o exercício.

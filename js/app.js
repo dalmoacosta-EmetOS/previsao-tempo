@@ -14,7 +14,7 @@ import { renderError, showToast } from './ui/status.js';
 import { setupSearch } from './ui/search.js';
 import { mountRadar, updateRadar } from './ui/radar.js';
 
-export const VERSION = '1.6';
+export const VERSION = '1.7';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
@@ -45,8 +45,9 @@ function render(state) {
   applyScene(state.demo || resolveWeatherNow(state.data));
   renderCurrent(sections.current, state);
   renderAlerts(sections.alerts, state);
-  renderHourly(sections.hourly, state);
-  renderDaily(sections.daily, state, (days) => setState({ days }));
+  const onTempMode = (tempMode) => { save('tempMode', tempMode); setState({ tempMode }); };
+  renderHourly(sections.hourly, state, onTempMode);
+  renderDaily(sections.daily, state, (days) => setState({ days }), onTempMode);
   renderDetails(sections.details, state);
   updateRadar(state);
 }
