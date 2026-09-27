@@ -12,8 +12,8 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 08:26–08:45 | Construção da v1.0 (código completo) | 22 arquivos: API, domínio, interface, céu animado, modo demo | Ambiente da IA não acessa as APIs → testes com dados simulados no mesmo formato. 17/17 testes automáticos passaram | 20 min |
 | 27/09 08:45 | Revisão visual das capturas de tela | 3 defeitos que os testes automáticos **não** pegaram: espaço vazio no desktop, aviso cobrindo selo DEMO, quadro "Sensação máx." com dado errado | Corrigidos e retestados | 5 min |
 | 27/09 08:43–08:49 | Dalmo publicou no GitHub Pages; testou com chuva real em Boston e mandou vídeo comparando com Weather Channel e iPhone | Diagnóstico: v1.0 decidia o céu só pelo código de tempo, que pode dizer "nublado" com chuva caindo | **Primeiro defeito achado com dado real, não com simulação** → ADR-011 | 6 min |
-| 27/09 08:50–09:05 | Correção ADR-011 | Céu considera chuva medida + próximos 30 min; frase "chuva para em ~X min"; auto-atualização 10 min; demos `garoa` e `temporal` | 24/24 testes automáticos | 15 min |
-| 27/09 08:54–09:05 | Dalmo gravou o site real: "está chovendo mas mostra nublado" | Duas causas: (1) gravou 40 s depois do envio da correção, antes de o Pages atualizar; (2) sinal ainda não usado: hora atual = garoa 95% | v1.2: 4º sinal + versão no rodapé. 27/27 testes, incluindo o caso real de Malden reproduzido | 11 min |
+| 27/09 08:50–08:54 | Correção ADR-011 | Céu considera chuva medida + próximos 30 min; frase "chuva para em ~X min"; auto-atualização 10 min; demos `garoa` e `temporal` | 24/24 testes automáticos | 15 min |
+| 27/09 08:54–08:58 | Dalmo gravou o site real: "está chovendo mas mostra nublado" | Duas causas: (1) gravou 40 s depois do envio da correção, antes de o Pages atualizar; (2) sinal ainda não usado: hora atual = garoa 95% | v1.2: 4º sinal + versão no rodapé. 27/27 testes, incluindo o caso real de Malden reproduzido | 11 min |
 | | | | | |
 
 ## Lições (preencher ao final)
