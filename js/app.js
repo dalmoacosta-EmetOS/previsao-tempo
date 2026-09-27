@@ -3,7 +3,7 @@ import { getState, setState, subscribe } from './state.js';
 import { load, save } from './storage.js';
 import { getForecast } from './api/forecast.js';
 import { reverseGeocode } from './api/geocoding.js';
-import { sceneFor } from './domain/weather-codes.js';
+import { resolveWeatherNow } from './domain/scene.js';
 import { applyScene, DEMO_SCENES } from './ui/background.js';
 import { renderCurrent, renderHeroSkeleton } from './ui/current.js';
 import { renderHourly } from './ui/hourly.js';
@@ -39,7 +39,7 @@ function render(state) {
     return;
   }
 
-  applyScene(state.demo || sceneFor(state.data.current.code, state.data.current.isDay));
+  applyScene(state.demo || resolveWeatherNow(state.data));
   renderCurrent(sections.current, state);
   renderAlerts(sections.alerts, state);
   renderHourly(sections.hourly, state);
@@ -125,6 +125,12 @@ function init() {
     const { status, error } = getState();
     if (status === 'error' && error?.retry) error.retry();
   });
+
+  // Atualiza sozinho a cada 10 min (o clima muda; a aba pode ficar aberta).
+  setInterval(() => {
+    const { place, status } = getState();
+    if (place && status === 'ok' && !document.hidden) loadPlace(place, { remember: !place.isGeo });
+  }, 10 * 60 * 1000);
 
   // Ordem de abertura: última cidade pesquisada → localização → Boston.
   const saved = load('place');

@@ -2,8 +2,9 @@ import { getJSON } from './http.js';
 
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 
-const CURRENT = 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,is_day';
-const HOURLY = 'temperature_2m,precipitation_probability,weather_code,is_day,cape';
+const CURRENT = 'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m,is_day,precipitation,rain,showers,snowfall';
+const MINUTELY = 'precipitation,snowfall';
+const HOURLY = 'temperature_2m,precipitation_probability,precipitation,weather_code,is_day,cape';
 const DAILY = 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,snowfall_sum,uv_index_max,sunrise,sunset,wind_speed_10m_max,wind_gusts_10m_max';
 
 /**
@@ -12,7 +13,8 @@ const DAILY = 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_
  */
 export async function getForecast(lat, lon) {
   const url = `${FORECAST_URL}?latitude=${lat}&longitude=${lon}&timezone=auto&forecast_days=16`
-    + `&current=${CURRENT}&hourly=${HOURLY}&daily=${DAILY}`;
+    + `&current=${CURRENT}&hourly=${HOURLY}&daily=${DAILY}`
+    + `&minutely_15=${MINUTELY}&forecast_minutely_15=8`; // próximas 2h, de 15 em 15 min (ADR-011)
   const raw = await getJSON(url);
   return normalize(raw);
 }
@@ -31,7 +33,17 @@ export function normalize(raw) {
     wind: c.wind_speed_10m,
     windDir: c.wind_direction_10m,
     isDay: c.is_day === 1,
+    precip: c.precipitation ?? 0,   // mm nos últimos 15 min
+    snowfall: c.snowfall ?? 0,
   };
+
+  // Próximas 2h em blocos de 15 min (chuva agora / para em X min).
+  const m = raw.minutely_15;
+  const nowcast = m ? m.time.map((t, i) => ({
+    time: t,
+    precip: m.precipitation?.[i] ?? 0,
+    snow: m.snowfall?.[i] ?? 0,
+  })) : [];
 
   // Próximas 24h a partir da hora atual (horários já no fuso da cidade).
   const nowHour = c.time.slice(0, 13) + ':00';
@@ -43,6 +55,7 @@ export function normalize(raw) {
       time: h.time[i],
       temp: h.temperature_2m[i],
       pop: h.precipitation_probability?.[i] ?? null,
+      precip: h.precipitation?.[i] ?? 0,
       code: h.weather_code[i],
       isDay: h.is_day[i] === 1,
       cape: h.cape?.[i] ?? null,
@@ -67,6 +80,7 @@ export function normalize(raw) {
     timezone: raw.timezone,
     timezoneAbbr: raw.timezone_abbreviation,
     current,
+    nowcast,
     hourly,
     daily,
   };

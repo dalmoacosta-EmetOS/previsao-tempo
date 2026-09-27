@@ -74,3 +74,12 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Contexto:** a Open-Meteo não converte coordenadas em nome de cidade. Sem isso, a tela mostraria "Sua localização".
 **Decisão:** usar a API gratuita e sem chave da BigDataCloud (`reverse-geocode-client`), só para descobrir o nome. Se falhar, segue com "Sua localização".
 **Consequências:** + experiência melhor. − Mais um serviço externo (opcional, não bloqueia nada). Atribuição no rodapé.
+
+## ADR-011 — Céu reage à chuva medida, não só ao código de tempo
+**Status:** Aceita · 27/09/2026 · originada por teste real do Dalmo
+
+**Contexto:** em 27/09, 08:47, chovia em Malden/Boston (Weather Channel e app Tempo do iPhone mostravam chuva), mas o site não mostrava chuva. A v1.0 decidia o cenário **só pelo código de tempo atual** (`weather_code`), que às vezes diz "nublado" enquanto o modelo já registra chuva.
+**Decisão:** o cenário passa a considerar três sinais: (1) código de tempo; (2) chuva medida pelo modelo nos últimos 15 min (`current.precipitation`); (3) chuva prevista para os próximos 30 min (`minutely_15`). A partir de 0,1 mm em 15 min, o céu chove. A intensidade (garoa / chuva / temporal) muda a quantidade e o tamanho das gotas.
+**Extras:** frase de curtíssimo prazo ("Chuva deve parar em ~45 min" / "começar em ~15 min"), como no app do iPhone; atualização automática a cada 10 min.
+**Consequências:** + site condizente com o que a pessoa vê pela janela. − Dados de 15 em 15 min são medidos de fato só na América do Norte e Europa Central; no resto do mundo são interpolados (menos precisos).
+**Limite honesto:** o site mostra o que o **modelo** diz, não um radar. Se o modelo errar, o site erra junto.

@@ -3,11 +3,19 @@ import { icon } from './icons.js';
 import { describe } from '../domain/weather-codes.js';
 import { temp, speed, percent, windDirection } from '../domain/units.js';
 import { hourLabel } from '../domain/time.js';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js';
 
 export function renderCurrent(root, { place, data, unit }) {
   const c = data.current;
   const today = data.daily[0];
-  const info = describe(c.code);
+  const now = resolveWeatherNow(data);
+  const info = { ...describe(c.code) };
+  // Se o modelo mede chuva mas o código diz "nublado", mostramos a chuva (ADR-011).
+  if (now.byMeasure) {
+    info.label = now.intensity === 'light' ? 'Chuva fraca' : now.intensity === 'heavy' ? 'Chuva forte' : 'Chuva';
+    info.icon = now.intensity === 'heavy' ? 'heavy-rain' : 'rain';
+  }
+  const nowcast = nowcastText(data);
   const where = [place.region, place.country].filter(Boolean).join(', ');
 
   root.replaceChildren(
@@ -21,6 +29,7 @@ export function renderCurrent(root, { place, data, unit }) {
       el('div', {}, [
         el('div', { class: 'hero__temp', text: temp(c.temp, unit) }),
         el('div', { class: 'hero__label', text: info.label }),
+        nowcast && el('div', { class: 'hero__nowcast', text: nowcast }),
       ]),
     ]),
     el('dl', { class: 'hero__facts' }, [

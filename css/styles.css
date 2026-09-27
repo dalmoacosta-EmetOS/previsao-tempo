@@ -59,6 +59,8 @@ body[data-scene="fog"][data-time="day"]     { --sky-top: #7d8a98; --sky-bottom: 
 body[data-scene="rain"][data-time="day"]    { --sky-top: #34465b; --sky-bottom: #6b7e93; }
 body[data-scene="snow"][data-time="day"]    { --sky-top: #6f86a2; --sky-bottom: #c9d6e4; }
 body[data-scene="storm"][data-time="day"]   { --sky-top: #1b2331; --sky-bottom: #46515f; }
+body[data-scene="rain"][data-intensity="heavy"][data-time="day"] { --sky-top: #263444; --sky-bottom: #55677a; }
+body[data-scene="rain"][data-intensity="light"][data-time="day"] { --sky-top: #4a5b6e; --sky-bottom: #8797a8; }
 
 body[data-time="night"]                     { --sky-top: #0a1024; --sky-bottom: #1c2a52; }
 body[data-scene="cloudy"][data-time="night"],
@@ -147,6 +149,8 @@ body[data-scene="snow"] .sky__precip { opacity: 1; }
   background: linear-gradient(180deg, rgba(190, 220, 255, 0), rgba(190, 220, 255, 0.7));
   animation: fall linear infinite;
 }
+body[data-intensity="light"] .drop { height: 45px; opacity: 0.7; }
+body[data-intensity="heavy"] .drop { width: 2px; height: 90px; }
 .flake {
   position: absolute;
   top: -5%;
@@ -325,6 +329,16 @@ body:not(.has-data) #alerts { display: none; }
 .hero__icon .wx-icon { width: clamp(96px, 22vw, 140px); height: auto; filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.2)); }
 .hero__temp { font-size: clamp(4.5rem, 18vw, 7.5rem); font-weight: 200; line-height: 0.9; letter-spacing: -0.04em; }
 .hero__label { font-size: 1.2rem; font-weight: 600; margin-top: 6px; }
+.hero__nowcast {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: rgba(124, 196, 255, 0.22);
+  text-shadow: none;
+}
 
 .hero__facts {
   margin: 0;

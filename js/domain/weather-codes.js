@@ -32,28 +32,9 @@ const TABLE = {
   99: ['Tempestade com granizo', 'storm'],
 };
 
-const ICON_TO_SCENE = {
-  clear: 'clear',
-  'mostly-clear': 'clear',
-  partly: 'partly',
-  cloudy: 'cloudy',
-  fog: 'fog',
-  drizzle: 'rain',
-  rain: 'rain',
-  'heavy-rain': 'rain',
-  showers: 'rain',
-  sleet: 'snow',
-  snow: 'snow',
-  storm: 'storm',
-};
-
 export const STORM_CODES = [95, 96, 97, 99];
 
 export function describe(code) {
   const entry = TABLE[code] || ['Condição indisponível', 'cloudy'];
   return { label: entry[0], icon: entry[1] };
-}
-
-export function sceneFor(code, isDay) {
-  return { scene: ICON_TO_SCENE[describe(code).icon] || 'cloudy', time: isDay ? 'day' : 'night' };
 }
