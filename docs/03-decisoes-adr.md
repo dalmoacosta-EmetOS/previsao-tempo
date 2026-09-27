@@ -95,6 +95,8 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - Mostra o **passado** (2 h). O futuro foi resolvido no ADR-013. *(Correção do Dalmo: no app do Weather Channel o radar futuro de 24 h é gratuito; só o de 72 h é pago.)*
 - Zoom do radar vai até nível 7 (visão regional). Aproximando mais, a imagem fica "quadriculada".
 - Serviço sem garantia de disponibilidade.
+**Revisão 1.5 (10:45):** no teste real do Dalmo o mapa de fundo mostrou "API KEY REQUIRED" — o CARTO passou a exigir chave. Trocado por **OpenStreetMap** (grátis, sem chave), escurecido por filtro CSS. Lição: o teste automático simulava o mapa e por isso não pegou; serviço de terceiros só se valida com o serviço real.
+**Cobertura:** radar só existe onde há radares meteorológicos (EUA, Europa, parte da América do Sul/Ásia etc.). Em regiões sem radar (ex.: Sibéria) o quadro de radar fica vazio — a previsão do modelo (ADR-013) continua funcionando.
 **Isolamento:** módulo separado (`api/radar.js`, `ui/radar.js`). A biblioteca de mapa só é baixada quando o cartão aparece na tela. Se o radar falhar, só o cartão mostra aviso — o restante do site continua (testado).
 
 ## ADR-013 — "Radar futuro" de 24 h com a previsão do modelo

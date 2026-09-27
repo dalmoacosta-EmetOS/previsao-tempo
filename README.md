@@ -18,7 +18,7 @@ Busca de cidade com autocompletar, radar de chuva com linha do tempo (2 h atrás
 Acrescente `?demo=` ao endereço para forçar o céu: `sol`, `parcial`, `nublado`, `neblina`, `garoa`, `chuva`, `temporal`, `neve`, `tempestade`, `noite`.
 
 ## Stack
-HTML, CSS e JavaScript puro (módulos ES), sem build. Dados: [Open-Meteo](https://open-meteo.com) (uso não comercial). Radar: Weather data by [RainViewer](https://www.rainviewer.com). Mapa: Leaflet, © OpenStreetMap, © CARTO. Hospedagem: GitHub Pages.
+HTML, CSS e JavaScript puro (módulos ES), sem build. Dados: [Open-Meteo](https://open-meteo.com) (uso não comercial). Radar: Weather data by [RainViewer](https://www.rainviewer.com). Mapa: Leaflet, © OpenStreetMap. Hospedagem: GitHub Pages.
 
 ## Rodar localmente
 Abrir com qualquer servidor estático, por exemplo: `npx serve .`

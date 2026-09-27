@@ -689,3 +689,6 @@ body:not(.has-data) #alerts { display: none; }
   .radar__time { min-width: 96px; font-size: 0.78rem; }
   .radar__foot { flex-direction: column; align-items: flex-start; }
 }
+
+/* Mapa base do OpenStreetMap em tons escuros (só o fundo; radar e previsão mantêm as cores) */
+.base-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.35); }

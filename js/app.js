@@ -14,7 +14,7 @@ import { renderError, showToast } from './ui/status.js';
 import { setupSearch } from './ui/search.js';
 import { mountRadar, updateRadar } from './ui/radar.js';
 
-export const VERSION = '1.4';
+export const VERSION = '1.5';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };

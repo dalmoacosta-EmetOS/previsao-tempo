@@ -10,7 +10,9 @@ import { speed, windDirection } from '../domain/units.js';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
-const BASE_TILES = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+// OpenStreetMap: grátis, sem chave (atribuição obrigatória). Escurecido por CSS (.base-tiles).
+// Obs.: o CARTO passou a exigir chave — descoberto no teste real de 27/09 (ADR-012).
+const BASE_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const RADAR_MAX_ZOOM = 7;   // limite do serviço gratuito
 const STEP_MS = 650;
 const HOLD_NOW_MS = 1500;
@@ -65,7 +67,8 @@ export function mountRadar(container) {
     el('p', { class: 'radar__note' }, [
       'Aperte ▶ para ver de onde a chuva veio e para onde deve ir. Radar: ',
       el('a', { href: 'https://www.rainviewer.com/', target: '_blank', rel: 'noopener', text: 'Weather data by RainViewer' }),
-      ' · Previsão: Open-Meteo · Mapa: © OpenStreetMap, © CARTO',
+      ' · Previsão: Open-Meteo · Mapa: ',
+      el('a', { href: 'https://www.openstreetmap.org/copyright', target: '_blank', rel: 'noopener', text: '© OpenStreetMap' }),
     ]),
   );
 
@@ -98,7 +101,7 @@ async function start() {
   try {
     L = await loadLeaflet();
     map = L.map(mapBox, { zoomControl: true, attributionControl: false, minZoom: 3, maxZoom: 10, scrollWheelZoom: false });
-    L.tileLayer(BASE_TILES, { subdomains: 'abcd', maxZoom: 19 }).addTo(map);
+    L.tileLayer(BASE_TILES, { maxZoom: 19, className: 'base-tiles' }).addTo(map);
     map.setView(pending ? [pending.place.lat, pending.place.lon] : [42.36, -71.06], START_ZOOM);
     applyPlace();
     await refresh();
