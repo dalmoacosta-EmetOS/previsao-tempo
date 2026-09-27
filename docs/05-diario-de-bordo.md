@@ -7,6 +7,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 07:37 | Dalmo: "o que um site de previsão profissional deveria ter?" | Lista essencial/diferenciais, sugestão Open-Meteo | IA questionou excesso de escopo para o prazo | 5 min |
 | 27/09 07:40 | Dalmo: colou o enunciado do Galeno para avaliação | Leitura: exercício é linha de base "antes/depois"; processo importa | Mudou a abordagem: Dalmo especifica, IA constrói | 5 min |
 | 27/09 07:50 | Dalmo: aprovou lista, acrescentou 15 dias, neve, tempestade, alertas, modo simulação; pediu arquitetura e documentação antes do código | Docs 01–05 | IA verificou a API: **não existe % de tempestade nem de neve, nem alertas oficiais** → decisões ADR-005/006 | — |
+| 27/09 08:03–08:15 | Dalmo: criar repositório no GitHub e conectar à IA | Passo a passo; 1ª tentativa de envio recusada (app do Claude não instalado) | Dalmo autorizou o app no GitHub → envio funcionou | 12 min |
 | | | | | |
 
 ## Lições (preencher ao final)
