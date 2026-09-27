@@ -67,7 +67,8 @@ previsao-tempo/
 │   │   ├── time.js         # horários no fuso da cidade
 │   │   ├── scene.js        # o que o céu mostra agora (ADR-011)
 │   │   ├── summary.js      # resumos Dia/Noite e "Agora" (ADR-019/021)
-│   │   └── alerts.js       # risco de tempestade + avisos
+│   │   ├── alerts.js       # risco de tempestade + avisos
+│   │   └── safety.js       # limites de atenção + recomendações (ADR-022)
 │   └── ui/
 │       ├── dom.js          # cria elementos com texto seguro
 │       ├── icons.js        # ícones SVG próprios

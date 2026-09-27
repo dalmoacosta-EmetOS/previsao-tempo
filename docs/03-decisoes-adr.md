@@ -183,3 +183,22 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - **Mancha do radar:** com o site real em "+8 h", a chuva prevista apareceu em Connecticut e New Hampshire, não mais centrada em Boston → o desenho acompanha a previsão; a diferença para o Weather Channel é a **fonte de dados** (modelos e resolução deles são outros).
 - **Alerta oficial não apareceu em Malden:** causa não confirmada (o alerta de enchente expirava às 14:30; ou a consulta ao NWS falha). `?debug=grade` agora escreve no rodapé o resultado da consulta ao NWS.
 - Comparação Mac × iPhone só vale na **mesma cidade, mesma hora da barra e mesma versão**.
+
+## ADR-022 — Pontos de atenção no "Hoje em detalhe" com recomendações
+**Status:** Aceita · 27/09/2026 · pedido do Dalmo (16:15)
+
+**Confirmado com dado real (v2.1):** alerta OFICIAL "Vigilância de enchente (Flood Watch)" apareceu em Malden → consulta ao NWS funciona (antes simplesmente não havia alerta ativo). Horas legíveis no iPhone.
+**Decisão:** quadros ficam **amarelos** (atenção) ou **vermelhos** (perigo) quando passam de limites; tocar (celular) ou passar o mouse (computador) abre recomendações **Caminhando / Dirigindo / Em casa**.
+
+| Quadro | Amarelo | Vermelho | Referência |
+|---|---|---|---|
+| Rajadas | ≥ 40 km/h | ≥ 62 km/h | Beaufort 6 / 8 (ventania) |
+| Vento máx. | ≥ 39 km/h | ≥ 62 km/h | Beaufort |
+| Índice UV | ≥ 6 | ≥ 8 | OMS |
+| Chuva hoje | ≥ 30 mm/dia ou 20 mm/h | ≥ 50 mm/dia ou 30 mm/h | faixas dos avisos do INMET |
+| Neve | > 0 | ≥ 10 cm | — |
+| Tempestade | risco moderado | risco alto | estimativa do site (ADR-005) |
+
+**Discordância registrada:** o Dalmo sugeriu 30 km/h para o vento; a IA recomendou 40 km/h, porque 30 km/h é brisa comum (Beaufort 4–5) — o painel ficaria vermelho quase todo dia e perderia o efeito de alerta.
+**Honestidade:** recomendações gerais de segurança no estilo Defesa Civil, **não texto de lei**; rotuladas na tela, com as referências.
+**Mapa:** chuva fraca desenhada em verde mais forte e opaco (antes quase transparente), aproximando a leitura do Weather Channel.

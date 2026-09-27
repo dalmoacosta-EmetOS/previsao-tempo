@@ -24,6 +24,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 11:29–11:45 | Dalmo testou a v1.8 real em Boston com prints e comparou com o Weather Channel | ✅ **Céu chovendo confirmado com dado real** (pendente desde a v1.2). Problemas: animação lenta, "play" no mapa (era a seta do vento), sem legenda, mancha centrada em Boston | v1.9: legenda padrão verde→vermelho, 350 ms, seta do vento na legenda, `?debug=grade` para investigar a mancha. 59/59 testes | 16 min |
 | 27/09 13:53–14:20 | Dalmo: "quero um pouco mais" — detalhe ao tocar na hora, Dia/Noite ao tocar no dia, alerta de enchente (prints do Weather Channel) | IA avisou: alertas oficiais só existem para os EUA; resumos serão automáticos, não de meteorologista → ADR-019/020 | v2.0. Revisão visual pegou "false" solto na tela → corrigido + teste. 68/68 testes | 27 min |
 | 27/09 15:59–16:15 | Dalmo testou v2.0 no iPhone e no Mac; pediu resumo do "agora" ao lado da cidade | Horas ilegíveis no iPhone (visual de botão do sistema); teste automático achou contradição no resumo; arquivo órfão da 1ª escrita removido → ADR-021 | v2.1. 72/72 testes | 16 min |
+| 27/09 16:15–16:35 | Dalmo: alerta oficial apareceu ✅; pediu quadros em vermelho com recomendações (vento > 30 km/h etc.) | IA discordou dos 30 km/h (brisa comum) e propôs limites de referência (Beaufort, OMS, INMET) → ADR-022. Teste revelou texto em km/h com site em °F → corrigido | v2.2. 77/77 testes | 20 min |
 | | | | | |
 
 ## Lições (preencher ao final)

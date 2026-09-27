@@ -3,12 +3,12 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el, fill } from './dom.js?v=2.1';
-import { getRadarFrames } from '../api/radar.js?v=2.1';
-import { getPrecipGrid } from '../api/precip-grid.js?v=2.1';
-import { speed, windDirection } from '../domain/units.js?v=2.1';
-import { showToast } from './status.js?v=2.1';
-import { load, save } from '../storage.js?v=2.1';
+import { el, fill } from './dom.js?v=2.2';
+import { getRadarFrames } from '../api/radar.js?v=2.2';
+import { getPrecipGrid } from '../api/precip-grid.js?v=2.2';
+import { speed, windDirection } from '../domain/units.js?v=2.2';
+import { showToast } from './status.js?v=2.2';
+import { load, save } from '../storage.js?v=2.2';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -25,8 +25,8 @@ const START_ZOOM = 7;             // casa com o zoom máximo do radar e com a á
 // Escala no padrão que o público conhece dos apps de clima (ADR-018), em mm/h.
 // Fraca < 2,5 · Moderada 2,5–7,6 · Forte 7,6–15 · Muito forte > 15 (limites usuais de intensidade de chuva).
 export const LEGEND = [
-  { label: 'Fraca', from: 0.1, rgb: [120, 214, 110] },
-  { label: 'Moderada', from: 2.5, rgb: [22, 150, 48] },
+  { label: 'Fraca', from: 0.1, rgb: [60, 200, 60] },
+  { label: 'Moderada', from: 2.5, rgb: [16, 130, 36] },
   { label: 'Forte', from: 7.6, rgb: [255, 214, 0] },
   { label: 'Muito forte', from: 15, rgb: [235, 45, 35] },
 ];
@@ -260,7 +260,7 @@ function frameUrl(t) {
       const [R, G, B] = cm > 0.05 ? SNOW_RGB : colorFor(mm);
       // bordas esfumaçadas: evita o "quadrado" no limite da área calculada
       const edge = Math.min(x, y, W - 1 - x, H - 1 - y) / (W * 0.12);
-      const a = Math.min(210, 120 + mm * 12) * Math.min(1, edge);
+      const a = Math.min(215, 165 + mm * 8) * Math.min(1, edge); // chuva fraca bem visível, como nos apps
       const p = (y * W + x) * 4;
       img.data[p] = R; img.data[p + 1] = G; img.data[p + 2] = B; img.data[p + 3] = a;
     }

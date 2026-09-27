@@ -50,6 +50,7 @@ Objetivo secundário (o mais importante para o treinamento): **registrar o proce
 | RF-19 | Boas-vindas, cidade fixa ao rolar e voltar ao topo | Pedido do Dalmo — ADR-017 |
 | RF-20 | Detalhe ao tocar na hora; resumo Dia/Noite ao tocar no dia | Pedido do Dalmo — ADR-019 |
 | RF-21 | Alertas oficiais do NWS (cidades dos EUA) | Pedido do Dalmo — ADR-020 |
+| RF-22 | Pontos de atenção no "Hoje em detalhe" com recomendações | Pedido do Dalmo — ADR-022 |
 | RF-15 | Lembrar última cidade | Salva no navegador; ao abrir, já carrega essa cidade |
 
 ### WON'T (fora desta versão)
