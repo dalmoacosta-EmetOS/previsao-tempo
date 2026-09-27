@@ -17,6 +17,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 10:10 | Dalmo pediu radar como o do Weather Channel (direção da chuva e do vento) | IA verificou o serviço gratuito (RainViewer): só passado 2 h, zoom máx. 7 → ADR-012 | v1.3: radar animado + seta do vento; isolado para não derrubar o site. 35/35 testes | 20 min |
 | 27/09 10:24 | Dalmo corrigiu a IA: radar futuro de 24 h é grátis no Weather Channel (só 72 h é pago); pediu 6–24 h | IA errou ao generalizar "futuro = pago". Solução: grade de 169 pontos do modelo desenhada no mapa → ADR-013 | v1.4: linha do tempo −2 h → +24 h. 40/40 testes. Teste revelou que ▶ deveria começar do passado — ajustado | 25 min |
 | 27/09 10:41 | Dalmo: "não aparece nada" no radar (print) | Mapa de fundo CARTO passou a exigir chave ("API KEY REQUIRED") — **teste simulado não pegou**. Cidade testada fora de cobertura de radar | v1.5: mapa OpenStreetMap (sem chave) com filtro escuro. 40/40 testes | 6 min |
+| 27/09 10:50–10:58 | Dalmo: nomes no mapa conforme zoom, navegar pelo mundo, botão voltar à cidade/minha localização; depois "sem as 2 h anteriores, foco no futuro" | IA achou defeito escondido: mapa recentralizava a cada atualização (impediria navegar). IA discordou de tirar também o quadro "agora" (único dado real) → ADR-014 | v1.6. 45/45 testes | 10 min |
 | | | | | |
 
 ## Lições (preencher ao final)

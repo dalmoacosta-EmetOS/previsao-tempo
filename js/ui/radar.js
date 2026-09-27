@@ -7,6 +7,7 @@ import { el } from './dom.js';
 import { getRadarFrames } from '../api/radar.js';
 import { getPrecipGrid } from '../api/precip-grid.js';
 import { speed, windDirection } from '../domain/units.js';
+import { showToast } from './status.js';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -27,7 +28,8 @@ const STOPS = [
 ];
 
 let root, mapBox, statusEl, timeEl, kindEl, slider, playBtn, windEl, modelNote;
-let L, map, marker, modelOverlay;
+let L, map, marker, meMarker, modelOverlay;
+let centeredKey = ''; // só recentraliza quando a CIDADE muda (não a cada atualização da tela)
 let timeline = [];          // [{ kind: 'radar'|'model', time, layer?, t? }]
 let radarLayers = [], radarAt = 0;
 let grid = null, gridKey = '', gridAt = 0, gridUrls = [];
@@ -49,12 +51,12 @@ export function mountRadar(container) {
   root.replaceChildren(
     el('header', { class: 'card__head' }, [
       el('h2', { text: 'Radar de chuva' }),
-      el('span', { class: 'card__hint', text: '2 h atrás → 24 h à frente' }),
+      el('span', { class: 'card__hint', text: 'agora → próximas 24 h' }),
     ]),
     el('div', { class: 'radar__wrap' }, [mapBox, kindEl, statusEl]),
     el('div', { class: 'radar__controls' }, [playBtn, slider, timeEl]),
     el('div', { class: 'radar__marks', 'aria-hidden': 'true' }, [
-      el('span', { text: '← radar' }), el('span', { class: 'radar__marks-now', text: 'agora' }), el('span', { text: 'previsão →' }),
+      el('span', { class: 'radar__marks-now', text: 'agora (radar)' }), el('span', { text: 'previsão +24 h →' }),
     ]),
     modelNote,
     el('div', { class: 'radar__foot' }, [
@@ -65,7 +67,7 @@ export function mountRadar(container) {
       windEl,
     ]),
     el('p', { class: 'radar__note' }, [
-      'Aperte ▶ para ver de onde a chuva veio e para onde deve ir. Radar: ',
+      'Aperte ▶ para ver para onde a chuva deve ir nas próximas 24 h. Agora: ',
       el('a', { href: 'https://www.rainviewer.com/', target: '_blank', rel: 'noopener', text: 'Weather data by RainViewer' }),
       ' · Previsão: Open-Meteo · Mapa: ',
       el('a', { href: 'https://www.openstreetmap.org/copyright', target: '_blank', rel: 'noopener', text: '© OpenStreetMap' }),
@@ -100,8 +102,17 @@ async function start() {
   started = true;
   try {
     L = await loadLeaflet();
-    map = L.map(mapBox, { zoomControl: true, attributionControl: false, minZoom: 3, maxZoom: 10, scrollWheelZoom: false });
+    // Navegação livre pelo mundo (plano): arrastar, pinça/+−, do planeta inteiro (zoom 2) até a cidade (zoom 11).
+    // Os nomes de países, estados e cidades vêm do próprio mapa e aparecem conforme o zoom.
+    map = L.map(mapBox, {
+      zoomControl: true, attributionControl: false,
+      minZoom: 2, maxZoom: 11, worldCopyJump: true, scrollWheelZoom: false,
+    });
     L.tileLayer(BASE_TILES, { maxZoom: 19, className: 'base-tiles' }).addTo(map);
+    addHomeControls();
+    // No computador, a roda do mouse só dá zoom depois de clicar no mapa (não atrapalha rolar a página)
+    map.on('click', () => map.scrollWheelZoom.enable());
+    map.on('mouseout', () => map.scrollWheelZoom.disable());
     map.setView(pending ? [pending.place.lat, pending.place.lon] : [42.36, -71.06], START_ZOOM);
     applyPlace();
     await refresh();
@@ -118,8 +129,11 @@ async function refresh() {
   if (Date.now() - radarAt > RADAR_TTL) {
     tasks.push(getRadarFrames().then((frames) => {
       if (!frames.length) throw new Error('sem quadros');
+      // Foco no que vem (pedido do Dalmo): do passado, só o quadro observado mais recente = "agora".
+      const observed = frames.filter((f) => !f.nowcast);
+      const wanted = [observed[observed.length - 1], ...frames.filter((f) => f.nowcast)].filter(Boolean);
       radarLayers.forEach((l) => map.removeLayer(l.layer));
-      radarLayers = frames.map((f) => ({
+      radarLayers = wanted.map((f) => ({
         ...f,
         layer: L.tileLayer(f.url, { opacity: 0, maxNativeZoom: RADAR_MAX_ZOOM, maxZoom: 10, zIndex: 10 }).addTo(map),
       }));
@@ -168,7 +182,7 @@ function buildTimeline() {
 function show(i) {
   if (!timeline.length) return;
   const f = timeline[i];
-  radarLayers.forEach((r) => r.layer.setOpacity(f.kind === 'radar' && r.layer === f.layer ? 0.75 : 0));
+  radarLayers.forEach((r) => r.layer.setOpacity(f.kind === 'radar' && r.layer === f.layer ? 0.65 : 0));
   if (modelOverlay) {
     if (f.kind === 'model') {
       modelOverlay.setUrl(frameUrl(f.t));
@@ -264,7 +278,7 @@ function play() {
   playing = true;
   playBtn.textContent = '❚❚';
   playBtn.setAttribute('aria-label', 'Pausar animação');
-  if (idx >= timeline.length - 1 || idx === nowIdx) show(0); // conta a história inteira: passado → previsão
+  if (idx >= timeline.length - 1) show(0); // recomeça do agora
   const tick = () => {
     const next = idx + 1 >= timeline.length ? 0 : idx + 1;
     show(next);
@@ -297,8 +311,11 @@ function applyPlace() {
   if (!pending || !map) return;
   const { place, data } = pending;
   const ll = [place.lat, place.lon];
-  const zoomNow = map.getZoom();
-  map.setView(ll, zoomNow >= 5 ? zoomNow : START_ZOOM, { animate: false });
+  const key = placeKey(place);
+  if (key !== centeredKey) {           // cidade nova → centraliza; senão respeita onde o usuário navegou
+    centeredKey = key;
+    map.setView(ll, START_ZOOM, { animate: false });
+  }
 
   // Seta do vento: aponta para ONDE o vento vai (a API informa de onde ele vem).
   const toward = ((data.current.windDir ?? 0) + 180) % 360;
@@ -306,6 +323,58 @@ function applyPlace() {
   const icon = L.divIcon({ className: '', html, iconSize: [64, 64], iconAnchor: [32, 32] });
   if (marker) marker.setLatLng(ll).setIcon(icon);
   else marker = L.marker(ll, { icon, keyboard: false, interactive: false }).addTo(map);
+}
+
+// Botões "voltar para a cidade" e "minha localização", abaixo do + / −.
+function addHomeControls() {
+  const Home = L.Control.extend({
+    options: { position: 'topleft' },
+    onAdd() {
+      const box = L.DomUtil.create('div', 'leaflet-bar radar-home');
+      const cityBtn = L.DomUtil.create('a', 'radar-home__btn', box);
+      cityBtn.href = '#';
+      cityBtn.title = 'Voltar para a cidade selecionada';
+      cityBtn.setAttribute('role', 'button');
+      cityBtn.setAttribute('aria-label', 'Voltar para a cidade selecionada');
+      cityBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg>';
+      const meBtn = L.DomUtil.create('a', 'radar-home__btn', box);
+      meBtn.href = '#';
+      meBtn.title = 'Ir para a minha localização';
+      meBtn.setAttribute('role', 'button');
+      meBtn.setAttribute('aria-label', 'Ir para a minha localização');
+      meBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
+      L.DomEvent.disableClickPropagation(box);
+      L.DomEvent.on(cityBtn, 'click', (e) => { L.DomEvent.preventDefault(e); goToCity(); });
+      L.DomEvent.on(meBtn, 'click', (e) => { L.DomEvent.preventDefault(e); goToMe(meBtn); });
+      return box;
+    },
+  });
+  map.addControl(new Home());
+}
+
+function goToCity() {
+  if (!pending) return;
+  map.flyTo([pending.place.lat, pending.place.lon], START_ZOOM, { duration: 0.8 });
+}
+
+function goToMe(btn) {
+  if (!('geolocation' in navigator)) { showToast('Seu navegador não oferece localização.'); return; }
+  btn.classList.add('is-busy');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      btn.classList.remove('is-busy');
+      const ll = [pos.coords.latitude, pos.coords.longitude];
+      const icon = L.divIcon({ className: '', html: '<div class="me-pin" title="Você está aqui"></div>', iconSize: [20, 20], iconAnchor: [10, 10] });
+      if (meMarker) meMarker.setLatLng(ll);
+      else meMarker = L.marker(ll, { icon, keyboard: false, interactive: false }).addTo(map);
+      map.flyTo(ll, 8, { duration: 0.8 });
+    },
+    (err) => {
+      btn.classList.remove('is-busy');
+      showToast(err.code === err.PERMISSION_DENIED ? 'Localização não permitida.' : 'Não foi possível obter sua localização.');
+    },
+    { timeout: 8000, maximumAge: 5 * 60 * 1000 },
+  );
 }
 
 function loadLeaflet() {

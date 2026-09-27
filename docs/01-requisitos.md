@@ -46,6 +46,7 @@ Objetivo secundário (o mais importante para o treinamento): **registrar o proce
 | RF-14 | Avisos para a população | Avisos calculados por limites (calor, frio extremo, UV alto, vento forte, tempestade, neve) — ver seção 4 |
 | RF-16 | Radar animado de chuva (últimas 2 h) + direção do vento | Pedido do Dalmo — ADR-012 |
 | RF-17 | "Radar futuro": chuva/neve prevista no mapa, próximas 24 h | Pedido do Dalmo — ADR-013 |
+| RF-18 | Mapa navegável (mundo → cidade) com nomes e botões casa/minha localização | Pedido do Dalmo — ADR-014 |
 | RF-15 | Lembrar última cidade | Salva no navegador; ao abrir, já carrega essa cidade |
 
 ### WON'T (fora desta versão)

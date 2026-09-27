@@ -110,3 +110,15 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - Resolução ≈ 30–50 km por ponto: mostra **para onde as áreas de chuva vão**, não a rua exata.
 - A área calculada cobre ~700 × 700 km; afastando muito o mapa, a previsão acaba numa borda esfumaçada.
 **Isolamento:** radar e previsão falham de forma independente — se um cair, o outro continua; se os dois caírem, só o cartão mostra aviso (testado).
+
+## ADR-014 — Mapa navegável e foco no futuro
+**Status:** Aceita · 27/09/2026 · pedidos do Dalmo (10:50 e 10:55)
+
+**Pedidos:** (1) ver nomes de país, estado e cidade conforme o zoom; (2) navegar pelo mapa-múndi plano; (3) botão para voltar à cidade selecionada ou à minha localização; (4) "não preciso ver as 2 h anteriores — foco no que virá".
+**Decisões:**
+- Nomes: vêm do próprio mapa do OpenStreetMap (países no zoom 2–4, estados 5–6, cidades 7+).
+- Navegação livre do zoom 2 (mundo) ao 11 (cidade), arrastando; mundo "dá a volta" (`worldCopyJump`). No computador, a roda do mouse só dá zoom depois de clicar no mapa (para não sequestrar a rolagem da página).
+- Botões abaixo do +/−: **casa** (volta à cidade selecionada) e **mira** (vai à localização do aparelho, com ponto azul).
+- **Defeito corrigido:** o mapa recentralizava sozinho a cada atualização da tela (trocar °C/°F, atualização automática), o que impediria a navegação. Agora só recentraliza quando a **cidade** muda.
+- Linha do tempo passa a ser **agora → +24 h**. Do passado fica só o quadro de radar mais recente, que é o **"agora"** — o único dado observado de verdade (discordância registrada: sem ele, até o presente seria estimativa).
+**Limite:** a previsão desenhada cobre ~700 km ao redor da cidade selecionada; navegando para longe, aparece só o radar (onde houver cobertura).
