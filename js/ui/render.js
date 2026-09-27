@@ -1,9 +1,9 @@
 // Desenha cada bloco da tela a partir do estado. Nenhuma chamada à API aqui.
 // Textos vindos de fora entram sempre por textContent (nunca como HTML).
-import { describe } from '../domain/weather-codes.js?v=1.8';
-import { computeAlerts, stormRisk } from '../domain/alerts.js?v=1.8';
-import * as U from '../domain/units.js?v=1.8';
-import { iconSvg, DROP } from './icons.js?v=1.8';
+import { describe } from '../domain/weather-codes.js?v=1.9';
+import { computeAlerts, stormRisk } from '../domain/alerts.js?v=1.9';
+import * as U from '../domain/units.js?v=1.9';
+import { iconSvg, DROP } from './icons.js?v=1.9';
 
 const $ = (id) => document.getElementById(id);
 

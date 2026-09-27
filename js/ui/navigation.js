@@ -1,8 +1,8 @@
 // Boas-vindas, barra fixa da cidade e "voltar ao topo" (ADR-017).
-import { icon } from './icons.js?v=1.8';
-import { describe } from '../domain/weather-codes.js?v=1.8';
-import { temp } from '../domain/units.js?v=1.8';
-import { resolveWeatherNow } from '../domain/scene.js?v=1.8';
+import { icon } from './icons.js?v=1.9';
+import { describe } from '../domain/weather-codes.js?v=1.9';
+import { temp } from '../domain/units.js?v=1.9';
+import { resolveWeatherNow } from '../domain/scene.js?v=1.9';
 
 const $ = (id) => document.getElementById(id);
 const toTop = () => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });

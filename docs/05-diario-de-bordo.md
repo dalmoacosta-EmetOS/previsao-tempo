@@ -21,6 +21,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 10:58–11:05 | Dalmo: abas Temperatura/Sensação; idioma trocar junto com °C/°F?; "radar escuro" | IA discordou do idioma atrelado à unidade e recomendou adiar i18n (ADR-015). Mapa claro + botão Claro/Escuro | v1.7. 51/51 testes | 7 min |
 | 27/09 11:05–11:10 | Dalmo: "estou na 1.7 e não acho o botão" | Simulação no celular mostrava o botão → causa: cache misturando arquivos novos e velhos (só o principal tinha versão) → ADR-016 | v1.7.1: versão em todos os arquivos + script `tools/versao.sh`. 51/51 testes | 5 min |
 | 27/09 11:22–11:30 | Dalmo: toque na cidade demora; boas-vindas; cidade fixa ao rolar; seta para o topo | Causa do atraso: evento de mouse no celular → ADR-017 | v1.8. 57/57 testes (inclui tempo de resposta do toque) | 8 min |
+| 27/09 11:29–11:45 | Dalmo testou a v1.8 real em Boston com prints e comparou com o Weather Channel | ✅ **Céu chovendo confirmado com dado real** (pendente desde a v1.2). Problemas: animação lenta, "play" no mapa (era a seta do vento), sem legenda, mancha centrada em Boston | v1.9: legenda padrão verde→vermelho, 350 ms, seta do vento na legenda, `?debug=grade` para investigar a mancha. 59/59 testes | 16 min |
 | | | | | |
 
 ## Lições (preencher ao final)

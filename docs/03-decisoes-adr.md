@@ -144,3 +144,14 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - **Boas-vindas** no topo: saudação pelo horário ("Bom dia! Seja bem-vindo.") + razão de ser: *"A previsão do tempo clara e confiável, para você se manter bem informado e planejar o seu dia com tranquilidade."* (a partir do texto do Dalmo).
 - **Barra fixa da cidade:** ao rolar, cidade + ícone + temperatura + condição ficam presos no topo. Tocar nela volta ao topo.
 - **Voltar ao topo:** botão com seta no fim da página.
+
+## ADR-018 — Legenda no padrão dos apps de clima, animação mais rápida e conferência da grade
+**Status:** Aceita · 27/09/2026 · teste real do Dalmo em Boston (11:29–11:35)
+
+**Confirmado com dado real:** céu chovendo em Boston ("Garoa", "Chuva deve parar em ~15 min") — ADR-011 validado. Barra fixa e voltar ao topo OK.
+**Pedidos e problemas:**
+- Animação lenta → passo de 650 ms para **350 ms**.
+- "Botão play no meio do mapa atrapalha" → era a **seta do vento** desenhada ao redor da cidade (parecia ▶). Saiu do mapa; virou seta ao lado de "Vento …" na legenda. No mapa fica só um ponto discreto da cidade.
+- **Faltava legenda** → legenda com Fraca / Moderada / Forte / Muito forte / Neve, nas cores que o público conhece (verde → amarelo → vermelho; neve em azul). Limites usuais de intensidade: 2,5 · 7,6 · 15 mm/h. A escala anterior pintava chuva moderada (4 mm/h) de amarelo e 16 mm/h de vermelho — exagerava a intensidade.
+- Radar tenta o esquema de cores 4 (estilo Weather Channel) da RainViewer; se o serviço gratuito recusar, volta sozinho ao esquema 2.
+- **Mancha centrada em Boston em +13 h e +20 h** (o Weather Channel mostrava chuva espalhada): teste com chuva uniforme simulada saiu uniforme → o desenho está certo; a mancha veio dos **dados**. Hipóteses: tempestade estacionária real ou diferença entre modelos. **Não confirmado.** Criado `?debug=grade`, que escreve no mapa o valor previsto (mm/h) em cada ponto, para conferir com dado real.

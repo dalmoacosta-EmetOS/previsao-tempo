@@ -3,12 +3,12 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el } from './dom.js?v=1.8';
-import { getRadarFrames } from '../api/radar.js?v=1.8';
-import { getPrecipGrid } from '../api/precip-grid.js?v=1.8';
-import { speed, windDirection } from '../domain/units.js?v=1.8';
-import { showToast } from './status.js?v=1.8';
-import { load, save } from '../storage.js?v=1.8';
+import { el } from './dom.js?v=1.9';
+import { getRadarFrames } from '../api/radar.js?v=1.9';
+import { getPrecipGrid } from '../api/precip-grid.js?v=1.9';
+import { speed, windDirection } from '../domain/units.js?v=1.9';
+import { showToast } from './status.js?v=1.9';
+import { load, save } from '../storage.js?v=1.9';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -16,17 +16,24 @@ const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leafle
 // Obs.: o CARTO passou a exigir chave — descoberto no teste real de 27/09 (ADR-012).
 const BASE_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const RADAR_MAX_ZOOM = 7;   // limite do serviço gratuito
-const STEP_MS = 650;
-const HOLD_NOW_MS = 1500;
+const STEP_MS = 350;      // mais rápido (pedido do Dalmo)
+const HOLD_NOW_MS = 900;
 const RADAR_TTL = 10 * 60 * 1000;
 const MODEL_TTL = 60 * 60 * 1000; // o modelo atualiza de hora em hora; poupa a cota gratuita
 const START_ZOOM = 7;             // casa com o zoom máximo do radar e com a área da previsão
 
-// Mesma escala de cores para radar e previsão (mm/h).
-const STOPS = [
-  [0.1, [155, 225, 255]], [0.5, [51, 168, 255]], [1.5, [0, 99, 209]],
-  [4, [255, 225, 77]], [8, [255, 154, 31]], [16, [255, 59, 48]],
+// Escala no padrão que o público conhece dos apps de clima (ADR-018), em mm/h.
+// Fraca < 2,5 · Moderada 2,5–7,6 · Forte 7,6–15 · Muito forte > 15 (limites usuais de intensidade de chuva).
+export const LEGEND = [
+  { label: 'Fraca', from: 0.1, rgb: [120, 214, 110] },
+  { label: 'Moderada', from: 2.5, rgb: [22, 150, 48] },
+  { label: 'Forte', from: 7.6, rgb: [255, 214, 0] },
+  { label: 'Muito forte', from: 15, rgb: [235, 45, 35] },
 ];
+const SNOW_RGB = [70, 190, 255];
+const STOPS = LEGEND.map((l) => [l.from, l.rgb]);
+const DEBUG_GRID = new URLSearchParams(location.search).get('debug') === 'grade';
+let debugLayer = null;
 
 let mapStyle = load('mapStyle') || 'light'; // 'light' | 'dark' (ADR-015)
 let styleBox;
@@ -69,9 +76,12 @@ export function mountRadar(container) {
     ]),
     modelNote,
     el('div', { class: 'radar__foot' }, [
-      el('div', { class: 'radar__legend' }, [
-        el('span', { text: 'Fraca' }), el('i', { 'aria-hidden': 'true' }), el('span', { text: 'Forte' }),
-        el('b', { class: 'radar__snow', title: 'Neve prevista' }), el('span', { text: 'Neve' }),
+      el('ul', { class: 'radar__legend', 'aria-label': 'Legenda' }, [
+        el('li', { class: 'radar__legend-title', text: 'Chuva:' }),
+        ...LEGEND.map((l) => el('li', {}, [
+          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
+        ])),
+        el('li', {}, [el('b', { style: `background: rgb(${SNOW_RGB.join(',')})`, 'aria-hidden': 'true' }), 'Neve']),
       ]),
       windEl,
     ]),
@@ -93,7 +103,12 @@ export function mountRadar(container) {
 export function updateRadar({ place, data, unit }) {
   if (!root || !place || !data) return;
   const c = data.current;
-  windEl.textContent = `Vento ${windDirection(c.windDir)} ${speed(c.wind, unit)}`;
+  // Seta aponta para ONDE o vento vai (a API informa de onde ele vem).
+  const toward = ((c.windDir ?? 0) + 180) % 360;
+  windEl.replaceChildren(
+    el('span', { class: 'wind-arrow', style: `transform: rotate(${toward}deg)`, 'aria-hidden': 'true', text: '↑' }),
+    ` Vento ${windDirection(c.windDir)} ${speed(c.wind, unit)}`,
+  );
   pending = { place, data, unit };
   if (!map) return;
   applyPlace();
@@ -144,7 +159,7 @@ async function refresh() {
       radarLayers.forEach((l) => map.removeLayer(l.layer));
       radarLayers = wanted.map((f) => ({
         ...f,
-        layer: L.tileLayer(f.url, { opacity: 0, maxNativeZoom: RADAR_MAX_ZOOM, maxZoom: 10, zIndex: 10 }).addTo(map),
+        layer: withFallback(L.tileLayer(f.url, { opacity: 0, maxNativeZoom: RADAR_MAX_ZOOM, maxZoom: 10, zIndex: 10 }).addTo(map), f.url),
       }));
       radarAt = Date.now();
       radarFailed = false;
@@ -195,6 +210,7 @@ function show(i) {
   if (modelOverlay) {
     if (f.kind === 'model') {
       modelOverlay.setUrl(frameUrl(f.t));
+      drawDebug(f.t);
       modelOverlay.setOpacity(0.8);
     } else {
       modelOverlay.setOpacity(0);
@@ -241,10 +257,10 @@ function frameUrl(t) {
       const mm = bilinear(v, r0, r1, c0, c1, fx, fy);
       if (mm < 0.1) continue;
       const cm = bilinear(s, r0, r1, c0, c1, fx, fy);
-      const [R, G, B] = cm > 0.05 ? [232, 214, 255] : colorFor(mm);
+      const [R, G, B] = cm > 0.05 ? SNOW_RGB : colorFor(mm);
       // bordas esfumaçadas: evita o "quadrado" no limite da área calculada
       const edge = Math.min(x, y, W - 1 - x, H - 1 - y) / (W * 0.12);
-      const a = Math.min(200, 90 + mm * 25) * Math.min(1, edge);
+      const a = Math.min(210, 120 + mm * 12) * Math.min(1, edge);
       const p = (y * W + x) * 4;
       img.data[p] = R; img.data[p + 1] = G; img.data[p + 2] = B; img.data[p + 3] = a;
     }
@@ -270,6 +286,34 @@ function colorFor(mm) {
     }
   }
   return STOPS[0][1];
+}
+
+// Esquema de cores 4 (verde→vermelho, como nos apps de clima). Se o serviço gratuito
+// recusar esse esquema, troca sozinho para o 2 (azul), que sempre funcionou.
+function withFallback(layer, url) {
+  let switched = false;
+  layer.on('tileerror', () => {
+    if (switched) return;
+    switched = true;
+    layer.setUrl(url.replace('/4/1_1.png', '/2/1_1.png'));
+  });
+  return layer;
+}
+
+// ?debug=grade — mostra o valor previsto (mm/h) em cada ponto da grade, para conferência.
+function drawDebug(t) {
+  if (!DEBUG_GRID || !grid) return;
+  if (debugLayer) map.removeLayer(debugLayer);
+  debugLayer = L.layerGroup().addTo(map);
+  const [[s, w], [n, e]] = grid.bounds;
+  for (let r = 0; r < grid.rows; r++) {
+    for (let c = 0; c < grid.cols; c++) {
+      const lat = n - (r * (n - s)) / (grid.rows - 1);
+      const lon = w + (c * (e - w)) / (grid.cols - 1);
+      const v = grid.values[t][r][c];
+      L.marker([lat, lon], { interactive: false, icon: L.divIcon({ className: 'debug-val', html: v.toFixed(1), iconSize: [34, 16] }) }).addTo(debugLayer);
+    }
+  }
 }
 
 function blankPng() {
@@ -318,7 +362,7 @@ function showStatus() {
 
 function applyPlace() {
   if (!pending || !map) return;
-  const { place, data } = pending;
+  const { place } = pending;
   const ll = [place.lat, place.lon];
   const key = placeKey(place);
   if (key !== centeredKey) {           // cidade nova → centraliza; senão respeita onde o usuário navegou
@@ -326,10 +370,8 @@ function applyPlace() {
     map.setView(ll, START_ZOOM, { animate: false });
   }
 
-  // Seta do vento: aponta para ONDE o vento vai (a API informa de onde ele vem).
-  const toward = ((data.current.windDir ?? 0) + 180) % 360;
-  const html = `<div class="wind-pin"><span class="wind-pin__rot" style="transform: rotate(${toward}deg)"><b>▲</b></span><span class="wind-pin__dot"></span></div>`;
-  const icon = L.divIcon({ className: '', html, iconSize: [64, 64], iconAnchor: [32, 32] });
+  // Marcador discreto da cidade (a seta do vento parecia um botão "play" — foi para a legenda).
+  const icon = L.divIcon({ className: '', html: '<div class="city-pin"></div>', iconSize: [16, 16], iconAnchor: [8, 8] });
   if (marker) marker.setLatLng(ll).setIcon(icon);
   else marker = L.marker(ll, { icon, keyboard: false, interactive: false }).addTo(map);
 }

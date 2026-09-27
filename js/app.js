@@ -1,21 +1,21 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=1.8';
-import { load, save } from './storage.js?v=1.8';
-import { getForecast } from './api/forecast.js?v=1.8';
-import { reverseGeocode } from './api/geocoding.js?v=1.8';
-import { resolveWeatherNow } from './domain/scene.js?v=1.8';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=1.8';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=1.8';
-import { renderHourly } from './ui/hourly.js?v=1.8';
-import { renderDaily } from './ui/daily.js?v=1.8';
-import { renderDetails } from './ui/details.js?v=1.8';
-import { renderAlerts } from './ui/alerts.js?v=1.8';
-import { renderError, showToast } from './ui/status.js?v=1.8';
-import { setupSearch } from './ui/search.js?v=1.8';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=1.8';
-import { mountRadar, updateRadar } from './ui/radar.js?v=1.8';
+import { getState, setState, subscribe } from './state.js?v=1.9';
+import { load, save } from './storage.js?v=1.9';
+import { getForecast } from './api/forecast.js?v=1.9';
+import { reverseGeocode } from './api/geocoding.js?v=1.9';
+import { resolveWeatherNow } from './domain/scene.js?v=1.9';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=1.9';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=1.9';
+import { renderHourly } from './ui/hourly.js?v=1.9';
+import { renderDaily } from './ui/daily.js?v=1.9';
+import { renderDetails } from './ui/details.js?v=1.9';
+import { renderAlerts } from './ui/alerts.js?v=1.9';
+import { renderError, showToast } from './ui/status.js?v=1.9';
+import { setupSearch } from './ui/search.js?v=1.9';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=1.9';
+import { mountRadar, updateRadar } from './ui/radar.js?v=1.9';
 
-export const VERSION = '1.8';
+export const VERSION = '1.9';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };

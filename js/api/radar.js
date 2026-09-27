@@ -1,10 +1,10 @@
-import { getJSON } from './http.js?v=1.8';
+import { getJSON } from './http.js?v=1.9';
 
 // Radar de precipitação da RainViewer (grátis, sem chave, com atribuição obrigatória).
 // Entrega os quadros das últimas ~2 horas, de 10 em 10 min (ADR-012).
 // Se o serviço também oferecer "nowcast" (próximos ~30 min), usamos junto.
 const MAPS_URL = 'https://api.rainviewer.com/public/weather-maps.json';
-const COLOR_SCHEME = 2; // "Universal Blue"
+const COLOR_SCHEME = 4; // estilo "The Weather Channel" (verde→vermelho); cai para 2 se recusado (ui/radar.js)
 const OPTIONS = '1_1';  // suavizado + neve em cor diferente
 
 export async function getRadarFrames() {
