@@ -1,9 +1,9 @@
-import { el } from './dom.js';
-import { icon } from './icons.js';
-import { describe } from '../domain/weather-codes.js';
-import { temp, percent } from '../domain/units.js';
-import { dayLabel, dayMonth } from '../domain/time.js';
-import { tempTabs, pick } from './temp-tabs.js';
+import { el } from './dom.js?v=1.7.1';
+import { icon } from './icons.js?v=1.7.1';
+import { describe } from '../domain/weather-codes.js?v=1.7.1';
+import { temp, percent } from '../domain/units.js?v=1.7.1';
+import { dayLabel, dayMonth } from '../domain/time.js?v=1.7.1';
+import { tempTabs, pick } from './temp-tabs.js?v=1.7.1';
 
 const TREND_FROM = 7; // índice 7 = 8º dia (ADR-006)
 

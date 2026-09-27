@@ -129,3 +129,10 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - **Abas "Temperatura | Sensação"** nas 24 h e nos dias (sincronizadas, lembradas no navegador). Sensação térmica = `apparent_temperature` (vento, umidade e sol incluídos).
 - **Mapa claro por padrão**, com botão **Claro | Escuro**. O filtro escuro da v1.5 deixava nomes e chuva pouco legíveis ("tô achando a imagem escura").
 - **Idioma ligado à unidade (°C = português, °F = inglês): recusado.** Motivo: são escolhas independentes (ex.: brasileiro nos EUA quer °F em português). Alternativa proposta: botão de idioma PT/EN separado, iniciando pelo idioma do navegador. **Adiado para depois da apresentação**: > 100 textos para traduzir e testar em todas as telas na véspera — risco alto, ganho pequeno para o exercício.
+
+## ADR-016 — Versão carimbada em todos os arquivos (cache)
+**Status:** Aceita · 27/09/2026 · defeito achado pelo Dalmo ("estou na 1.7 e não acho o botão Sensação")
+
+**Contexto:** o rodapé mostrava 1.7, mas o celular usava **cópias antigas** de arquivos internos (ex.: `hourly.js`) guardadas em cache — só o arquivo principal tinha `?v=`. Resultado: versão "nova" com peças velhas.
+**Decisão:** script `tools/versao.sh X.Y.Z` carimba `?v=X.Y.Z` em **todos** os `import`, no `index.html` e no rodapé. Toda publicação passa por ele.
+**Lição:** "a versão no rodapé" só é confiável se todos os arquivos mudarem de endereço juntos.

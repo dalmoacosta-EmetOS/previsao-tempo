@@ -19,6 +19,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 10:41 | Dalmo: "não aparece nada" no radar (print) | Mapa de fundo CARTO passou a exigir chave ("API KEY REQUIRED") — **teste simulado não pegou**. Cidade testada fora de cobertura de radar | v1.5: mapa OpenStreetMap (sem chave) com filtro escuro. 40/40 testes | 6 min |
 | 27/09 10:50–10:58 | Dalmo: nomes no mapa conforme zoom, navegar pelo mundo, botão voltar à cidade/minha localização; depois "sem as 2 h anteriores, foco no futuro" | IA achou defeito escondido: mapa recentralizava a cada atualização (impediria navegar). IA discordou de tirar também o quadro "agora" (único dado real) → ADR-014 | v1.6. 45/45 testes | 10 min |
 | 27/09 10:58–11:05 | Dalmo: abas Temperatura/Sensação; idioma trocar junto com °C/°F?; "radar escuro" | IA discordou do idioma atrelado à unidade e recomendou adiar i18n (ADR-015). Mapa claro + botão Claro/Escuro | v1.7. 51/51 testes | 7 min |
+| 27/09 11:05–11:10 | Dalmo: "estou na 1.7 e não acho o botão" | Simulação no celular mostrava o botão → causa: cache misturando arquivos novos e velhos (só o principal tinha versão) → ADR-016 | v1.7.1: versão em todos os arquivos + script `tools/versao.sh`. 51/51 testes | 5 min |
 | | | | | |
 
 ## Lições (preencher ao final)

@@ -1,4 +1,4 @@
-import { getJSON } from './http.js';
+import { getJSON } from './http.js?v=1.7.1';
 
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 
