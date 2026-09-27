@@ -1,9 +1,10 @@
-import { el, fill } from './dom.js?v=2.0';
-import { icon } from './icons.js?v=2.0';
-import { describe } from '../domain/weather-codes.js?v=2.0';
-import { temp, speed, percent, windDirection } from '../domain/units.js?v=2.0';
-import { hourLabel } from '../domain/time.js?v=2.0';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=2.0';
+import { el, fill } from './dom.js?v=2.1';
+import { icon } from './icons.js?v=2.1';
+import { describe } from '../domain/weather-codes.js?v=2.1';
+import { temp, speed, percent, windDirection } from '../domain/units.js?v=2.1';
+import { hourLabel } from '../domain/time.js?v=2.1';
+import { nowSummary } from '../domain/summary.js?v=2.1';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=2.1';
 
 export function renderCurrent(root, { place, data, unit }) {
   const c = data.current;
@@ -18,6 +19,7 @@ export function renderCurrent(root, { place, data, unit }) {
   }
   const nowcast = nowcastText(data);
   const where = [place.region, place.country].filter(Boolean).join(', ');
+  const sum = nowSummary(data, unit, info.label);
 
   fill(root,
     el('div', { class: 'hero__place' }, [
@@ -32,6 +34,14 @@ export function renderCurrent(root, { place, data, unit }) {
         el('div', { class: 'hero__label', text: info.label }),
         nowcast && el('div', { class: 'hero__nowcast', text: nowcast }),
       ]),
+    ]),
+    // Resumo em tempo real ao lado da cidade (ADR-021)
+    el('aside', { class: 'hero__now', 'aria-label': 'Resumo do tempo agora' }, [
+      el('p', { class: 'hero__now-title', text: 'Agora' }),
+      el('p', { class: 'hero__now-main', text: sum.now }),
+      el('p', { class: 'hero__now-outlook', text: sum.outlook }),
+      sum.rest && el('p', { class: 'hero__now-rest' }, [el('strong', { text: 'Restante de hoje: ' }), sum.rest]),
+      el('small', { text: 'Resumo automático · atualiza a cada 10 min' }),
     ]),
     el('dl', { class: 'hero__facts' }, [
       fact('Sensação', temp(c.feels, unit)),

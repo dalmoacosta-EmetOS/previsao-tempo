@@ -873,3 +873,44 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding: 8px 16px; }
 .alert__headline { margin: 0 0 8px; font-weight: 700; color: var(--text); }
 .alert__desc { margin: 0 0 8px; }
 .alert__area { margin: 0; font-size: 0.75rem; color: var(--text-faint); }
+
+/* Resumo do agora (ADR-021) */
+.hero { display: grid; grid-template-columns: minmax(0, 1fr); column-gap: 24px; }
+.hero__now {
+  margin: 4px 0 14px;
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--line);
+  text-shadow: none;
+}
+.hero__now p { margin: 0 0 6px; line-height: 1.45; }
+.hero__now-title { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.hero__now-main { font-size: 1.05rem; font-weight: 700; }
+.hero__now-outlook { color: var(--wet); font-weight: 600; }
+.hero__now-rest { color: var(--text-soft); font-size: 0.92rem; }
+.hero__now small { color: var(--text-faint); font-size: 0.7rem; }
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas: "place now" "main now" "facts facts";
+    align-items: start;
+  }
+  .hero__place { grid-area: place; }
+  .hero__main { grid-area: main; }
+  .hero__now { grid-area: now; align-self: center; margin: 0; }
+  .hero__facts { grid-area: facts; margin-top: 14px; }
+}
+
+/* iPhone: tira o visual padrão de botão do sistema das horas (caixas brancas) */
+.hour__btn, .detail__close, .radar__play, .to-top, .citybar, .segmented button, .icon-btn, .btn {
+  -webkit-appearance: none;
+  appearance: none;
+}
+.hour__btn { background: transparent; color: var(--text); -webkit-tap-highlight-color: transparent; }
+.hour:first-child .hour__btn { background: rgba(255, 255, 255, 0.12); }
+.hour.is-open .hour__btn { background: #fff; color: var(--bar); }
+.hour__btn .hour__temp { color: inherit; }
+.debug-box { text-align: left; white-space: pre-wrap; font-size: 0.72rem; background: rgba(0,0,0,.45); padding: 8px 10px; border-radius: 8px; margin: 0 0 12px; }

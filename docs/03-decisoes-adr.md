@@ -172,3 +172,14 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Fora dos EUA:** nenhuma chamada; ficam só os avisos automáticos (ADR-005). Não há serviço equivalente gratuito e simples para o Brasil.
 **Isolamento:** a busca roda em paralelo à previsão; se falhar, o site segue sem ela.
 **Limite:** tradução só do título; o corpo do alerta fica em inglês (traduzir texto oficial automaticamente poderia distorcer instruções de segurança).
+
+## ADR-021 — Resumo do "agora", correção das horas no iPhone e diagnósticos
+**Status:** Aceita · 27/09/2026 · teste real do Dalmo no iPhone e no Mac (15:59–16:05)
+
+- **Resumo "Agora"** no espaço vazio ao lado da cidade (computador) / logo abaixo da temperatura (celular): condição + temperatura + sensação; quando a chuva começa ou diminui nas próximas 12 h ("Chuva provável por volta das 16:00", como o *Outlook* do Weather Channel); e o restante do dia.
+- **Defeito (iPhone):** as caixas das 24 h ficaram brancas e ilegíveis — ao virarem botões (v2.0), o Safari do iPhone aplicou o visual de botão do sistema. No Mac estavam certas. Corrigido com `appearance: none` em todos os botões + teste que verifica isso.
+- **Defeito (texto):** o resumo podia dizer "Sem chuva prevista" e, na linha seguinte, "Restante de hoje: chuva no início". Causa: duas regras diferentes para "hora com chuva". Criada **uma regra única** (`isWetHour`) + teste de contradição.
+- **Arquivo órfão removido:** `js/ui/render.js`, sobra da primeira escrita interrompida (27/09 08:26), nunca usado.
+- **Mancha do radar:** com o site real em "+8 h", a chuva prevista apareceu em Connecticut e New Hampshire, não mais centrada em Boston → o desenho acompanha a previsão; a diferença para o Weather Channel é a **fonte de dados** (modelos e resolução deles são outros).
+- **Alerta oficial não apareceu em Malden:** causa não confirmada (o alerta de enchente expirava às 14:30; ou a consulta ao NWS falha). `?debug=grade` agora escreve no rodapé o resultado da consulta ao NWS.
+- Comparação Mac × iPhone só vale na **mesma cidade, mesma hora da barra e mesma versão**.

@@ -1,7 +1,7 @@
 // Resumo escrito do período (Dia 06–18 h / Noite 18–06 h), no estilo dos apps de clima (ADR-019).
 // Gerado AUTOMATICAMENTE a partir dos números da previsão — não é texto de meteorologista.
-import { describe, STORM_CODES } from './weather-codes.js?v=2.0';
-import { temp, windDirection } from './units.js?v=2.0';
+import { describe, STORM_CODES } from './weather-codes.js?v=2.1';
+import { temp, windDirection } from './units.js?v=2.1';
 
 // Do mais severo para o mais brando: o período é descrito pelo fenômeno mais importante.
 const RANK = ['storm', 'snow', 'sleet', 'heavy-rain', 'rain', 'showers', 'drizzle', 'fog', 'cloudy', 'partly', 'mostly-clear', 'clear'];
@@ -15,6 +15,13 @@ const PHRASE = {
   clear: { day: 'Ensolarado', night: 'Céu limpo' },
 };
 
+/** Regra ÚNICA de "esta hora tem chuva de verdade" — usada em todos os resumos (evita contradição). */
+export function isWetHour(h) {
+  const icon = STORM_CODES.includes(h.code) ? 'storm' : describe(h.code).icon;
+  if ((h.precip ?? 0) >= 0.2) return true;
+  return WET.includes(icon) && (h.pop ?? 100) >= 45;
+}
+
 const phrase = (icon, part) => {
   const p = PHRASE[icon] || 'Nublado';
   return typeof p === 'string' ? p : p[part];
@@ -24,8 +31,8 @@ function dominant(hours) {
   let best = 'clear';
   for (const h of hours) {
     const icon = STORM_CODES.includes(h.code) ? 'storm' : describe(h.code).icon;
-    // chuva só conta se o modelo realmente a leva a sério
-    if (WET.includes(icon) && (h.pop ?? 100) < 35 && (h.precip ?? 0) < 0.2) continue;
+    // chuva só conta se o modelo realmente a leva a sério (mesma regra do resumo do agora)
+    if (WET.includes(icon) && !isWetHour(h)) continue;
     if (RANK.indexOf(icon) < RANK.indexOf(best)) best = icon;
   }
   // "Nublado" só se a maior parte do período for nublada
@@ -123,5 +130,38 @@ export function splitDayNight(allHours, date) {
   return {
     day: allHours.filter((h) => h.time.startsWith(date) && hh(h.time) >= 6 && hh(h.time) < 18),
     night: allHours.filter((h) => (h.time.startsWith(date) && hh(h.time) >= 18) || (h.time.startsWith(nextDate) && hh(h.time) < 6)),
+  };
+}
+
+/**
+ * Resumo do AGORA para o espaço ao lado da cidade (ADR-021):
+ * condição atual + quando chove/para nas próximas 12 h + restante do dia.
+ */
+export function nowSummary(data, unit, nowLabel) {
+  const c = data.current;
+  const hh = (t) => t.slice(11, 16);
+  const next = data.hourly.slice(1, 13);
+  const wet = isWetHour;
+  const rainingNow = WET.includes(describe(c.code).icon) || (c.precip ?? 0) >= 0.1 || /Chuva|Garoa|Neve/.test(nowLabel);
+
+  let outlook;
+  if (rainingNow) {
+    const dry = next.find((h) => !wet(h));
+    outlook = dry ? `A chuva deve diminuir por volta das ${hh(dry.time)}.` : 'Chuva deve continuar pelas próximas horas.';
+  } else {
+    const first = next.find(wet);
+    outlook = first ? `Chuva provável por volta das ${hh(first.time)}.` : 'Sem chuva prevista nas próximas 12 horas.';
+  }
+
+  // Restante de hoje (da hora atual até 23:00)
+  const today = c.time.slice(0, 10);
+  const rest = data.hourly.filter((h) => h.time.startsWith(today));
+  const part = c.isDay ? 'day' : 'night';
+  const restSum = rest.length >= 2 ? periodSummary(rest, part, unit) : null;
+
+  return {
+    now: `${nowLabel}, ${temp(c.temp, unit)} (sensação ${temp(c.feels, unit)}).`,
+    outlook,
+    rest: restSum ? restSum.text : '',
   };
 }
