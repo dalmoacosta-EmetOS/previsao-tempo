@@ -1,8 +1,8 @@
-import { el, fill } from './dom.js?v=2.3';
-import { speed, percent, snow, uvLevel } from '../domain/units.js?v=2.3';
-import { hourLabel } from '../domain/time.js?v=2.3';
-import { todayStormRisk } from '../domain/alerts.js?v=2.3';
-import { evaluateToday, SOURCES } from '../domain/safety.js?v=2.3';
+import { el, fill } from './dom.js?v=2.3.1';
+import { speed, percent, snow, uvLevel } from '../domain/units.js?v=2.3.1';
+import { hourLabel } from '../domain/time.js?v=2.3.1';
+import { todayStormRisk } from '../domain/alerts.js?v=2.3.1';
+import { evaluateToday, SOURCES } from '../domain/safety.js?v=2.3.1';
 
 const RISK_TEXT = { alto: 'Alto', moderado: 'Moderado', baixo: 'Baixo' };
 const canHover = () => window.matchMedia?.('(hover: hover)').matches;

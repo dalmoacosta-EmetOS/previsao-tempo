@@ -26,6 +26,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 27/09 15:59–16:15 | Dalmo testou v2.0 no iPhone e no Mac; pediu resumo do "agora" ao lado da cidade | Horas ilegíveis no iPhone (visual de botão do sistema); teste automático achou contradição no resumo; arquivo órfão da 1ª escrita removido → ADR-021 | v2.1. 72/72 testes | 16 min |
 | 27/09 16:15–16:35 | Dalmo: alerta oficial apareceu ✅; pediu quadros em vermelho com recomendações (vento > 30 km/h etc.) | IA discordou dos 30 km/h (brisa comum) e propôs limites de referência (Beaufort, OMS, INMET) → ADR-022. Teste revelou texto em km/h com site em °F → corrigido | v2.2. 77/77 testes | 20 min |
 | 27/09 16:25 | Dalmo: "azul no radar com certeza não é neve" | Legenda única descrevia só a previsão; radar vem em azul porque o esquema verde foi recusado pelo serviço → ADR-023 | v2.3: legenda troca com o quadro; neve em lilás. 78/78 testes | 6 min |
+| 28/09 08:17–08:35 | Dalmo (dirigindo, em Malden): céu chovendo e frase "Chuva deve começar em ~60 min" | Céu e frase decidiam com sinais diferentes (céu: 4 sinais; frase: só a série de 15 min) → revisão do ADR-011 | v2.3.1: frase obedece ao céu; silêncio quando os sinais divergem. 82/82 testes (inclui o caso real) | 18 min |
 | | | | | |
 
 ## Lições (preencher ao final)
