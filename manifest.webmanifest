@@ -1,6 +1,6 @@
 {
-  "name": "Previsão do Tempo",
-  "short_name": "Tempo",
+  "name": "Weather Forecast",
+  "short_name": "Weather",
   "description": "Previsão do tempo: agora, por hora, 15 dias, radar e alertas.",
   "lang": "pt-BR",
   "start_url": "./",

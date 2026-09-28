@@ -525,7 +525,7 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
     const icons = await Promise.all(m.icons.map(async (i) => (await fetch(new URL(i.src, href))).status));
     return { name: m.name, display: m.display, icons, apple: !!document.querySelector('link[rel="apple-touch-icon"]'), og: document.querySelector('meta[property="og:image"]')?.content };
   });
-  check('Manifesto válido com ícones', man.name === 'Previsão do Tempo' && man.display === 'standalone' && man.icons.every((c) => c === 200) && man.apple, JSON.stringify(man));
+  check('Manifesto válido com ícones', man.name === 'Weather Forecast' && man.display === 'standalone' && man.icons.every((c) => c === 200) && man.apple, JSON.stringify(man));
   check('Prévia de compartilhamento (og:image)', /\/img\/og\.png$/.test(man.og || ''), man.og);
   const swOk = await t.p.evaluate(() => Promise.race([navigator.serviceWorker.ready.then(() => true), new Promise((r) => setTimeout(() => r(false), 5000))]));
   check('Modo sem internet registrado', swOk);

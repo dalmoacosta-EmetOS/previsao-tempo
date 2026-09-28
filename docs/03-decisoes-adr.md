@@ -275,3 +275,18 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Contexto:** acessibilidade nunca tinha sido medida.
 **Decisão:** auditoria automática com axe-core dentro dos testes (celular com chuva e computador com sol). Achados e correções: abas com atributo indevido; selo "OFICIAL" com contraste baixo (vermelho escurecido); lista de dias e quadros clicáveis quebravam a semântica de lista (agora um botão invisível cobre a linha/quadro, com descrição completa para leitor de tela e foco visível); mapa marcado como imagem apesar de ter botões. Resultado: zero falhas nas regras automáticas. **Limite:** regras automáticas pegam ~30–40% dos problemas; teste com VoiceOver no iPhone continua recomendado.
 
+## ADR-036 — Link recebido: localização primeiro, cidade do link se negar
+**Status:** Aceita · 28/09/2026 · decisão do Dalmo (substitui a ordem de abertura do ADR-030)
+**Decisão:** ao abrir um link com cidade, o site pede a localização. Aceitou → mostra a cidade de quem abriu. Negou (ou falhou) → mostra a cidade do link, com aviso.
+**Consequência conhecida (apontada pela IA e aceita):** quem aceitar a localização não verá a cidade enviada. Se o navegador já tiver permissão salva, nem pergunta — vai direto para a cidade de quem abriu.
+
+## ADR-037 — Radar sem "halo" vermelho falso
+**Status:** Aceita · 28/09/2026 · print do Dalmo (15:29) com bordas avermelhadas em volta da chuva verde
+**Causa provável:** na repintura do ADR-024, cores do radar que não eram claramente azuis nem amarelas (cinzas quentes, bordas suavizadas de eco fraco) caíam na regra "senão = muito forte" e viravam vermelho — exagerando chuva fraca.
+**Decisão:** regra conservadora: cinza/branco/pouco saturado → Fraca; só laranja, vermelho ou rosa intensos → Muito forte; qualquer cor ambígua → Fraca. Teste com ladrilho contendo cinzas e bordas semitransparentes: nenhum pixel vermelho.
+
+## ADR-038 — Nome: Weather Forecast
+**Status:** Aceita · 28/09/2026 · decisão do Dalmo
+**Decisão:** o site passa a se chamar **Weather Forecast** (topo, título da aba, app instalado, prévia do link). Boas-vindas: "Weather Forecast: apresentado de maneira clara e confiável, para você se manter bem informado e planejar o seu dia com tranquilidade." O conteúdo continua em português.
+**Endereço:** um endereço só "weatherforecast" exige domínio próprio (pago). Grátis, o mais curto possível é renomear o repositório → `dalmoacosta-emetos.github.io/weatherforecast` (o endereço antigo deixa de funcionar).
+

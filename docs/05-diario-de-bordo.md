@@ -33,6 +33,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 28/09 14:06–14:25 | Dalmo comparou o topo do site com o app do Weather Channel e pediu layout parecido | Copiado só o bloco principal; mantido o resumo "Agora"; sem anúncio/manchete → ADR-027 | v2.6: temperatura grande à esquerda, ícone + condição à direita, linhas Sensação/Máx/Mín e chuva da próxima hora. 90/90 testes | 19 min |
 | 28/09 14:45–15:00 | Dalmo: ícone de garoa (pontos) "infantil" | IA apontou que neve usava as mesmas bolinhas → redesenho da família inteira, com quadro antes/depois → ADR-028 | v2.7. 90/90 testes | 15 min |
 | 28/09 14:48–15:40 | Dalmo: "tudo o que vale e for gratuito, faça" (após análise crítica da IA) | IA avisou o que não dá (prévia por cidade, comparação de modelos) e fez o resto em etapas, cada uma testada e publicada → ADR-029 a 035 | v2.8 → v3.0: testes no projeto + GitHub, link/compartilhar/favoritas, qualidade do ar, gelo na pista, gráfico 2 h, instalar/sem internet, acessibilidade AA. 116/116 testes | 52 min |
+| 28/09 15:31–16:05 | Dalmo: link deve pedir localização antes; bordas vermelhas no radar; nome "Weather Forecast"; apresentação com versão errada | IA apontou que quem aceitar a localização não verá a cidade enviada (aceito) → ADR-036; causa do vermelho = regra "senão = muito forte" da repintura → ADR-037; ADR-038 | v3.1–3.2. 118/118 testes. Apresentação refeita, resumida | 34 min |
 | | | | | |
 
 ## Lições (preencher ao final)

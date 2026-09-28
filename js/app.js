@@ -1,26 +1,26 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=3.1';
-import { load, save } from './storage.js?v=3.1';
-import { getOfficialAlerts } from './api/official-alerts.js?v=3.1';
-import { getForecast } from './api/forecast.js?v=3.1';
-import { getAirQuality } from './api/air-quality.js?v=3.1';
-import { reverseGeocode } from './api/geocoding.js?v=3.1';
-import { resolveWeatherNow } from './domain/scene.js?v=3.1';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=3.1';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=3.1';
-import { renderHourly } from './ui/hourly.js?v=3.1';
-import { renderDaily } from './ui/daily.js?v=3.1';
-import { renderDetails } from './ui/details.js?v=3.1';
-import { renderAlerts } from './ui/alerts.js?v=3.1';
-import { renderError, showToast } from './ui/status.js?v=3.1';
-import { setupSearch } from './ui/search.js?v=3.1';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=3.1';
-import { mountRadar, updateRadar } from './ui/radar.js?v=3.1';
-import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=3.1';
-import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=3.1';
-import { renderFavorites } from './ui/favorites.js?v=3.1';
+import { getState, setState, subscribe } from './state.js?v=3.2';
+import { load, save } from './storage.js?v=3.2';
+import { getOfficialAlerts } from './api/official-alerts.js?v=3.2';
+import { getForecast } from './api/forecast.js?v=3.2';
+import { getAirQuality } from './api/air-quality.js?v=3.2';
+import { reverseGeocode } from './api/geocoding.js?v=3.2';
+import { resolveWeatherNow } from './domain/scene.js?v=3.2';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=3.2';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=3.2';
+import { renderHourly } from './ui/hourly.js?v=3.2';
+import { renderDaily } from './ui/daily.js?v=3.2';
+import { renderDetails } from './ui/details.js?v=3.2';
+import { renderAlerts } from './ui/alerts.js?v=3.2';
+import { renderError, showToast } from './ui/status.js?v=3.2';
+import { setupSearch } from './ui/search.js?v=3.2';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=3.2';
+import { mountRadar, updateRadar } from './ui/radar.js?v=3.2';
+import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=3.2';
+import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=3.2';
+import { renderFavorites } from './ui/favorites.js?v=3.2';
 
-export const VERSION = '3.1';
+export const VERSION = '3.2';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
@@ -82,7 +82,7 @@ function syncUrl(place) {
 
 async function sharePlace(place) {
   const url = urlForPlace(place, location.href);
-  const title = `Previsão do tempo · ${place.name}`;
+  const title = `Weather Forecast · ${place.name}`;
   try {
     if (navigator.share) { await navigator.share({ title, url }); return; }
     await navigator.clipboard.writeText(url);
@@ -124,7 +124,7 @@ async function loadPlace(place, { remember = true } = {}) {
       })
       .catch((err) => debugNote(`Alertas oficiais (NWS): FALHOU — ${err.kind || ''} ${err.message || ''}`));
     if (remember && !place.isGeo) save('place', place);
-    document.title = `${place.name} · Previsão do Tempo`;
+    document.title = `${place.name} · Weather Forecast`;
   } catch (err) {
     setState({ status: 'error', error: { kind: err.kind || 'network', retry: () => loadPlace(place, { remember }) } });
   }
@@ -156,7 +156,7 @@ function locate({ auto = false, fallback = null } = {}) {
       if (named && getState().place === place) {
         const updated = { ...place, ...named };
         setState({ place: updated });
-        document.title = `${updated.name} · Previsão do Tempo`;
+        document.title = `${updated.name} · Weather Forecast`;
       }
     },
     (err) => {

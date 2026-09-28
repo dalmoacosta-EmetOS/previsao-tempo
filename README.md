@@ -1,4 +1,4 @@
-# Previsão do Tempo
+# Weather Forecast
 
 Exercício do Treinamento de IA (linha de base) — construído 100% com IA.
 
