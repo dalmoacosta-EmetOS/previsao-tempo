@@ -3,12 +3,12 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el, fill } from './dom.js?v=2.3.1';
-import { getRadarFrames } from '../api/radar.js?v=2.3.1';
-import { getPrecipGrid } from '../api/precip-grid.js?v=2.3.1';
-import { speed, windDirection } from '../domain/units.js?v=2.3.1';
-import { showToast } from './status.js?v=2.3.1';
-import { load, save } from '../storage.js?v=2.3.1';
+import { el, fill } from './dom.js?v=2.4';
+import { getRadarFrames } from '../api/radar.js?v=2.4';
+import { getPrecipGrid } from '../api/precip-grid.js?v=2.4';
+import { speed, windDirection } from '../domain/units.js?v=2.4';
+import { showToast } from './status.js?v=2.4';
+import { load, save } from '../storage.js?v=2.4';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -22,23 +22,16 @@ const RADAR_TTL = 10 * 60 * 1000;
 const MODEL_TTL = 60 * 60 * 1000; // o modelo atualiza de hora em hora; poupa a cota gratuita
 const START_ZOOM = 7;             // casa com o zoom máximo do radar e com a área da previsão
 
-// Escala no padrão que o público conhece dos apps de clima (ADR-018), em mm/h.
-// Fraca < 2,5 · Moderada 2,5–7,6 · Forte 7,6–15 · Muito forte > 15 (limites usuais de intensidade de chuva).
+// UMA escala só para o player inteiro (ADR-024): as cores do RADAR (imagem pronta da RainViewer,
+// esquema "Universal Blue") valem também para a previsão do modelo, que pintamos nós mesmos.
+// Limites em mm/h: Fraca < 2,5 · Moderada 2,5–7,6 · Forte 7,6–15 · Muito forte > 15.
 export const LEGEND = [
-  { label: 'Fraca', from: 0.1, rgb: [60, 200, 60] },
-  { label: 'Moderada', from: 2.5, rgb: [16, 130, 36] },
-  { label: 'Forte', from: 7.6, rgb: [255, 214, 0] },
-  { label: 'Muito forte', from: 15, rgb: [235, 45, 35] },
+  { label: 'Fraca', from: 0.1, rgb: [136, 221, 238] },
+  { label: 'Moderada', from: 2.5, rgb: [0, 119, 187] },
+  { label: 'Forte', from: 7.6, rgb: [255, 221, 0] },
+  { label: 'Muito forte', from: 15, rgb: [255, 68, 0] },
 ];
-const SNOW_RGB = [196, 150, 255]; // lilás: não confunde com o azul da chuva do radar
-// Cores do RADAR (imagem pronta da RainViewer, esquema "Universal Blue"): chuva em AZUL → amarelo → vermelho.
-export const RADAR_LEGEND = [
-  { label: 'Fraca', rgb: [136, 221, 238] },
-  { label: 'Moderada', rgb: [0, 119, 187] },
-  { label: 'Forte', rgb: [255, 221, 0] },
-  { label: 'Muito forte', rgb: [255, 68, 0] },
-];
-let legendRadar, legendModel;
+const SNOW_RGB = [196, 150, 255]; // lilás: só a previsão separa neve (o radar gratuito não separa)
 const STOPS = LEGEND.map((l) => [l.from, l.rgb]);
 const DEBUG_GRID = new URLSearchParams(location.search).get('debug') === 'grade';
 let debugLayer = null;
@@ -84,19 +77,13 @@ export function mountRadar(container) {
     ]),
     modelNote,
     el('div', { class: 'radar__foot' }, [
-      // Duas legendas: a que vale é a do quadro que está na tela (ADR-023)
-      legendRadar = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda do radar' }, [
-        el('li', { class: 'radar__legend-title', text: 'Radar · chuva:' }),
-        ...RADAR_LEGEND.map((l) => el('li', {}, [
-          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
-        ])),
-      ]),
-      legendModel = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda da previsão', hidden: true }, [
-        el('li', { class: 'radar__legend-title', text: 'Previsão · chuva:' }),
+      // Uma legenda só, igual no radar e na previsão (ADR-024)
+      el('ul', { class: 'radar__legend', 'aria-label': 'Legenda de chuva' }, [
+        el('li', { class: 'radar__legend-title', text: 'Chuva:' }),
         ...LEGEND.map((l) => el('li', {}, [
           el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
         ])),
-        el('li', {}, [el('b', { style: `background: rgb(${SNOW_RGB.join(',')})`, 'aria-hidden': 'true' }), 'Neve']),
+        el('li', {}, [el('b', { style: `background: rgb(${SNOW_RGB.join(',')})`, 'aria-hidden': 'true' }), 'Neve (na previsão)']),
       ]),
       windEl,
     ]),
@@ -237,8 +224,6 @@ function show(i) {
   kindEl.textContent = f.kind === 'radar' ? (f.nowcast ? 'RADAR · projeção curta' : 'RADAR') : 'PREVISÃO DO MODELO';
   kindEl.className = `radar__kind radar__kind--${f.kind}`;
   modelNote.hidden = f.kind !== 'model';
-  legendRadar.hidden = f.kind !== 'radar';
-  legendModel.hidden = f.kind !== 'model';
 }
 
 function label(f, i) {
@@ -297,7 +282,9 @@ function colorFor(mm) {
   for (let i = STOPS.length - 1; i >= 0; i--) {
     if (mm >= STOPS[i][0]) {
       const next = STOPS[i + 1];
-      if (!next) return STOPS[i][1];
+      // Só suaviza dentro do azul (Fraca → Moderada). Azul → amarelo em degrau:
+      // misturar os dois dá VERDE, cor que o radar não usa (ADR-024).
+      if (!next || i > 0) return STOPS[i][1];
       const k = (mm - STOPS[i][0]) / (next[0] - STOPS[i][0]);
       return STOPS[i][1].map((c, j) => Math.round(c + (next[1][j] - c) * k));
     }
