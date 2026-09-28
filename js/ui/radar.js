@@ -3,12 +3,12 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el, fill } from './dom.js?v=3.0';
-import { getRadarFrames } from '../api/radar.js?v=3.0';
-import { getPrecipGrid } from '../api/precip-grid.js?v=3.0';
-import { speed, windDirection } from '../domain/units.js?v=3.0';
-import { showToast } from './status.js?v=3.0';
-import { load, save } from '../storage.js?v=3.0';
+import { el, fill } from './dom.js?v=3.1';
+import { getRadarFrames } from '../api/radar.js?v=3.1';
+import { getPrecipGrid } from '../api/precip-grid.js?v=3.1';
+import { speed, windDirection } from '../domain/units.js?v=3.1';
+import { showToast } from './status.js?v=3.1';
+import { load, save } from '../storage.js?v=3.1';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -389,20 +389,27 @@ function markRecolorFailed() {
 const lerp = (a, b, k) => a.map((c, j) => Math.round(c + (b[j] - c) * k));
 const clamp01 = (x) => Math.max(0, Math.min(1, x));
 
-/** Troca as cores "Universal Blue" da RainViewer pelas do padrão Weather Channel. */
+/** Troca as cores "Universal Blue" da RainViewer pelas do padrão Weather Channel.
+ *  Regra conservadora (ADR-037): só vira "muito forte" o que é claramente laranja/vermelho/rosa
+ *  intenso na origem; cinzas, brancos e bordas suavizadas (eco fraco) viram "fraca" — nunca exagera. */
 export function recolorPixels(px) {
   const [fraca, moderada, forte, muitoForte] = LEGEND.map((l) => l.rgb);
   for (let i = 0; i < px.length; i += 4) {
     if (px[i + 3] === 0) continue;
     const r = px[i], g = px[i + 1], b = px[i + 2];
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const sat = max === 0 ? 0 : (max - min) / max;
     let out;
-    if (b >= r && b + 10 >= g && r < 170) {
-      // azul-claro (fraca) → azul-escuro (moderada): quanto menos verde no pixel, mais forte
-      out = lerp(fraca, moderada, clamp01((225 - g) / 110));
-    } else if (r > 180 && g > 170 && b < 140) {
-      out = forte;                            // amarelo
+    if (sat < 0.3) {
+      out = fraca;                                            // cinza/branco/borda: eco fraco
+    } else if (b >= r && b + 10 >= g) {
+      out = lerp(fraca, moderada, clamp01((225 - g) / 110));  // azul-claro → azul-escuro
+    } else if (r > 180 && g > 160 && b < 140) {
+      out = forte;                                            // amarelo
+    } else if (r > 180 && g < 0.75 * r && (b < 120 || b > 150)) {
+      out = muitoForte;                                       // laranja, vermelho, rosa/magenta intensos
     } else {
-      out = muitoForte;                       // laranja, vermelho, rosa (extremo)
+      out = fraca;                                            // qualquer cor ambígua: não exagera
     }
     px[i] = out[0]; px[i + 1] = out[1]; px[i + 2] = out[2];
   }

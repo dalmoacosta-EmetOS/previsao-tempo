@@ -1,26 +1,26 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=3.0';
-import { load, save } from './storage.js?v=3.0';
-import { getOfficialAlerts } from './api/official-alerts.js?v=3.0';
-import { getForecast } from './api/forecast.js?v=3.0';
-import { getAirQuality } from './api/air-quality.js?v=3.0';
-import { reverseGeocode } from './api/geocoding.js?v=3.0';
-import { resolveWeatherNow } from './domain/scene.js?v=3.0';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=3.0';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=3.0';
-import { renderHourly } from './ui/hourly.js?v=3.0';
-import { renderDaily } from './ui/daily.js?v=3.0';
-import { renderDetails } from './ui/details.js?v=3.0';
-import { renderAlerts } from './ui/alerts.js?v=3.0';
-import { renderError, showToast } from './ui/status.js?v=3.0';
-import { setupSearch } from './ui/search.js?v=3.0';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=3.0';
-import { mountRadar, updateRadar } from './ui/radar.js?v=3.0';
-import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=3.0';
-import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=3.0';
-import { renderFavorites } from './ui/favorites.js?v=3.0';
+import { getState, setState, subscribe } from './state.js?v=3.1';
+import { load, save } from './storage.js?v=3.1';
+import { getOfficialAlerts } from './api/official-alerts.js?v=3.1';
+import { getForecast } from './api/forecast.js?v=3.1';
+import { getAirQuality } from './api/air-quality.js?v=3.1';
+import { reverseGeocode } from './api/geocoding.js?v=3.1';
+import { resolveWeatherNow } from './domain/scene.js?v=3.1';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=3.1';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=3.1';
+import { renderHourly } from './ui/hourly.js?v=3.1';
+import { renderDaily } from './ui/daily.js?v=3.1';
+import { renderDetails } from './ui/details.js?v=3.1';
+import { renderAlerts } from './ui/alerts.js?v=3.1';
+import { renderError, showToast } from './ui/status.js?v=3.1';
+import { setupSearch } from './ui/search.js?v=3.1';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=3.1';
+import { mountRadar, updateRadar } from './ui/radar.js?v=3.1';
+import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=3.1';
+import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=3.1';
+import { renderFavorites } from './ui/favorites.js?v=3.1';
 
-export const VERSION = '3.0';
+export const VERSION = '3.1';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
@@ -130,9 +130,13 @@ async function loadPlace(place, { remember = true } = {}) {
   }
 }
 
-function locate({ auto = false } = {}) {
+function locate({ auto = false, fallback = null } = {}) {
   const fail = (msg) => {
-    if (auto) {
+    if (auto && fallback) {
+      // Link recebido e localização negada → mostra a cidade do link (ADR-036)
+      showToast(`${msg} Mostrando ${fallback.name}, a cidade do link.`);
+      loadPlace(fallback, { remember: false });
+    } else if (auto) {
       showToast(`${msg} Mostrando Boston — busque sua cidade acima.`);
       loadPlace(FALLBACK_PLACE, { remember: false });
     } else {
@@ -205,10 +209,12 @@ function init() {
     if (place && status === 'ok' && !document.hidden) loadPlace(place, { remember: !place.isGeo });
   }, 10 * 60 * 1000);
 
-  // Ordem de abertura: link com cidade → última cidade pesquisada → localização → Boston.
+  // Ordem de abertura (ADR-036):
+  //  • link com cidade → pede a localização; aceitou = cidade de quem abriu; negou = cidade do link;
+  //  • sem link → última cidade pesquisada → localização → Boston.
   const fromUrl = placeFromUrl(location.search);
   const saved = load('place');
-  if (fromUrl) loadPlace(fromUrl, { remember: false });
+  if (fromUrl) locate({ auto: true, fallback: fromUrl });
   else if (saved) loadPlace(saved);
   else locate({ auto: true });
 

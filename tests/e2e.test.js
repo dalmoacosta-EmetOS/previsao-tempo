@@ -364,6 +364,19 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   await t.p.waitForTimeout(500);
   const rp = await radarPx();
   check('Radar "agora" repintado em verde, sem azul (ADR-024)', rp.colored > 0 && rp.green > 0 && rp.blue === 0, JSON.stringify(rp));
+  const halo = await t.p.evaluate(() => {
+    let red = 0, seen = 0;
+    document.querySelectorAll('#radar canvas.leaflet-tile').forEach((cv) => {
+      const ctx = cv.getContext('2d');
+      for (let x = 216; x < 256; x += 3) for (let y = 1; y < 39; y += 3) {
+        const [r, g, b, a] = ctx.getImageData(x, y, 1, 1).data;
+        if (!a) continue; seen++;
+        if (r > 150 && g < 120) red++;
+      }
+    });
+    return { red, seen };
+  });
+  check('Eco fraco/cinza NÃO vira vermelho (ADR-037)', halo.seen > 0 && halo.red === 0, JSON.stringify(halo));
   check('Uma legenda visível: Chuva verde + Neve azul', (await t.p.locator('.radar__legend:visible').count()) === 1 && (await t.p.textContent('.radar__legend:visible')).includes('Neve') && (await t.p.getAttribute('.radar__legend:visible li:nth-child(2) b', 'style')).replace(/ /g, '').includes('110,215,90'), await t.p.textContent('.radar__legend:visible'));
   await t.p.locator('#radar').screenshot({ path: `${OUT}/radar-desktop.png` });
   await t.p.click('.radar__play');
@@ -456,7 +469,7 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   // ADR-030: link por cidade, compartilhar e favoritos
   t = await page(browser, { mobile: true, url: '/?cidade=Malden&regiao=Massachusetts&pais=EUA&lat=42.425&lon=-71.066' });
   await t.p.waitForTimeout(800);
-  check('Link com cidade abre a cidade do link', (await t.p.textContent('.hero__city')) === 'Malden', await t.p.textContent('.hero__city'));
+  check('Link + localização NEGADA → cidade do link', (await t.p.textContent('.hero__city')) === 'Malden', await t.p.textContent('.hero__city'));
   check('Sem favoritas: faixa escondida', await t.p.isHidden('#favs'));
   await t.p.click('.hero__act[aria-pressed]');
   await t.p.waitForTimeout(200);
@@ -473,6 +486,10 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   const copied = await t.p.evaluate(() => navigator.clipboard.readText()).catch(() => '');
   check('Compartilhar copia o link da cidade', copied.includes('cidade=Malden') && copied.includes('lat=42.425'), copied);
   check('Sem erros JS (favoritos)', t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+  t = await page(browser, { mobile: true, geo: 'allow', url: '/?cidade=Malden&regiao=Massachusetts&pais=EUA&lat=42.425&lon=-71.066' });
+  await t.p.waitForTimeout(1200);
+  check('Link + localização ACEITA → cidade de quem abriu (ADR-036)', (await t.p.textContent('.hero__city')) === 'Somerville', await t.p.textContent('.hero__city'));
   await t.ctx.close();
   t = await page(browser, { mobile: false, url: '/?lat=999&lon=abc' });
   await t.p.waitForTimeout(900);
