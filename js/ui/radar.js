@@ -3,12 +3,12 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el, fill } from './dom.js?v=2.3.1';
-import { getRadarFrames } from '../api/radar.js?v=2.3.1';
-import { getPrecipGrid } from '../api/precip-grid.js?v=2.3.1';
-import { speed, windDirection } from '../domain/units.js?v=2.3.1';
-import { showToast } from './status.js?v=2.3.1';
-import { load, save } from '../storage.js?v=2.3.1';
+import { el, fill } from './dom.js?v=2.4';
+import { getRadarFrames } from '../api/radar.js?v=2.4';
+import { getPrecipGrid } from '../api/precip-grid.js?v=2.4';
+import { speed, windDirection } from '../domain/units.js?v=2.4';
+import { showToast } from './status.js?v=2.4';
+import { load, save } from '../storage.js?v=2.4';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -22,22 +22,26 @@ const RADAR_TTL = 10 * 60 * 1000;
 const MODEL_TTL = 60 * 60 * 1000; // o modelo atualiza de hora em hora; poupa a cota gratuita
 const START_ZOOM = 7;             // casa com o zoom máximo do radar e com a área da previsão
 
-// Escala no padrão que o público conhece dos apps de clima (ADR-018), em mm/h.
-// Fraca < 2,5 · Moderada 2,5–7,6 · Forte 7,6–15 · Muito forte > 15 (limites usuais de intensidade de chuva).
+// Cores no padrão do Weather Channel (ADR-024): CHUVA em verde → verde-escuro → amarelo → vermelho,
+// NEVE em azul. Valem para o player inteiro: a previsão nós pintamos direto; a imagem do radar
+// (que a RainViewer só entrega em azul no plano gratuito) é REPINTADA no aparelho com estas cores.
+// Limites em mm/h: Fraca < 2,5 · Moderada 2,5–7,6 · Forte 7,6–15 · Muito forte > 15.
 export const LEGEND = [
   { label: 'Fraca', from: 0.1, rgb: [60, 200, 60] },
   { label: 'Moderada', from: 2.5, rgb: [16, 130, 36] },
   { label: 'Forte', from: 7.6, rgb: [255, 214, 0] },
   { label: 'Muito forte', from: 15, rgb: [235, 45, 35] },
 ];
-const SNOW_RGB = [196, 150, 255]; // lilás: não confunde com o azul da chuva do radar
-// Cores do RADAR (imagem pronta da RainViewer, esquema "Universal Blue"): chuva em AZUL → amarelo → vermelho.
+const SNOW_LIGHT = [120, 195, 245], SNOW_DARK = [25, 95, 185]; // neve: azul-claro → azul (como no Weather Channel)
+const SNOW_RGB = [60, 150, 225];                                 // amostra da legenda
+// Se o aparelho não conseguir repintar o radar, ele aparece nas cores originais (azul) e a legenda avisa.
 export const RADAR_LEGEND = [
   { label: 'Fraca', rgb: [136, 221, 238] },
   { label: 'Moderada', rgb: [0, 119, 187] },
   { label: 'Forte', rgb: [255, 221, 0] },
   { label: 'Muito forte', rgb: [255, 68, 0] },
 ];
+let recolorFailed = false;
 let legendRadar, legendModel;
 const STOPS = LEGEND.map((l) => [l.from, l.rgb]);
 const DEBUG_GRID = new URLSearchParams(location.search).get('debug') === 'grade';
@@ -84,19 +88,19 @@ export function mountRadar(container) {
     ]),
     modelNote,
     el('div', { class: 'radar__foot' }, [
-      // Duas legendas: a que vale é a do quadro que está na tela (ADR-023)
-      legendRadar = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda do radar' }, [
+      // Uma legenda para o player inteiro (ADR-024). A outra só aparece se o radar não puder ser repintado.
+      legendRadar = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda do radar (cores originais)', hidden: true }, [
         el('li', { class: 'radar__legend-title', text: 'Radar · chuva:' }),
         ...RADAR_LEGEND.map((l) => el('li', {}, [
           el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
         ])),
       ]),
-      legendModel = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda da previsão', hidden: true }, [
-        el('li', { class: 'radar__legend-title', text: 'Previsão · chuva:' }),
+      legendModel = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda de chuva e neve' }, [
+        el('li', { class: 'radar__legend-title', text: 'Chuva:' }),
         ...LEGEND.map((l) => el('li', {}, [
           el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
         ])),
-        el('li', {}, [el('b', { style: `background: rgb(${SNOW_RGB.join(',')})`, 'aria-hidden': 'true' }), 'Neve']),
+        el('li', {}, [el('b', { style: `background: rgb(${SNOW_RGB.join(',')})`, 'aria-hidden': 'true' }), 'Neve (previsão)']),
       ]),
       windEl,
     ]),
@@ -174,7 +178,7 @@ async function refresh() {
       radarLayers.forEach((l) => map.removeLayer(l.layer));
       radarLayers = wanted.map((f) => ({
         ...f,
-        layer: withFallback(L.tileLayer(f.url, { opacity: 0, maxNativeZoom: RADAR_MAX_ZOOM, maxZoom: 10, zIndex: 10 }).addTo(map), f.url),
+        layer: new (recolorLayerClass())(f.url, { opacity: 0, maxNativeZoom: RADAR_MAX_ZOOM, maxZoom: 10, zIndex: 10 }).addTo(map),
       }));
       radarAt = Date.now();
       radarFailed = false;
@@ -237,8 +241,9 @@ function show(i) {
   kindEl.textContent = f.kind === 'radar' ? (f.nowcast ? 'RADAR · projeção curta' : 'RADAR') : 'PREVISÃO DO MODELO';
   kindEl.className = `radar__kind radar__kind--${f.kind}`;
   modelNote.hidden = f.kind !== 'model';
-  legendRadar.hidden = f.kind !== 'radar';
-  legendModel.hidden = f.kind !== 'model';
+  const original = f.kind === 'radar' && recolorFailed;
+  legendRadar.hidden = !original;
+  legendModel.hidden = original;
 }
 
 function label(f, i) {
@@ -274,7 +279,7 @@ function frameUrl(t) {
       const mm = bilinear(v, r0, r1, c0, c1, fx, fy);
       if (mm < 0.1) continue;
       const cm = bilinear(s, r0, r1, c0, c1, fx, fy);
-      const [R, G, B] = cm > 0.05 ? SNOW_RGB : colorFor(mm);
+      const [R, G, B] = cm > 0.05 ? lerp(SNOW_LIGHT, SNOW_DARK, clamp01(cm / 2)) : colorFor(mm);
       // bordas esfumaçadas: evita o "quadrado" no limite da área calculada
       const edge = Math.min(x, y, W - 1 - x, H - 1 - y) / (W * 0.12);
       const a = Math.min(215, 165 + mm * 8) * Math.min(1, edge); // chuva fraca bem visível, como nos apps
@@ -305,16 +310,73 @@ function colorFor(mm) {
   return STOPS[0][1];
 }
 
-// Esquema de cores 4 (verde→vermelho, como nos apps de clima). Se o serviço gratuito
-// recusar esse esquema, troca sozinho para o 2 (azul), que sempre funcionou.
-function withFallback(layer, url) {
-  let switched = false;
-  layer.on('tileerror', () => {
-    if (switched) return;
-    switched = true;
-    layer.setUrl(url.replace('/4/1_1.png', '/2/1_1.png'));
+// ---------- radar repintado (ADR-024) ----------
+// A RainViewer gratuita entrega o radar em azul → amarelo → vermelho. Cada ladrilho é desenhado
+// num canvas e cada pixel troca para a cor equivalente do padrão Weather Channel (verde...).
+// Se o navegador não permitir ler o ladrilho, ele aparece como veio e a legenda original é mostrada.
+let RecolorLayer = null;
+function recolorLayerClass() {
+  if (RecolorLayer) return RecolorLayer;
+  RecolorLayer = L.TileLayer.extend({
+    createTile(coords, done) {
+      const tile = document.createElement('canvas');
+      tile.width = tile.height = 256;
+      const url = this.getTileUrl(coords);
+      const draw = (img, repaint) => {
+        const ctx = tile.getContext('2d');
+        ctx.drawImage(img, 0, 0, 256, 256);
+        if (repaint) {
+          try {
+            const d = ctx.getImageData(0, 0, 256, 256);
+            recolorPixels(d.data);
+            ctx.putImageData(d, 0, 0);
+          } catch { markRecolorFailed(); }
+        }
+        done(null, tile);
+      };
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => draw(img, true);
+      img.onerror = () => {                 // sem permissão de leitura: mostra o original
+        const plain = new Image();
+        plain.onload = () => { markRecolorFailed(); draw(plain, false); };
+        plain.onerror = (e) => done(e, tile);
+        plain.src = url;
+      };
+      img.src = url;
+      return tile;
+    },
   });
-  return layer;
+  return RecolorLayer;
+}
+
+function markRecolorFailed() {
+  if (recolorFailed) return;
+  recolorFailed = true;
+  if (timeline.length) show(idx);
+}
+
+const lerp = (a, b, k) => a.map((c, j) => Math.round(c + (b[j] - c) * k));
+const clamp01 = (x) => Math.max(0, Math.min(1, x));
+
+/** Troca as cores "Universal Blue" da RainViewer pelas do padrão Weather Channel. */
+export function recolorPixels(px) {
+  const [fraca, moderada, forte, muitoForte] = LEGEND.map((l) => l.rgb);
+  for (let i = 0; i < px.length; i += 4) {
+    if (px[i + 3] === 0) continue;
+    const r = px[i], g = px[i + 1], b = px[i + 2];
+    let out;
+    if (b >= r && b + 10 >= g && r < 170) {
+      // azul-claro (fraca) → azul-escuro (moderada): quanto menos verde no pixel, mais forte
+      out = lerp(fraca, moderada, clamp01((225 - g) / 110));
+    } else if (r > 180 && g > 170 && b < 140) {
+      out = forte;                            // amarelo
+    } else {
+      out = muitoForte;                       // laranja, vermelho, rosa (extremo)
+    }
+    px[i] = out[0]; px[i + 1] = out[1]; px[i + 2] = out[2];
+  }
+  return px;
 }
 
 // ?debug=grade — mostra o valor previsto (mm/h) em cada ponto da grade, para conferência.

@@ -210,3 +210,15 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Problema:** no quadro "agora (radar)" o mapa mostrava chuva em **azul**, mas a legenda dizia "azul = neve". A imagem do radar vem pronta da RainViewer; o esquema de cores 4 (verde, estilo Weather Channel) foi **recusado pelo serviço gratuito** e o site voltou sozinho ao esquema 2 (azul) — sem ajustar a legenda (ADR-018 assumiu que o 4 funcionaria; nunca foi verificado com o serviço real).
 **Decisão:** duas legendas, e só aparece a do quadro na tela: **Radar** (azul-claro → azul → amarelo → vermelho) e **Previsão** (verde → verde-escuro → amarelo → vermelho + neve). Neve da previsão passa a **lilás** para não confundir com o azul do radar. Radar fixado no esquema 2 (sem tentativa inútil do 4).
 **Lição:** a hipótese "o esquema 4 funciona" ficou sem teste real por 5 versões. Testes com dados simulados não validam um serviço de terceiros.
+
+## ADR-024 — Uma paleta só, no padrão Weather Channel (radar repintado no aparelho)
+**Status:** Aceita · 28/09/2026 · pedido do Dalmo (prints do site às 13:08 e da legenda do Weather Channel às 13:13) · substitui a parte de cores do ADR-023
+
+**Contexto:** no mesmo player, o quadro "agora" (radar) aparecia em **azul** e, ao apertar ▶, a previsão virava **verde**, com a legenda trocando junto. O Dalmo apontou: "está dúbio — ou fica tudo azul, ou tudo verde". O ADR-023 só explicava a diferença; não a eliminava. A RainViewer gratuita entrega o radar apenas no esquema azul (o esquema verde foi recusado).
+**Decisão:** seguir a referência profissional (Weather Channel): **chuva** em verde → verde-escuro → amarelo → vermelho; **neve** em azul. O radar é **repintado no aparelho**: cada ladrilho vai para um canvas e cada cor azul da RainViewer vira a equivalente verde (azul-claro→Fraca, azul-escuro→Moderada, amarelo→Forte, laranja/vermelho/rosa→Muito forte). Uma legenda só para o player inteiro.
+**Fora (não existe nos dados gratuitos):** gelo e mistura (a previsão só separa chuva e neve); névoa não é precipitação. As áreas rosa/laranja do mapa do Weather Channel são **alertas oficiais**, não chuva — nosso site já mostra esses alertas em cartão próprio.
+**Limites honestos:**
+- O radar "agora" não separa neve de chuva no plano gratuito: neve apareceria verde ali. Por isso a legenda diz "Neve (previsão)". Validar no primeiro dia de neve.
+- Se o navegador não permitir ler o ladrilho do radar (permissão do servidor), o radar aparece nas cores originais e a legenda original é mostrada **só** nesse quadro — nunca uma legenda que não bate com o mapa.
+**Lição:** a IA propôs duas legendas (ADR-023) porque era o que o serviço permitia; o usuário cobrou o padrão profissional e havia um caminho técnico (repintar) que a IA não tinha considerado.
+
