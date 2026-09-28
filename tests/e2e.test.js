@@ -234,6 +234,9 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   await t.p.locator('#hourly').screenshot({ path: `${OUT}/hora-detalhe.png` });
   await t.p.click('#hour-detail .detail__close');
   check('Fecha detalhe da hora', (await t.p.locator('#hour-detail').count()) === 0);
+  await t.p.focus('.day >> nth=2 >> .hit'); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(150);
+  check('Teclado: Enter no dia abre o resumo', (await t.p.getAttribute('.day >> nth=2 >> .hit', 'aria-expanded')) === 'true');
+  await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(150);
   await t.p.click('.day >> nth=1');
   const dayTxt = await t.p.textContent('.day-panel__text');
   check('Toque no dia abre resumo do Dia', /Máxima de/.test(dayTxt) && /Ventos/.test(dayTxt), dayTxt.slice(0, 140));
@@ -260,7 +263,7 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   // Tempestade à noite + avisos
   t = await page(browser, { mobile: true, fc: forecast({ code: 95, isDay: 0, stormy: true }) });
   check('Aviso tempestade', (await t.p.locator('.alert--danger:not(.alert--official)').count()) === 1);
-  check('Risco alto', (await t.p.textContent('.risk')) === 'Alto');
+  check('Risco alto', (await t.p.textContent('.risk > span')) === 'Alto');
   // ADR-022: rajadas de 72 km/h e tempestade → vermelho; toque mostra cuidados
   check('Rajadas 72 km/h e tempestade em vermelho', (await t.p.locator('#details .tile--danger').count()) >= 2);
   await t.p.evaluate(() => document.getElementById('toast').hidden = true);
@@ -479,21 +482,21 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   // ADR-031/032: qualidade do ar e gelo na pista
   t = await page(browser, { mobile: false });
   await t.p.waitForTimeout(900);
-  check('AQI aparece com faixa EPA', (await t.p.textContent('#details')).includes('42 · Boa'), await t.p.locator('#details .tile:has-text("Qualidade do ar") dd').textContent().catch(() => '?'));
-  check('Gelo na pista: sem risco em dia ameno', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd').textContent()) === 'Sem risco');
+  check('AQI aparece com faixa EPA', (await t.p.textContent('#details')).includes('42 · Boa'), await t.p.locator('#details .tile:has-text("Qualidade do ar") dd > span').textContent().catch(() => '?'));
+  check('Gelo na pista: sem risco em dia ameno', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd > span').textContent()) === 'Sem risco');
   await t.ctx.close();
   t = await page(browser, { mobile: false, aqi: 165, fc: forecast({ icy: 'warn' }) });
   await t.p.waitForTimeout(900);
   check('AQI 165 → quadro vermelho', (await t.p.getAttribute('#details .tile:has-text("Qualidade do ar")', 'class')).includes('tile--danger'));
-  check('Chuva + frio → gelo POSSÍVEL (amarelo)', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd').textContent()) === 'Possível' && (await t.p.getAttribute('#details .tile:has-text("Gelo na pista")', 'class')).includes('tile--warn'));
+  check('Chuva + frio → gelo POSSÍVEL (amarelo)', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd > span').textContent()) === 'Possível' && (await t.p.getAttribute('#details .tile:has-text("Gelo na pista")', 'class')).includes('tile--warn'));
   await t.p.click('#details .tile:has-text("Gelo na pista")');
   check('Gelo: cuidados ao dirigir', (await t.p.textContent('#care-panel')).includes('Pontes, viadutos'));
   await t.p.locator('#details').screenshot({ path: `${OUT}/detalhe-ar-gelo.png` });
   await t.ctx.close();
   t = await page(browser, { mobile: false, aqi: null, fc: forecast({ icy: 'danger' }) });
   await t.p.waitForTimeout(900);
-  check('Chuva congelante → gelo PROVÁVEL (vermelho)', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd').textContent()) === 'Provável');
-  check('Ar indisponível → "--" sem quebrar', (await t.p.locator('#details .tile:has-text("Qualidade do ar") dd').textContent()) === '--' && t.errors.length === 0, t.errors.join(' | '));
+  check('Chuva congelante → gelo PROVÁVEL (vermelho)', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd > span').textContent()) === 'Provável');
+  check('Ar indisponível → "--" sem quebrar', (await t.p.locator('#details .tile:has-text("Qualidade do ar") dd > span').textContent()) === '--' && t.errors.length === 0, t.errors.join(' | '));
   await t.ctx.close();
 
   // ADR-034: instalar na tela inicial + funcionar sem internet
@@ -514,6 +517,20 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   await t.p.reload().catch(() => {}); await t.p.waitForTimeout(1500);
   check('Sem internet: a página abre (não fica em branco)', (await t.p.textContent('#version').catch(() => '')) === `versão ${VERSION}`, await t.p.textContent('body').then((b) => b.slice(0, 80)).catch((e) => e.message));
   await t.ctx.close();
+
+  // Acessibilidade (axe-core, regras WCAG 2 A/AA) — ADR-035
+  const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
+  for (const [label, opts] of [['celular, chuva', { mobile: true, fc: forecast({ code: 3, rainNow: 0.6, rainNext: [0.5, 0.4, 0.2, 0, 0, 0, 0, 0] }) }], ['computador, sol', { mobile: false }]]) {
+    t = await page(browser, opts);
+    await t.p.waitForTimeout(1200);
+    await t.p.evaluate(() => { document.getElementById('toast').hidden = true; });
+    await t.p.addScriptTag({ content: AXE });
+    const v = await t.p.evaluate(async (dbg) => (await axe.run(document, { runOnly: ['wcag2a', 'wcag2aa'] })).violations
+      .map((x) => `${x.id}(${x.impact}) ×${x.nodes.length}: ${x.nodes.slice(0, 3).map((n) => n.target.join(' ') + (dbg ? ' → ' + n.failureSummary.replace(/\s+/g, ' ') + ' ' + n.html.slice(0, 160) : '')).join(' | ')}`), !!process.env.AXE_LOG);
+    if (process.env.AXE_LOG) console.log(label, JSON.stringify(v, null, 1));
+    check(`Acessibilidade WCAG AA sem falhas (${label})`, v.length === 0, v.join(' ;; '));
+    await t.ctx.close();
+  }
 
   // T11 lembrar última cidade
   t = await page(browser, { mobile: false });

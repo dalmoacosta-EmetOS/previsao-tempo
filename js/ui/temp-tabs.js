@@ -7,7 +7,6 @@ export function tempTabs(mode, onChange) {
       type: 'button',
       role: 'tab',
       'aria-selected': String(mode === key),
-      'aria-pressed': String(mode === key),
       title: key === 'feels' ? 'Sensação térmica: como o corpo sente, somando vento e umidade' : 'Temperatura do ar',
       text: label,
       onclick: () => onChange(key),

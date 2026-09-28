@@ -24,21 +24,24 @@ export function renderDetails(root, { data, unit, tileSel, air }, onSelect = () 
     const cls = 'tile' + (lv ? ` tile--${lv.level} tile--action` : '') + (lv && tileSel === key ? ' is-open' : '');
     const kids = [
       el('dt', {}, [lv && el('span', { class: 'tile__flag', 'aria-hidden': 'true', text: '!' }), label]),
-      el('dd', { class: extraCls, text: value }),
-      note && el('small', { text: note }),
-      lv && el('small', { class: 'tile__hint', text: tileSel === key ? 'Toque para fechar' : 'Toque para ver cuidados' }),
+      el('dd', { class: extraCls }, [
+        el('span', { text: value }),
+        note && el('small', { text: note }),
+        lv && el('small', { class: 'tile__hint', text: tileSel === key ? 'Toque para fechar' : 'Toque para ver cuidados' }),
+      ]),
     ];
     if (!lv) return el('div', { class: cls }, kids);
+    // Botão invisível por cima do quadro: a lista de definições continua válida (ADR-035)
     return el('div', {
       class: cls,
-      role: 'button',
-      tabindex: '0',
+      onmouseenter: () => { if (canHover() && tileSel !== key) onSelect(key); },
+    }, [...kids, el('button', {
+      type: 'button', class: 'hit',
       'aria-expanded': String(tileSel === key),
       'aria-controls': 'care-panel',
+      'aria-label': `${label}: ${value}. ${tileSel === key ? 'Fechar' : 'Ver'} cuidados`,
       onclick: () => onSelect(tileSel === key ? null : key),
-      onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(tileSel === key ? null : key); } },
-      onmouseenter: () => { if (canHover() && tileSel !== key) onSelect(key); },
-    }, kids);
+    })]);
   };
 
   const open = tileSel && levels[tileSel];

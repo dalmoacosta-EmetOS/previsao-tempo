@@ -32,6 +32,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 28/09 13:40–14:05 | Dalmo mandou vídeo: página tremendo ao parar num ponto da rolagem | Vídeo medido quadro a quadro → ciclo liga/desliga da barra da cidade, que empurrava a página 46 px → ADR-026 | v2.5.1: barra por cima do conteúdo; legenda com título "Legenda:". 90/90 testes | 25 min |
 | 28/09 14:06–14:25 | Dalmo comparou o topo do site com o app do Weather Channel e pediu layout parecido | Copiado só o bloco principal; mantido o resumo "Agora"; sem anúncio/manchete → ADR-027 | v2.6: temperatura grande à esquerda, ícone + condição à direita, linhas Sensação/Máx/Mín e chuva da próxima hora. 90/90 testes | 19 min |
 | 28/09 14:45–15:00 | Dalmo: ícone de garoa (pontos) "infantil" | IA apontou que neve usava as mesmas bolinhas → redesenho da família inteira, com quadro antes/depois → ADR-028 | v2.7. 90/90 testes | 15 min |
+| 28/09 14:48–15:40 | Dalmo: "tudo o que vale e for gratuito, faça" (após análise crítica da IA) | IA avisou o que não dá (prévia por cidade, comparação de modelos) e fez o resto em etapas, cada uma testada e publicada → ADR-029 a 035 | v2.8 → v3.0: testes no projeto + GitHub, link/compartilhar/favoritas, qualidade do ar, gelo na pista, gráfico 2 h, instalar/sem internet, acessibilidade AA. 116/116 testes | 52 min |
 | | | | | |
 
 ## Lições (preencher ao final)

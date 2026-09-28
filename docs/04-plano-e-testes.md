@@ -48,5 +48,8 @@ Regra: **segunda-feira às 15h, congela.** O que não estiver pronto vira backlo
 | Item | Por que ficou para depois |
 |---|---|
 | Idioma PT/EN com botão próprio (ADR-015) | ~100 textos; risco na véspera |
-| Teste automático no repositório (hoje roda no ambiente da IA) | Organização do projeto |
+| Comparar o modelo HRRR (EUA, 3 km) com o automático | Precisa de dias de dados reais; o ambiente da IA não acessa a API |
+| Prévia do link diferente para cada cidade | Exige servidor (site estático gratuito não faz) |
+| Notificação "vai chover em 10 min" | Exige servidor rodando e o site instalado no iPhone |
+| Teste com leitor de tela (VoiceOver) no iPhone | A auditoria automática cobre só parte dos problemas |
 | Limitar o acesso do app do Claude no GitHub só a este repositório | Segurança da conta |

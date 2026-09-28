@@ -249,3 +249,29 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 
 **Decisão:** a família de precipitação foi redesenhada junto (trocar só a garoa deixaria o conjunto desigual): nuvens com leve degradê (volume); **garoa** = riscos curtos e finos; **chuva** = riscos longos inclinados; **chuva forte** = mais riscos, nuvem escura; **neve** = flocos de 6 pontas (não bolinhas); **gelo/mistura** = risco + floco. Sol, lua, neblina e raio mantidos.
 
+## ADR-029 — Testes dentro do projeto e rodando sozinhos no GitHub
+**Status:** Aceita · 28/09/2026 · análise crítica do site (pedido do Dalmo)
+**Contexto:** os testes existiam só na área de trabalho da IA; se a sessão acabasse, iam junto.
+**Decisão:** pasta `tests/` no repositório (`npm test`), com as APIs simuladas e imagens de apoio em `tests/fixtures/`. Arquivo `.github/workflows/testes.yml` roda tudo a cada envio (GitHub Actions, gratuito para repositório público) e guarda as capturas de tela como anexo da execução.
+
+## ADR-030 — Link por cidade, compartilhar e cidades favoritas
+**Decisão:** o endereço acompanha a cidade (`?cidade=…&lat=…&lon=…`); quem abre o link vê a mesma cidade. Botão de compartilhar (menu do celular; no computador, copia o link). Estrela ☆/★ salva a cidade nas favoritas (até 8, só neste aparelho), mostradas como atalhos acima do bloco principal. Ordem de abertura: link → última cidade → localização → Boston.
+**Limite honesto:** a prévia do link (imagem e título no WhatsApp) é a mesma para todas as cidades — personalizar por cidade exigiria servidor.
+
+## ADR-031 — Qualidade do ar (índice AQI dos EUA)
+**Decisão:** quadro "Qualidade do ar" no "Hoje em detalhe" com o índice da EPA (0–500) e a faixa (Boa, Moderada, Ruim p/ sensíveis, Ruim, Muito ruim, Perigosa), cor por faixa; amarelo a partir de 101, vermelho a partir de 151, com cuidados. Fonte: Open-Meteo Air Quality (grátis, modelos CAMS). Se falhar, mostra "--" e o resto segue.
+**Fora:** pólen (na fonte gratuita só existe para a Europa).
+
+## ADR-032 — Aviso de gelo na pista (black ice)
+**Decisão:** quadro "Gelo na pista" (próximas 24 h), estimativa do site: **Provável** (vermelho) se houver garoa/chuva congelante ou chuva caindo com ≤ 0 °C; **Possível** (amarelo) se a pista molhar e a temperatura chegar a ≤ 0 °C em até 6 h; senão "Sem risco". Cuidados para caminhar, dirigir e em casa. Complementa — não substitui — os alertas oficiais do NWS.
+
+## ADR-033 — Gráfico da chuva nas próximas 2 horas
+**Decisão:** barras de 15 em 15 min (dados `minutely_15` que já vinham), cores iguais às do radar, só aparece quando há chuva/neve. **Limite honesto:** resolução de 15 min, não minuto a minuto (isso é dado pago).
+
+## ADR-034 — Instalar na tela inicial e funcionar sem internet
+**Decisão:** manifesto + ícones (o site vira "app" na tela inicial do iPhone, em tela cheia) e `sw.js` com estratégia **rede primeiro**: com internet sempre busca o novo (evita repetir o problema de cache do ADR-016); sem internet mostra a última cópia, inclusive a última previsão consultada. Mapas e radar não são guardados (pesados). Prévia ao compartilhar (Open Graph) com imagem própria.
+
+## ADR-035 — Acessibilidade medida (WCAG 2 AA)
+**Contexto:** acessibilidade nunca tinha sido medida.
+**Decisão:** auditoria automática com axe-core dentro dos testes (celular com chuva e computador com sol). Achados e correções: abas com atributo indevido; selo "OFICIAL" com contraste baixo (vermelho escurecido); lista de dias e quadros clicáveis quebravam a semântica de lista (agora um botão invisível cobre a linha/quadro, com descrição completa para leitor de tela e foco visível); mapa marcado como imagem apesar de ter botões. Resultado: zero falhas nas regras automáticas. **Limite:** regras automáticas pegam ~30–40% dos problemas; teste com VoiceOver no iPhone continua recomendado.
+

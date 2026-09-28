@@ -29,12 +29,15 @@ export function renderDaily(root, { data, unit, days, tempMode, daySel, dayPart 
     rows.push(
       el('li', {
         class: 'day' + (i >= TREND_FROM ? ' is-trend' : '') + (open ? ' is-open' : ''),
-        role: 'button', tabindex: '0',
-        'aria-expanded': String(open),
         title: 'Ver resumo do dia e da noite',
-        onclick: () => onSelectDay(open ? null : i),
-        onkeydown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectDay(open ? null : i); } },
       }, [
+        // Botão invisível por cima da linha inteira: a lista continua lista para o leitor de tela (ADR-035)
+        el('button', {
+          type: 'button', class: 'hit',
+          'aria-expanded': String(open),
+          'aria-label': `${dayLabel(d.date, i)}, ${dayMonth(d.date)}: ${info.label}, mínima ${temp(d.min, unit)}, máxima ${temp(d.max, unit)}. ${open ? 'Fechar' : 'Ver'} resumo do dia e da noite`,
+          onclick: () => onSelectDay(open ? null : i),
+        }),
         el('div', { class: 'day__name' }, [
           el('strong', { text: dayLabel(d.date, i) }),
           el('span', { text: dayMonth(d.date) }),

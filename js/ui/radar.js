@@ -68,7 +68,7 @@ let pending = null;
 
 export function mountRadar(container) {
   root = container;
-  mapBox = el('div', { class: `radar__map radar__map--${mapStyle}`, role: 'img', 'aria-label': 'Mapa do radar de chuva' });
+  mapBox = el('div', { class: `radar__map radar__map--${mapStyle}`, role: 'region', 'aria-label': 'Mapa do radar de chuva' });
   styleBox = el('div', { class: 'segmented segmented--small', role: 'group', 'aria-label': 'Estilo do mapa' },
     [['light', 'Claro'], ['dark', 'Escuro']].map(([key, text]) => el('button', {
       type: 'button', 'aria-pressed': String(mapStyle === key), text,
