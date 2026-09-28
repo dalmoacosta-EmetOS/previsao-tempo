@@ -426,11 +426,13 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.p.mouse.down(); await t.p.mouse.move(box.x + 60, box.y + 60, { steps: 8 }); await t.p.mouse.up();
   await t.p.waitForTimeout(300);
   const markerPos = () => t.p.evaluate(() => { const m = document.querySelector('.city-pin'); const r = m.getBoundingClientRect(); const b = document.querySelector('.radar__map').getBoundingClientRect(); return [Math.round(r.x + r.width/2 - b.x), Math.round(r.y + r.height/2 - b.y), Math.round(b.width/2), Math.round(b.height/2)]; });
-  const moved = await markerPos();
+  // Espera o mapa parar de deslizar (inércia do arrasto; em máquina lenta leva mais que 300 ms)
+  const settle = async () => { let prev = await markerPos(); for (let k = 0; k < 20; k++) { await t.p.waitForTimeout(150); const cur = await markerPos(); if (cur[0] === prev[0] && cur[1] === prev[1]) return cur; prev = cur; } return prev; };
+  const moved = await settle();
   check('Mapa arrastável', Math.abs(moved[0] - moved[2]) > 100, JSON.stringify(moved));
   await t.p.click('.topbar [data-unit="C"]');
   await t.p.waitForTimeout(300);
-  const after = await markerPos();
+  const after = await settle();
   check('Trocar °C/°F não recentraliza', Math.abs(after[0] - moved[0]) < 3, JSON.stringify(after));
   await t.p.click('.radar-home__btn[title^="Voltar"]');
   await t.p.waitForTimeout(1300);
