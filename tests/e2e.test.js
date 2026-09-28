@@ -543,6 +543,8 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   server.close();
   console.log(results.join('\n'));
   const fails = results.filter((r) => r.startsWith('FAIL')).length;
+  // No GitHub, cada falha vira uma anotação visível na página da execução
+  if (process.env.GITHUB_ACTIONS) results.filter((r) => r.startsWith('FAIL')).forEach((r) => console.log(`::error title=Teste falhou::${r.replace(/\s+/g, ' ').slice(0, 400)}`));
   console.log(`\n${results.length - fails}/${results.length} testes passaram`);
   process.exitCode = fails ? 1 : 0;
 })().catch((e) => { console.error(e); process.exit(1); });
