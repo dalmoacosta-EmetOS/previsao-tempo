@@ -1,6 +1,6 @@
 // Tempo ao longo da viagem (ADR-039): pontos a cada X minutos de estrada e, para cada um,
 // a previsão NA HORA EM QUE VOCÊ PASSA por ali (não a de agora).
-import { describe } from './weather-codes.js?v=3.3.1';
+import { describe } from './weather-codes.js?v=3.4';
 
 const R = 6371;
 const rad = (d) => (d * Math.PI) / 180;
@@ -43,19 +43,19 @@ const STORM = [95, 96, 99];
 export function classify(h) {
   const info = describe(h.code);
   const flags = [];
-  const add = (level, text) => flags.push({ level, text });
-  if (STORM.includes(h.code)) add('danger', 'Tempestade');
-  if (ICE.includes(h.code)) add('danger', 'Gelo na pista (chuva congelante)');
-  if ((h.snow ?? 0) >= 1) add('danger', 'Neve forte');
-  else if ((h.snow ?? 0) > 0.05) add('warn', 'Neve');
+  const add = (level, text, key) => flags.push({ level, text, key });
+  if (STORM.includes(h.code)) add('danger', 'Tempestade', 'storm');
+  if (ICE.includes(h.code)) add('danger', 'Gelo na pista (chuva congelante)', 'ice');
+  if ((h.snow ?? 0) >= 1) add('danger', 'Neve forte', 'snow');
+  else if ((h.snow ?? 0) > 0.05) add('warn', 'Neve', 'snow');
   const mm = h.precip ?? 0;
-  if (mm >= 7.6) add('danger', 'Chuva forte');
-  else if (mm >= 2.5) add('warn', 'Chuva moderada');
-  else if (mm >= 0.2) add('info', 'Chuva fraca');
-  if ((h.visibility ?? 99999) < 200) add('danger', 'Névoa densa (visibilidade < 200 m)');
-  else if ((h.visibility ?? 99999) < 1000) add('warn', 'Névoa (visibilidade < 1 km)');
-  if ((h.gust ?? 0) >= 62) add('danger', 'Ventania');
-  else if ((h.gust ?? 0) >= 40) add('warn', 'Rajadas fortes');
+  if (mm >= 7.6) add('danger', 'Chuva forte', 'rain');
+  else if (mm >= 2.5) add('warn', 'Chuva moderada', 'rain');
+  else if (mm >= 0.2) add('info', 'Chuva fraca', 'rain');
+  if ((h.visibility ?? 99999) < 200) add('danger', 'Névoa densa (visibilidade < 200 m)', 'fog');
+  else if ((h.visibility ?? 99999) < 1000) add('warn', 'Névoa (visibilidade < 1 km)', 'fog');
+  if ((h.gust ?? 0) >= 62) add('danger', 'Ventania', 'gust');
+  else if ((h.gust ?? 0) >= 40) add('warn', 'Rajadas fortes', 'gust');
   const order = { danger: 3, warn: 2, info: 1 };
   const level = flags.reduce((best, f) => (order[f.level] > (order[best] || 0) ? f.level : best), null);
   return { label: info.label, icon: info.icon, level, flags };

@@ -1,13 +1,14 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=3.3.1';
-import { icon } from './icons.js?v=3.3.1';
-import { setupSearch } from './search.js?v=3.3.1';
-import { temp, percent } from '../domain/units.js?v=3.3.1';
-import { getRoute } from '../api/route.js?v=3.3.1';
-import { getPointsForecast } from '../api/route-forecast.js?v=3.3.1';
-import { reverseGeocode } from '../api/geocoding.js?v=3.3.1';
-import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.3.1';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=3.3.1';
+import { el, fill } from './dom.js?v=3.4';
+import { icon } from './icons.js?v=3.4';
+import { setupSearch } from './search.js?v=3.4';
+import { temp, percent } from '../domain/units.js?v=3.4';
+import { getRoute } from '../api/route.js?v=3.4';
+import { getPointsForecast } from '../api/route-forecast.js?v=3.4';
+import { reverseGeocode } from '../api/geocoding.js?v=3.4';
+import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.4';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=3.4';
+import { ADVICE, SOURCES } from '../domain/safety.js?v=3.4';
 
 let root, from = null, to = null, fromInput, toInput, departSel, goBtn, out, getCurrent, getUnit;
 let map = null, layer = null, lastResult = null;
@@ -26,7 +27,7 @@ function departMs(v) {
 }
 
 function searchBox(id, label, placeholder, onPick) {
-  const input = el('input', { id, type: 'search', autocomplete: 'off', spellcheck: 'false', placeholder, 'aria-label': label,
+  const input = el('input', { onfocus: (e) => e.target.select(), id, type: 'search', autocomplete: 'off', spellcheck: 'false', placeholder, 'aria-label': label,
     role: 'combobox', 'aria-expanded': 'false', 'aria-controls': `${id}-list`, 'aria-autocomplete': 'list' });
   const list = el('ul', { class: 'search__list', id: `${id}-list`, role: 'listbox', hidden: true });
   setupSearch({ input, list, onSelect: onPick });
@@ -35,7 +36,7 @@ function searchBox(id, label, placeholder, onPick) {
 
 export function mountTrip(container, { currentPlace, unit }) {
   root = container; getCurrent = currentPlace; getUnit = unit;
-  const f = searchBox('trip-from', 'Saída', 'Saída: sua cidade atual', (p) => { from = p; syncLabels(); });
+  const f = searchBox('trip-from', 'Saída', 'De onde você sai?', (p) => { from = p; syncLabels(); });
   const t = searchBox('trip-to', 'Destino', 'Para onde você vai?', (p) => { to = p; syncLabels(); });
   fromInput = f.input; toInput = t.input;
   departSel = el('select', { id: 'trip-when', 'aria-label': 'Horário de saída', class: 'trip__select' },
@@ -46,10 +47,10 @@ export function mountTrip(container, { currentPlace, unit }) {
   out = el('div', { class: 'trip__out', 'aria-live': 'polite' });
   // Fechado por padrão (pedido do Dalmo): um botão convida; o formulário só aparece ao tocar.
   const body = el('div', { class: 'trip__body', id: 'trip-body', hidden: true }, [
-    el('p', { class: 'card__hint card__hint--line', text: 'De A até B: a previsão de cada trecho na hora em que você vai passar por lá.' }),
+    el('p', { class: 'card__hint card__hint--line', text: 'Viagem por estrada (carro ou ônibus): a previsão de cada trecho na hora em que você vai passar por lá.' }),
     el('div', { class: 'trip__form' }, [
-      el('label', { class: 'trip__label', for: 'trip-from' }, [el('span', { text: 'De' }), el('span', { class: 'trip__chosen', id: 'trip-from-name' })]), f.box,
-      el('label', { class: 'trip__label', for: 'trip-to' }, [el('span', { text: 'Para' }), el('span', { class: 'trip__chosen', id: 'trip-to-name' })]), t.box,
+      el('label', { class: 'trip__label', for: 'trip-from' }, [el('span', { text: 'De' })]), f.box,
+      el('label', { class: 'trip__label', for: 'trip-to' }, [el('span', { text: 'Para' })]), t.box,
       el('label', { class: 'trip__label', for: 'trip-when' }, [el('span', { text: 'Saída' })]), departSel,
       goBtn,
     ]),
@@ -78,10 +79,12 @@ export function mountTrip(container, { currentPlace, unit }) {
 /** Chamado a cada renderização: a saída padrão acompanha a cidade da página. */
 export function updateTrip() { if (root) syncLabels(); }
 
+// A cidade escolhida aparece DENTRO do próprio campo (pedido do Dalmo, 3.4)
+const placeText = (p) => [p.name, p.region].filter(Boolean).join(', ');
 function syncLabels() {
   const origin = from || getCurrent();
-  root.querySelector('#trip-from-name').textContent = origin ? `${origin.name}${from ? '' : ' (cidade atual)'}` : '—';
-  root.querySelector('#trip-to-name').textContent = to ? to.name : 'escolha o destino';
+  if (document.activeElement !== fromInput) fromInput.value = origin ? placeText(origin) : '';
+  if (document.activeElement !== toInput) toInput.value = to ? placeText(to) : '';
 }
 
 async function run() {
@@ -121,18 +124,63 @@ function renderResult({ origin, to: dest, route, stops, start }) {
     el('p', { class: `trip__summary trip__summary--${sum.level}`, text: sum.text }),
     el('p', { class: 'trip__stats', text: `${origin.name} → ${dest.name} · ${fmtDur(route.duration)} · ${Math.round(route.distance / 1000)} km · saída ${fmtTime(start)} · chegada ~${fmtTime(start + route.duration * 1000)}` }),
     mapBox,
-    el('ol', { class: 'trip__stops' }, stops.map((s) => el('li', { class: `trip__stop trip__stop--${s.cond.level || 'ok'}` }, [
-      el('span', { class: 'trip__time', text: fmtTime(s.etaMs) }),
-      el('span', { class: 'trip__icon', html: icon(s.cond.icon, s.w.isDay) }),
-      el('div', { class: 'trip__where' }, [
-        el('strong', { text: s.name }),
-        el('span', { text: `${temp(s.w.temp, unit)} · ${s.cond.label}${s.w.pop != null ? ` · chuva ${percent(s.w.pop)}` : ''}` }),
-        s.cond.flags.filter((f) => f.level !== 'info').length > 0 && el('span', { class: 'trip__flags', text: s.cond.flags.filter((f) => f.level !== 'info').map((f) => f.text).join(' · ') }),
-      ]),
-    ]))),
+    el('ol', { class: 'trip__stops' }, stops.map((s, i) => stopItem(s, i, unit))),
     el('small', { class: 'trip__note', text: 'Tempo de viagem estimado sem trânsito. Rota: OSRM / © OpenStreetMap. Previsão: Open-Meteo. Estimativa do site — em alerta oficial, siga as autoridades.' }),
   );
   drawMap(mapBox, route, stops).catch(() => { mapBox.hidden = true; });
+}
+
+// Trecho com alerta: toque abre os cuidados, no mesmo padrão do "Hoje em detalhe" (ADR-039, 3.4)
+function stopItem(s, i, unit) {
+  const alerts = s.cond.flags.filter((f) => f.level !== 'info');
+  const kids = [
+    el('span', { class: 'trip__time', text: fmtTime(s.etaMs) }),
+    el('span', { class: 'trip__icon', html: icon(s.cond.icon, s.w.isDay) }),
+    el('div', { class: 'trip__where' }, [
+      el('strong', { text: s.name }),
+      el('span', { text: `${temp(s.w.temp, unit)} · ${s.cond.label}${s.w.pop != null ? ` · chuva ${percent(s.w.pop)}` : ''}` }),
+      alerts.length > 0 && el('span', { class: 'trip__flags' }, [
+        el('span', { class: 'tile__flag', 'aria-hidden': 'true', text: '!' }), alerts.map((f) => f.text).join(' · '),
+        el('small', { class: 'trip__tap', text: ' · toque para ver cuidados' }),
+      ]),
+    ]),
+  ];
+  const li = el('li', { class: `trip__stop trip__stop--${s.cond.level || 'ok'}${alerts.length ? ' trip__stop--action' : ''}` }, kids);
+  if (!alerts.length) return li;
+  const panelId = `trip-care-${i}`;
+  const hit = el('button', {
+    type: 'button', class: 'hit', 'aria-expanded': 'false', 'aria-controls': panelId,
+    'aria-label': `${fmtTime(s.etaMs)}, ${s.name}: ${alerts.map((f) => f.text).join(', ')}. Ver cuidados`,
+    onclick: () => {
+      const openNow = hit.getAttribute('aria-expanded') !== 'true';
+      hit.setAttribute('aria-expanded', String(openNow));
+      li.classList.toggle('is-open', openNow);
+      const old = li.nextElementSibling?.id === panelId ? li.nextElementSibling : null;
+      if (old) old.remove();
+      if (openNow) li.after(carePanel(s, alerts, panelId, () => hit.click()));
+    },
+  });
+  li.append(hit);
+  return li;
+}
+
+function carePanel(s, alerts, id, onClose) {
+  const seen = new Set();
+  const items = alerts.filter((f) => f.key && ADVICE[f.key] && !seen.has(f.key) && seen.add(f.key)).map((f) => ADVICE[f.key][f.level === 'danger' ? 'danger' : 'warn']);
+  return el('li', { class: `care care--${s.cond.level} trip__care`, id, 'aria-live': 'polite' }, [
+    el('header', { class: 'care__head' }, [
+      el('strong', { text: `${fmtTime(s.etaMs)} · ${s.name}` }),
+      el('button', { type: 'button', class: 'detail__close', 'aria-label': 'Fechar', text: '×', onclick: onClose }),
+    ]),
+    ...items.map((a) => el('div', { class: 'trip__care-item' }, [
+      el('p', { class: 'care__reason' }, [el('strong', { text: a.title })]),
+      el('ul', { class: 'care__list' }, [
+        el('li', {}, [el('strong', { text: '🚗 Dirigindo: ' }), a.drive]),
+        el('li', {}, [el('strong', { text: '🚶 Nas paradas: ' }), a.walk]),
+      ]),
+    ])),
+    el('small', { text: SOURCES }),
+  ]);
 }
 
 async function drawMap(box, route, stops) {

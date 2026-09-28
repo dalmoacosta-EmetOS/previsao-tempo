@@ -1,5 +1,5 @@
 // Estado único da aplicação. A interface sempre se redesenha a partir dele.
-import { load } from './storage.js?v=3.3.1';
+import { load } from './storage.js?v=3.4';
 
 const state = {
   place: null,        // { name, region, country, lat, lon, isGeo }

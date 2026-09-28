@@ -1,14 +1,28 @@
 // Níveis de atenção para o "Hoje em detalhe" + recomendações (ADR-022).
 // Limites baseados em referências públicas (escala Beaufort, OMS para UV, faixas de
 // avisos de chuva do INMET). NÃO são alertas oficiais.
-import { speed } from './units.js?v=3.3.1';
-import { isWetHour } from './summary.js?v=3.3.1';
-import { roadIceRisk } from './road-ice.js?v=3.3.1';
-import { aqiLevel } from '../api/air-quality.js?v=3.3.1';
+import { speed } from './units.js?v=3.4';
+import { isWetHour } from './summary.js?v=3.4';
+import { roadIceRisk } from './road-ice.js?v=3.4';
+import { aqiLevel } from '../api/air-quality.js?v=3.4';
 
 export const SOURCES = 'Limites: escala Beaufort (vento), OMS (índice UV), faixas de aviso do INMET (chuva), EPA (qualidade do ar). Recomendações gerais de segurança — em emergência, siga a Defesa Civil e as autoridades locais.';
 
-const ADVICE = {
+export const ADVICE = {
+  fog: {
+    warn: {
+      title: 'Névoa na estrada',
+      walk: 'Atenção ao atravessar ou andar perto da pista: os motoristas enxergam pouco.',
+      drive: 'Farol baixo e de neblina ligados (nunca o alto); reduza a velocidade e aumente a distância do carro da frente.',
+      home: 'Se puder, espere a névoa dissipar — costuma melhorar depois que o sol esquenta.',
+    },
+    danger: {
+      title: 'Névoa densa — visibilidade muito baixa',
+      walk: 'Evite andar à beira da estrada; use roupa clara ou refletiva.',
+      drive: 'Se não enxergar, saia da pista em local seguro, ligue o pisca-alerta e espere; nunca pare no acostamento sem sinalizar.',
+      home: 'Adie a saída se possível; névoa densa causa engavetamentos.',
+    },
+  },
   gust: {
     warn: {
       title: 'Rajadas fortes',

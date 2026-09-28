@@ -569,11 +569,11 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   check('Viagem: fechada por padrão', await t.p.isHidden('#trip-body') && (await t.p.textContent('.trip__toggle')).includes('Planeje seu passeio ou viagem'));
   await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);
   check('Viagem: toque abre o formulário', await t.p.isVisible('#trip-to') && (await t.p.getAttribute('.trip__toggle', 'aria-expanded')) === 'true');
-  check('Viagem: saída padrão = cidade atual', (await t.p.textContent('#trip-from-name')).startsWith('Boston'), await t.p.textContent('#trip-from-name'));
+  check('Viagem: saída padrão = cidade atual, dentro do campo', (await t.p.inputValue('#trip-from')).startsWith('Boston'), await t.p.inputValue('#trip-from'));
   await t.p.click('.trip__go'); await t.p.waitForTimeout(200);
   check('Viagem: sem destino pede o destino', (await t.p.textContent('.trip__out')).includes('Escolha o destino'));
   await t.p.fill('#trip-to', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
-  check('Viagem: destino escolhido', (await t.p.textContent('#trip-to-name')) === 'São Paulo');
+  check('Viagem: destino aparece dentro do campo', (await t.p.inputValue('#trip-to')) === 'São Paulo, São Paulo', await t.p.inputValue('#trip-to'));
   await t.p.click('.trip__go'); await t.p.waitForTimeout(1800);
   const trip = await t.p.textContent('.trip__summary').catch(() => '');
   check('Viagem: resumo aponta o pior trecho', trip.startsWith('Atenção: chuva forte'), trip);
@@ -581,6 +581,12 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   check('Viagem: trecho com névoa sinalizado', (await t.p.locator('.trip__stop--danger').count()) === 1 && (await t.p.locator('.trip__stop--warn').count()) === 1 && (await t.p.textContent('.trip__stops')).includes('Névoa (visibilidade'));
   check('Viagem: chegada calculada', (await t.p.textContent('.trip__stats')).includes('3 h 10 min · 290 km'), await t.p.textContent('.trip__stats'));
   check('Viagem: mapa com a rota', (await t.p.locator('.trip__map path.leaflet-interactive').count()) >= 1);
+  await t.p.click('.trip__stop--danger >> .hit'); await t.p.waitForTimeout(200);
+  check('Viagem: toque no alerta abre cuidados', (await t.p.textContent('.trip__care')).includes('Dirigindo') && (await t.p.textContent('.trip__care')).includes('Chuva'), (await t.p.textContent('.trip__care').catch(() => '?')).slice(0, 120));
+  await t.p.click('.trip__care .detail__close'); await t.p.waitForTimeout(150);
+  check('Viagem: × fecha os cuidados', (await t.p.locator('.trip__care').count()) === 0);
+  await t.p.click('.trip__stop--warn >> .hit'); await t.p.waitForTimeout(150);
+  check('Viagem: névoa tem cuidados próprios', (await t.p.textContent('.trip__care')).includes('Farol baixo e de neblina'));
   await t.p.evaluate(() => document.getElementById('toast').hidden = true);
   await t.p.locator('#trip').screenshot({ path: `${OUT}/viagem.png` });
   check('Sem erros JS (viagem)', t.errors.length === 0, t.errors.join(' | '));
