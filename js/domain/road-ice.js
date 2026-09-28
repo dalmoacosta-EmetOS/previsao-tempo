@@ -2,7 +2,7 @@
 // água da chuva congela. Regra do site (estimativa, não alerta oficial), próximas 24 h:
 //  • PROVÁVEL: previsão de garoa/chuva congelante, ou chuva caindo com temperatura ≤ 0 °C;
 //  • POSSÍVEL: choveu/neva e, em até 6 h depois, a temperatura chega a ≤ 0 °C.
-import { hourLabel } from './time.js?v=3.5.1';
+import { hourLabel } from './time.js?v=3.5.2';
 
 const FREEZING = [56, 57, 66, 67];
 const wet = (h) => (h.precip ?? 0) >= 0.1 || (h.snow ?? 0) > 0;

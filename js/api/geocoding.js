@@ -1,7 +1,8 @@
-import { getJSON } from './http.js?v=3.5.1';
+import { getJSON } from './http.js?v=3.5.2';
 
 const SEARCH_URL = 'https://geocoding-api.open-meteo.com/v1/search';
-const REVERSE_URL = 'https://api.bigdatacloud.net/data/reverse-geocode-client';
+// O BigDataCloud passou a redirecionar api.bigdatacloud.net → api-bdc.io (ADR-040, 3.5.2): chamamos o endereço novo direto
+const REVERSE_URL = 'https://api-bdc.io/data/reverse-geocode-client';
 
 /** Busca cidades pelo nome. Retorna até 5 resultados normalizados. */
 export async function searchCities(query) {

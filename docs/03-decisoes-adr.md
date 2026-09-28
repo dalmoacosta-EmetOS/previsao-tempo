@@ -306,4 +306,4 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - **Mapa (Leaflet) hospedado no próprio site** em vez de vir de outro servidor: nenhum código de terceiros roda na página.
 - Conferidos sem problema: nenhuma chave ou senha no código; links externos com `noopener`; nome no link (`?cidade=`) entra como texto; localização só com permissão; dados guardados só no aparelho (última cidade, favoritas, preferências). Dependências dos testes sem vulnerabilidades conhecidas (npm audit).
 **Pendente (fora do código):** limitar o acesso do app do Claude no GitHub só a este repositório.
-
+**Revisão 3.5.2 (18:53) — efeito colateral da CSP, achado pelo Dalmo no iPhone:** o nome da cidade sumiu ("Sua localização"; na viagem "km 74" em vez de nomes). Causa: o BigDataCloud passou a redirecionar `api.bigdatacloud.net` → `api-bdc.io`, e a CSP só liberava o endereço antigo — o redirecionamento era bloqueado. Correção: chamar `api-bdc.io` direto e liberar os dois na CSP. Os testes agora simulam o redirecionamento real (a versão 3.5.1 falha nele, a 3.5.2 passa). **Lição:** testes com respostas simuladas não viram o redirecionamento; de novo, o uso real achou.

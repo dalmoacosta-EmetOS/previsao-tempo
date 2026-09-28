@@ -37,6 +37,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 28/09 17:51–18:40 | Dalmo: congelar a 3.2.1 e tentar a rota em até 1 h | 3.2.1 salva no ramo `congelado-v3.2.1`; rota feita em ramo separado → ADR-039 | v3.3: Tempo na viagem. 128/128 testes (com rota simulada) | 49 min |
 | 28/09 18:04–18:30 | Dalmo testou a rota real (Brasília → Santa Rita do Itueto) ✅; pediu: cuidados ao tocar no alerta do trecho, cidade dentro do campo, e questionou carro/ônibus/avião | Rota real validada; avião fora (só saída e chegada importam) | v3.3.1 (caixinha fechada) → v3.4. 133/133 testes | 26 min |
 | 28/09 18:26–18:55 | Dalmo: "minha localização" na saída da viagem; "algum teste de segurança?" | Revisão achou injeção de código pelo nome da cidade no mapa da viagem (corrigido) + CSP + Leaflet no próprio site → ADR-040 | v3.5 → v3.5.1. 140/140 testes | 29 min |
+| 28/09 18:53–19:10 | Dalmo: "parou de perguntar a hora de saída" (prints) | O campo existia, mas sem cara de escolha → setinha + "Horário de saída". IA notou nos prints: nomes de cidade sumiram — CSP da 3.5.1 bloqueava o redirecionamento do serviço de nomes | v3.5.2. 140/140 testes (agora simulando o redirecionamento) | 17 min |
 | | | | | |
 
 ## Lições (preencher ao final)

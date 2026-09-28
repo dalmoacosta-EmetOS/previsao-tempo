@@ -1099,3 +1099,10 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
 }
 .trip__locate.is-busy { animation: spin 1s linear infinite; }
 .trip__locate:focus-visible { outline: 3px solid var(--accent); }
+/* Horário de saída com cara de "escolha" (setinha) — 3.5.2 */
+.trip__select {
+  padding-right: 44px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%231a4c8c' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; background-size: 20px;
+  cursor: pointer;
+}

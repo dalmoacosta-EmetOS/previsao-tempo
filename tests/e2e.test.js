@@ -106,7 +106,9 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await p.route('https://geocoding-api.open-meteo.com/**', (r) => r.request().url().includes('xyz') ? r.fulfill({ json: {} })
     : r.request().url().includes('hack') ? r.fulfill({ json: { results: [{ name: '<img src=x onerror="window.__xss=1">Hack', admin1: '<b>x</b>', country: 'BR', latitude: -10, longitude: -50 }] } })
     : r.fulfill({ json: GEO }));
-  await p.route('https://api.bigdatacloud.net/**', (r) => r.fulfill({ json: { city: 'Somerville', principalSubdivision: 'Massachusetts', countryName: 'Estados Unidos' } }));
+  // Igual ao serviço real desde set/2026: o endereço antigo redireciona para api-bdc.io
+  await p.route('https://api.bigdatacloud.net/**', (r) => r.fulfill({ status: 307, headers: { location: r.request().url().replace('api.bigdatacloud.net', 'api-bdc.io'), 'access-control-allow-origin': '*' } }));
+  await p.route('https://api-bdc.io/**', (r) => r.fulfill({ json: { city: 'Somerville', principalSubdivision: 'Massachusetts', countryName: 'Estados Unidos' } }));
   const LD = path.join(path.dirname(require.resolve('leaflet/package.json')), 'dist');
   await p.route('https://cdnjs.cloudflare.com/**', (r) => r.fulfill({ path: path.join(LD, r.request().url().endsWith('.css') ? 'leaflet.css' : 'leaflet.js') }));
   await p.route('https://tile.openstreetmap.org/**', (r) => r.fulfill({ path: path.join(FIX, 'base.png'), contentType: 'image/png' }));
