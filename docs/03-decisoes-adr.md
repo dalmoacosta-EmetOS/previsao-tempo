@@ -241,6 +241,6 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 ## ADR-027 — Bloco principal no estilo do Weather Channel
 **Status:** Aceita · 28/09/2026 · pedido do Dalmo (prints lado a lado do app do Weather Channel e do site, 14:04)
 
-**Decisão:** o topo passa a seguir o desenho do Weather Channel: **temperatura bem grande e forte à esquerda**; **ícone e condição à direita** (o ícone muda conforme o tempo: sol, nuvem, chuva, neve, trovoada, neblina); abaixo, uma linha **Sensação | Máx | Mín** e outra **Chuva na próxima hora % | quantidade**. Sensação e Máx/Mín saem dos quadradinhos (estavam repetidos); ficam Umidade e Vento.
-**Mantido do nosso jeito:** o resumo "Agora" (mais completo que o "Outlook" do Weather Channel) e a frase curta da chuva. **Não copiado:** manchete de notícia e anúncio no meio da tela.
+**Decisão:** o topo passa a se inspirar na disposição do Weather Channel, ajustada ao nosso objetivo (princípio de referência, doc 01): **temperatura bem grande e forte à esquerda**; **ícone e condição à direita** (o ícone muda conforme o tempo: sol, nuvem, chuva, neve, trovoada, neblina); abaixo, uma linha **Sensação | Máx | Mín** e outra **Chuva na próxima hora % | quantidade**. Sensação e Máx/Mín saem dos quadradinhos (estavam repetidos); ficam Umidade e Vento.
+**Mantido do nosso jeito:** o resumo "Agora" (mais completo que o "Outlook" do Weather Channel) e a frase curta da chuva. **Não aproveitado:** manchete de notícia e anúncio no meio da tela.
 

@@ -13,6 +13,11 @@ Página web de previsão do tempo, gratuita, que funcione bem no celular e no co
 
 Objetivo secundário (o mais importante para o treinamento): **registrar o processo** — especificação, decisões, prompts, erros e correções — para servir de linha de base na comparação de evolução ao final da jornada.
 
+### Princípio de referência (definido pelo Dalmo, 28/09/2026)
+> "Nunca copiaremos à risca absolutamente nada. Pegamos o que se adequa e ajustamos ao nosso objetivo."
+
+O Weather Channel e outros apps profissionais são **referência, não molde**. Cada ideia trazida deles passa por três perguntas: serve ao nosso usuário? cabe nos dados gratuitos? precisa ser adaptada (idioma, clareza, honestidade sobre limites)? Exemplos: a paleta de cores veio da referência, mas a chuva perdeu o amarelo para não confundir com névoa (ADR-025); o topo seguiu a disposição da referência, mas manteve o nosso resumo "Agora" (ADR-027).
+
 ## 2. Priorização (MoSCoW)
 
 ### MUST — Essencial (versão 1.0, entregue segunda-feira)
