@@ -290,6 +290,9 @@ async function page(browser, { mobile, fc = forecast(), geo = 'deny', failForeca
   check('ADR-011 chuva medida → cenário chuva', (await t.p.getAttribute('body', 'data-scene')) === 'rain' && (await t.p.locator('.drop').count()) > 0);
   check('ADR-011 rótulo Chuva', (await t.p.textContent('.hero__label')) === 'Chuva', await t.p.textContent('.hero__label'));
   check('Nowcast para em ~45 min', (await t.p.textContent('.hero__nowcast')) === 'Chuva deve parar em ~45 min', await t.p.textContent('.hero__nowcast'));
+  check('Gráfico de 2 h com 8 barras (ADR-033)', (await t.p.locator('.rainchart__bar').count()) === 8);
+  check('Barras molhadas coloridas, secas apagadas', (await t.p.getAttribute('.rainchart__bar >> nth=0', 'aria-label')).startsWith('chuva') && (await t.p.getAttribute('.rainchart__bar >> nth=6', 'aria-label')).startsWith('sem chuva'), await t.p.getAttribute('.rainchart__bar >> nth=0', 'aria-label'));
+  await t.p.locator('.rainchart').screenshot({ path: `${OUT}/grafico-chuva.png` });
   await t.p.evaluate(() => document.getElementById('toast').hidden = true);
   await t.p.screenshot({ path: `${OUT}/mobile-chuva-medida.png` });
   await t.ctx.close();
@@ -307,6 +310,7 @@ async function page(browser, { mobile, fc = forecast(), geo = 'deny', failForeca
   t = await page(browser, { mobile: true, fc: forecast({ code: 3 }) });
   check('Nublado seco continua nublado', (await t.p.getAttribute('body', 'data-scene')) === 'cloudy');
   check('Sem nowcast quando seco', (await t.p.locator('.hero__nowcast').count()) === 0);
+  check('Sem gráfico de chuva quando seco', (await t.p.locator('.rainchart').count()) === 0);
   await t.ctx.close();
 
   // Chuva começando

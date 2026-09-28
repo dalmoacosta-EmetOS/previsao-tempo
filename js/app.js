@@ -1,26 +1,26 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=2.9';
-import { load, save } from './storage.js?v=2.9';
-import { getOfficialAlerts } from './api/official-alerts.js?v=2.9';
-import { getForecast } from './api/forecast.js?v=2.9';
-import { getAirQuality } from './api/air-quality.js?v=2.9';
-import { reverseGeocode } from './api/geocoding.js?v=2.9';
-import { resolveWeatherNow } from './domain/scene.js?v=2.9';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=2.9';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=2.9';
-import { renderHourly } from './ui/hourly.js?v=2.9';
-import { renderDaily } from './ui/daily.js?v=2.9';
-import { renderDetails } from './ui/details.js?v=2.9';
-import { renderAlerts } from './ui/alerts.js?v=2.9';
-import { renderError, showToast } from './ui/status.js?v=2.9';
-import { setupSearch } from './ui/search.js?v=2.9';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=2.9';
-import { mountRadar, updateRadar } from './ui/radar.js?v=2.9';
-import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=2.9';
-import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=2.9';
-import { renderFavorites } from './ui/favorites.js?v=2.9';
+import { getState, setState, subscribe } from './state.js?v=2.10';
+import { load, save } from './storage.js?v=2.10';
+import { getOfficialAlerts } from './api/official-alerts.js?v=2.10';
+import { getForecast } from './api/forecast.js?v=2.10';
+import { getAirQuality } from './api/air-quality.js?v=2.10';
+import { reverseGeocode } from './api/geocoding.js?v=2.10';
+import { resolveWeatherNow } from './domain/scene.js?v=2.10';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=2.10';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=2.10';
+import { renderHourly } from './ui/hourly.js?v=2.10';
+import { renderDaily } from './ui/daily.js?v=2.10';
+import { renderDetails } from './ui/details.js?v=2.10';
+import { renderAlerts } from './ui/alerts.js?v=2.10';
+import { renderError, showToast } from './ui/status.js?v=2.10';
+import { setupSearch } from './ui/search.js?v=2.10';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=2.10';
+import { mountRadar, updateRadar } from './ui/radar.js?v=2.10';
+import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=2.10';
+import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=2.10';
+import { renderFavorites } from './ui/favorites.js?v=2.10';
 
-export const VERSION = '2.9';
+export const VERSION = '2.10';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };

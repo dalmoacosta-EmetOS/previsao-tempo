@@ -3,12 +3,12 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el, fill } from './dom.js?v=2.9';
-import { getRadarFrames } from '../api/radar.js?v=2.9';
-import { getPrecipGrid } from '../api/precip-grid.js?v=2.9';
-import { speed, windDirection } from '../domain/units.js?v=2.9';
-import { showToast } from './status.js?v=2.9';
-import { load, save } from '../storage.js?v=2.9';
+import { el, fill } from './dom.js?v=2.10';
+import { getRadarFrames } from '../api/radar.js?v=2.10';
+import { getPrecipGrid } from '../api/precip-grid.js?v=2.10';
+import { speed, windDirection } from '../domain/units.js?v=2.10';
+import { showToast } from './status.js?v=2.10';
+import { load, save } from '../storage.js?v=2.10';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
