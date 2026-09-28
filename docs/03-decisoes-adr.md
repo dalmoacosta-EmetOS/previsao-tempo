@@ -222,3 +222,12 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - Se o navegador não permitir ler o ladrilho do radar (permissão do servidor), o radar aparece nas cores originais e a legenda original é mostrada **só** nesse quadro — nunca uma legenda que não bate com o mapa.
 **Lição:** a IA propôs duas legendas (ADR-023) porque era o que o serviço permitia; o usuário cobrou o padrão profissional e havia um caminho técnico (repintar) que a IA não tinha considerado.
 
+## ADR-025 — Névoa, gelo e mistura no mapa
+**Status:** Aceita · 28/09/2026 · o Dalmo discordou do ADR-024 ("névoa deve entrar no radar"; "gelo precisa constar")
+
+**Contexto:** no ADR-024 a IA deixou névoa, gelo e mistura de fora dizendo que "os dados não existem". **Estava errado:** a previsão gratuita (Open-Meteo) informa, hora a hora, o código de tempo (neblina 45/48; garoa e chuva congelante 56/57/66/67), a visibilidade e a separação chuva × neve. O argumento do Dalmo: uma família que vai passar por serra com neblina, ou por área com gelo, precisa ver isso no mapa para escolher o caminho.
+**Decisão:** a grade do mapa passa a pedir também `rain`, `weather_code` e `visibility`. Cada ponto recebe um tipo: **gelo** (roxo) se o código for congelante; **mistura** (rosa) se cair chuva e neve juntas; **neve** (azul); **chuva** (verde→vermelho). **Névoa** (amarelo-claro) onde há código de neblina ou visibilidade < 1 km e não está chovendo. A chuva deixa de usar amarelo (Forte = verde-escuro, como na legenda do Weather Channel) para não confundir com névoa.
+**No quadro "agora":** o radar de verdade só enxerga gotas — não enxerga névoa e não diz se a gota é chuva, neve ou gelo (isso vale para qualquer radar, pago ou gratuito). Por isso, sobre o radar, o site sobrepõe neve, gelo, mistura e névoa da **hora atual do modelo**, e a nota do cartão diz isso.
+**Limite honesto — gelo na pista (black ice):** é gelo que se forma no asfalto depois da chuva, com temperatura abaixo de zero; não cai do céu, então não aparece em radar nem no mapa de precipitação. O que o site mostra dele são os **alertas oficiais do NWS** (ex.: Winter Weather Advisory). Ideia para depois: aviso próprio quando chover e a temperatura cair abaixo de 0 °C nas horas seguintes.
+**Lição:** a IA confundiu "o radar não mostra" com "o dado não existe". O usuário, pensando no uso real (viagem, estrada), forçou a checagem.
+

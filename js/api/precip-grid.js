@@ -1,4 +1,4 @@
-import { getJSON } from './http.js?v=2.4';
+import { getJSON } from './http.js?v=2.5';
 
 // "Radar futuro" (ADR-013): chuva e neve PREVISTAS pelo modelo, hora a hora,
 // numa grade de pontos ao redor da cidade. Uma única chamada multi-ponto à Open-Meteo.
@@ -19,17 +19,30 @@ export async function getPrecipGrid(lat, lon) {
     }
   }
   const url = `${URL}?latitude=${lats.join(',')}&longitude=${lons.join(',')}`
-    + `&hourly=precipitation,snowfall&forecast_hours=${HOURS + 1}&timeformat=unixtime&timezone=GMT`;
+    + `&hourly=precipitation,rain,snowfall,weather_code,visibility&forecast_hours=${HOURS + 1}&timeformat=unixtime&timezone=GMT`;
   const raw = await getJSON(url, { timeout: 15000 });
   const list = Array.isArray(raw) ? raw : [raw];
   if (list.length !== rows * cols) throw new Error('grade incompleta');
 
   const times = list[0].hourly.time.map((t) => t * 1000);
-  // values[t][r][c] em mm/h; snow[t][r][c] em cm/h
-  const values = times.map((_, t) => Array.from({ length: rows }, (_, r) =>
-    Array.from({ length: cols }, (_, c) => list[r * cols + c].hourly.precipitation[t] ?? 0)));
-  const snow = times.map((_, t) => Array.from({ length: rows }, (_, r) =>
-    Array.from({ length: cols }, (_, c) => list[r * cols + c].hourly.snowfall?.[t] ?? 0)));
+  const field = (fn) => times.map((_, t) => Array.from({ length: rows }, (_, r) =>
+    Array.from({ length: cols }, (_, c) => fn(list[r * cols + c].hourly, t))));
+  // values: mm/h · snow: cm/h · kind: tipo do que cai (ADR-025) · fog: 1 = névoa/neblina
+  const values = field((h, t) => h.precipitation[t] ?? 0);
+  const snow = field((h, t) => h.snowfall?.[t] ?? 0);
+  const kind = field((h, t) => precipKind(h.weather_code?.[t], h.rain?.[t] ?? 0, h.snowfall?.[t] ?? 0));
+  const fog = field((h, t) => (FOG_CODES.includes(h.weather_code?.[t]) || (h.visibility?.[t] ?? 99999) < 1000 ? 1 : 0));
 
-  return { bounds: [[south, west], [north, east]], rows, cols, times, values, snow };
+  return { bounds: [[south, west], [north, east]], rows, cols, times, values, snow, kind, fog };
+}
+
+// Tipos do que cai, como na legenda do Weather Channel: chuva, neve, mistura, gelo.
+export const KIND = { RAIN: 0, SNOW: 1, MIX: 2, ICE: 3 };
+const ICE_CODES = [56, 57, 66, 67];   // garoa/chuva congelante → gelo na pista
+const FOG_CODES = [45, 48];           // neblina / neblina com geada
+function precipKind(code, rainMm, snowCm) {
+  if (ICE_CODES.includes(code)) return KIND.ICE;
+  if (snowCm > 0.05 && rainMm > 0.1) return KIND.MIX;
+  if (snowCm > 0.05) return KIND.SNOW;
+  return KIND.RAIN;
 }

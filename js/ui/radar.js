@@ -3,12 +3,12 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el, fill } from './dom.js?v=2.4';
-import { getRadarFrames } from '../api/radar.js?v=2.4';
-import { getPrecipGrid } from '../api/precip-grid.js?v=2.4';
-import { speed, windDirection } from '../domain/units.js?v=2.4';
-import { showToast } from './status.js?v=2.4';
-import { load, save } from '../storage.js?v=2.4';
+import { el, fill } from './dom.js?v=2.5';
+import { getRadarFrames } from '../api/radar.js?v=2.5';
+import { getPrecipGrid } from '../api/precip-grid.js?v=2.5';
+import { speed, windDirection } from '../domain/units.js?v=2.5';
+import { showToast } from './status.js?v=2.5';
+import { load, save } from '../storage.js?v=2.5';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
@@ -22,18 +22,25 @@ const RADAR_TTL = 10 * 60 * 1000;
 const MODEL_TTL = 60 * 60 * 1000; // o modelo atualiza de hora em hora; poupa a cota gratuita
 const START_ZOOM = 7;             // casa com o zoom máximo do radar e com a área da previsão
 
-// Cores no padrão do Weather Channel (ADR-024): CHUVA em verde → verde-escuro → amarelo → vermelho,
-// NEVE em azul. Valem para o player inteiro: a previsão nós pintamos direto; a imagem do radar
+// Cores no padrão do Weather Channel (ADR-024/025): CHUVA verde-claro → verde → verde-escuro → vermelho,
+// NEVE azul, GELO roxo, MISTURA rosa, NÉVOA amarelo-claro (por isso a chuva não usa amarelo). Valem para o player inteiro: a previsão nós pintamos direto; a imagem do radar
 // (que a RainViewer só entrega em azul no plano gratuito) é REPINTADA no aparelho com estas cores.
 // Limites em mm/h: Fraca < 2,5 · Moderada 2,5–7,6 · Forte 7,6–15 · Muito forte > 15.
 export const LEGEND = [
-  { label: 'Fraca', from: 0.1, rgb: [60, 200, 60] },
-  { label: 'Moderada', from: 2.5, rgb: [16, 130, 36] },
-  { label: 'Forte', from: 7.6, rgb: [255, 214, 0] },
-  { label: 'Muito forte', from: 15, rgb: [235, 45, 35] },
+  { label: 'Fraca', from: 0.1, rgb: [110, 215, 90] },
+  { label: 'Moderada', from: 2.5, rgb: [35, 150, 50] },
+  { label: 'Forte', from: 7.6, rgb: [15, 95, 35] },
+  { label: 'Muito forte', from: 15, rgb: [225, 50, 40] },
 ];
 const SNOW_LIGHT = [120, 195, 245], SNOW_DARK = [25, 95, 185]; // neve: azul-claro → azul (como no Weather Channel)
 const SNOW_RGB = [60, 150, 225];                                 // amostra da legenda
+const ICE_RGB = [125, 85, 215];   // gelo (garoa/chuva congelante): roxo
+const MIX_RGB = [225, 95, 190];   // mistura chuva + neve: rosa
+const FOG_RGB = [235, 222, 125];  // névoa/neblina: amarelo-claro
+export const EXTRA_LEGEND = [
+  { label: 'Neve', rgb: SNOW_RGB }, { label: 'Gelo', rgb: ICE_RGB },
+  { label: 'Mistura', rgb: MIX_RGB }, { label: 'Névoa', rgb: FOG_RGB },
+];
 // Se o aparelho não conseguir repintar o radar, ele aparece nas cores originais (azul) e a legenda avisa.
 export const RADAR_LEGEND = [
   { label: 'Fraca', rgb: [136, 221, 238] },
@@ -100,12 +107,14 @@ export function mountRadar(container) {
         ...LEGEND.map((l) => el('li', {}, [
           el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
         ])),
-        el('li', {}, [el('b', { style: `background: rgb(${SNOW_RGB.join(',')})`, 'aria-hidden': 'true' }), 'Neve (previsão)']),
+        ...EXTRA_LEGEND.map((l) => el('li', {}, [
+          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
+        ])),
       ]),
       windEl,
     ]),
     el('p', { class: 'radar__note' }, [
-      'Aperte ▶ para ver para onde a chuva deve ir nas próximas 24 h. Agora: ',
+      'Aperte ▶ para ver para onde a chuva deve ir nas próximas 24 h. Neve, gelo, mistura e névoa vêm da previsão do modelo (radar não distingue o tipo nem enxerga névoa). Agora: ',
       el('a', { href: 'https://www.rainviewer.com/', target: '_blank', rel: 'noopener', text: 'Weather data by RainViewer' }),
       ' · Previsão: Open-Meteo · Mapa: ',
       el('a', { href: 'https://www.openstreetmap.org/copyright', target: '_blank', rel: 'noopener', text: '© OpenStreetMap' }),
@@ -231,6 +240,11 @@ function show(i) {
       modelOverlay.setUrl(frameUrl(f.t));
       drawDebug(f.t);
       modelOverlay.setOpacity(0.8);
+    } else if (grid) {
+      // quadro "agora": sobre o radar, só neve/gelo/mistura/névoa da hora atual do modelo
+      const h = nearestHour(f.time);
+      modelOverlay.setUrl(frameUrl(h, 'extras'));
+      modelOverlay.setOpacity(0.8);
     } else {
       modelOverlay.setOpacity(0);
     }
@@ -261,35 +275,51 @@ function label(f, i) {
 
 // ---------- desenho da previsão (canvas com interpolação suave) ----------
 
-function frameUrl(t) {
-  if (gridUrls[t]) return gridUrls[t];
-  const { rows, cols, values, snow } = grid;
+// mode 'all' = previsão completa · 'extras' = só neve, gelo, mistura e névoa (sobre o radar "agora",
+// porque o radar enxerga gotas, não o tipo delas, e não enxerga névoa — ADR-025).
+function frameUrl(t, mode = 'all') {
+  const key = `${mode}:${t}`;
+  if (gridUrls[key]) return gridUrls[key];
+  const { rows, cols, values, snow, kind, fog } = grid;
   const W = 220, H = 220;
   const cv = document.createElement('canvas');
   cv.width = W; cv.height = H;
   const ctx = cv.getContext('2d');
   const img = ctx.createImageData(W, H);
-  const v = values[t], s = snow[t];
+  const v = values[t], s = snow[t], k = kind?.[t], fg = fog?.[t];
   for (let y = 0; y < H; y++) {
     const gy = (y / (H - 1)) * (rows - 1);
     const r0 = Math.floor(gy), r1 = Math.min(r0 + 1, rows - 1), fy = gy - r0;
     for (let x = 0; x < W; x++) {
       const gx = (x / (W - 1)) * (cols - 1);
       const c0 = Math.floor(gx), c1 = Math.min(c0 + 1, cols - 1), fx = gx - c0;
+      const edge = Math.min(1, Math.min(x, y, W - 1 - x, H - 1 - y) / (W * 0.12)); // bordas esfumaçadas
       const mm = bilinear(v, r0, r1, c0, c1, fx, fy);
-      if (mm < 0.1) continue;
-      const cm = bilinear(s, r0, r1, c0, c1, fx, fy);
-      const [R, G, B] = cm > 0.05 ? lerp(SNOW_LIGHT, SNOW_DARK, clamp01(cm / 2)) : colorFor(mm);
-      // bordas esfumaçadas: evita o "quadrado" no limite da área calculada
-      const edge = Math.min(x, y, W - 1 - x, H - 1 - y) / (W * 0.12);
-      const a = Math.min(215, 165 + mm * 8) * Math.min(1, edge); // chuva fraca bem visível, como nos apps
+      let rgb = null, a = 0;
+      if (mm >= 0.1) {
+        const type = k ? k[Math.round(gy)][Math.round(gx)] : 0;   // tipo = ponto da grade mais próximo
+        const cm = bilinear(s, r0, r1, c0, c1, fx, fy);
+        if (type === 3) rgb = ICE_RGB;
+        else if (type === 2) rgb = MIX_RGB;
+        else if (type === 1 || cm > 0.05) rgb = lerp(SNOW_LIGHT, SNOW_DARK, clamp01(cm / 2));
+        else if (mode === 'all') rgb = colorFor(mm);
+        a = Math.min(215, 165 + mm * 8);
+      }
+      if (!rgb && fg && bilinear(fg, r0, r1, c0, c1, fx, fy) >= 0.5) { rgb = FOG_RGB; a = 150; }
+      if (!rgb) continue;
       const p = (y * W + x) * 4;
-      img.data[p] = R; img.data[p + 1] = G; img.data[p + 2] = B; img.data[p + 3] = a;
+      img.data[p] = rgb[0]; img.data[p + 1] = rgb[1]; img.data[p + 2] = rgb[2]; img.data[p + 3] = a * edge;
     }
   }
   ctx.putImageData(img, 0, 0);
-  gridUrls[t] = cv.toDataURL('image/png');
-  return gridUrls[t];
+  gridUrls[key] = cv.toDataURL('image/png');
+  return gridUrls[key];
+}
+
+function nearestHour(time) {
+  let best = 0;
+  grid.times.forEach((t, i) => { if (Math.abs(t - time) < Math.abs(grid.times[best] - time)) best = i; });
+  return best;
 }
 
 function bilinear(m, r0, r1, c0, c1, fx, fy) {
