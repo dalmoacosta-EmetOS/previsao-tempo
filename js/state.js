@@ -1,5 +1,5 @@
 // Estado único da aplicação. A interface sempre se redesenha a partir dele.
-import { load } from './storage.js?v=2.8';
+import { load } from './storage.js?v=2.9';
 
 const state = {
   place: null,        // { name, region, country, lat, lon, isGeo }
@@ -11,6 +11,7 @@ const state = {
   daySel: null,       // dia aberto (índice)
   dayPart: 'day',     // 'day' | 'night'
   official: [],
+  air: null,          // qualidade do ar { aqi, pm25 } — ADR-031
   tileSel: null,      // quadro de atenção aberto no "Hoje em detalhe" — ADR-022       // alertas oficiais (NWS) — ADR-020
   status: 'idle',     // 'idle' | 'loading' | 'ok' | 'error'
   error: null,        // { kind, retry }

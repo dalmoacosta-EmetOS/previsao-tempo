@@ -1,25 +1,26 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=2.8';
-import { load, save } from './storage.js?v=2.8';
-import { getOfficialAlerts } from './api/official-alerts.js?v=2.8';
-import { getForecast } from './api/forecast.js?v=2.8';
-import { reverseGeocode } from './api/geocoding.js?v=2.8';
-import { resolveWeatherNow } from './domain/scene.js?v=2.8';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=2.8';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=2.8';
-import { renderHourly } from './ui/hourly.js?v=2.8';
-import { renderDaily } from './ui/daily.js?v=2.8';
-import { renderDetails } from './ui/details.js?v=2.8';
-import { renderAlerts } from './ui/alerts.js?v=2.8';
-import { renderError, showToast } from './ui/status.js?v=2.8';
-import { setupSearch } from './ui/search.js?v=2.8';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=2.8';
-import { mountRadar, updateRadar } from './ui/radar.js?v=2.8';
-import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=2.8';
-import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=2.8';
-import { renderFavorites } from './ui/favorites.js?v=2.8';
+import { getState, setState, subscribe } from './state.js?v=2.9';
+import { load, save } from './storage.js?v=2.9';
+import { getOfficialAlerts } from './api/official-alerts.js?v=2.9';
+import { getForecast } from './api/forecast.js?v=2.9';
+import { getAirQuality } from './api/air-quality.js?v=2.9';
+import { reverseGeocode } from './api/geocoding.js?v=2.9';
+import { resolveWeatherNow } from './domain/scene.js?v=2.9';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=2.9';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=2.9';
+import { renderHourly } from './ui/hourly.js?v=2.9';
+import { renderDaily } from './ui/daily.js?v=2.9';
+import { renderDetails } from './ui/details.js?v=2.9';
+import { renderAlerts } from './ui/alerts.js?v=2.9';
+import { renderError, showToast } from './ui/status.js?v=2.9';
+import { setupSearch } from './ui/search.js?v=2.9';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=2.9';
+import { mountRadar, updateRadar } from './ui/radar.js?v=2.9';
+import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=2.9';
+import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=2.9';
+import { renderFavorites } from './ui/favorites.js?v=2.9';
 
-export const VERSION = '2.8';
+export const VERSION = '2.9';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
@@ -110,7 +111,11 @@ async function loadPlace(place, { remember = true } = {}) {
   try {
     const data = await getForecast(place.lat, place.lon);
     const samePlace = getState().place && getState().place.lat === place.lat && getState().place.lon === place.lon;
-    setState({ place, data, status: 'ok', ...(samePlace ? {} : { hourSel: null, daySel: null, tileSel: null, official: [] }) });
+    setState({ place, data, status: 'ok', ...(samePlace ? {} : { hourSel: null, daySel: null, tileSel: null, official: [], air: null }) });
+    // Qualidade do ar em paralelo; se falhar, o quadro mostra "--" (ADR-031)
+    getAirQuality(place.lat, place.lon)
+      .then((air) => { if (getState().place?.lat === place.lat) setState({ air }); })
+      .catch(() => {});
     // Alertas oficiais em paralelo; se falharem, o site segue (ADR-020)
     getOfficialAlerts(place.lat, place.lon)
       .then((official) => {

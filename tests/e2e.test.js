@@ -20,7 +20,7 @@ const server = http.createServer((req, res) => {
   });
 });
 
-function forecast({ code = 2, isDay = 1, stormy = false, hot = false, rainNow = 0, rainNext = [0,0,0,0,0,0,0,0], hourNowCode = null, hourNowPop = null } = {}) {
+function forecast({ code = 2, isDay = 1, stormy = false, hot = false, rainNow = 0, rainNext = [0,0,0,0,0,0,0,0], hourNowCode = null, hourNowPop = null, icy = null } = {}) {
   const start = new Date(Date.UTC(2026, 8, 27, 0, 0));
   const hours = [], hT = [], hPop = [], hCode = [], hDay = [], hCape = [];
   for (let i = 0; i < 16 * 24; i++) {
@@ -33,6 +33,8 @@ function forecast({ code = 2, isDay = 1, stormy = false, hot = false, rainNow = 
     hDay.push(hr >= 6 && hr < 19 ? 1 : 0);
     hCape.push(stormy ? 1800 : 200);
   }
+  const hPrecip = hours.map(() => 0);
+  if (icy) { hPrecip[9] = 1.2; for (let i = 11; i < 20; i++) hT[i] = -2; if (icy === 'danger') hCode[12] = 66; }
   if (hourNowCode != null) { hCode[8] = hourNowCode; hPop[8] = hourNowPop; hCode[9] = 3; hPop[9] = 20; }
   const dT = [], dCode = [], dMax = [], dMin = [], dPop = [], dSnow = [], dUv = [], dRise = [], dSet = [], dW = [], dG = [];
   const codes = [code, 3, 61, 0, 1, 80, 71, 2, 95, 45, 3, 0, 63, 2, 1, 0];
@@ -49,7 +51,7 @@ function forecast({ code = 2, isDay = 1, stormy = false, hot = false, rainNow = 
     timezone: 'America/New_York', timezone_abbreviation: 'GMT-4',
     current: { time: '2026-09-27T08:15', temperature_2m: hot ? 36.4 : 17.3, apparent_temperature: hot ? 39 : 16.1, relative_humidity_2m: 72, weather_code: code, wind_speed_10m: 14.8, wind_direction_10m: 225, is_day: isDay, precipitation: rainNow, rain: rainNow, showers: 0, snowfall: 0 },
     minutely_15: { time: [0,1,2,3,4,5,6,7].map(i => `2026-09-27T${String(8 + Math.floor((15 + i*15)/60)).padStart(2,'0')}:${String((15 + i*15)%60).padStart(2,'0')}`), precipitation: rainNext, snowfall: [0,0,0,0,0,0,0,0] },
-    hourly: { time: hours, temperature_2m: hT, apparent_temperature: hT.map((v) => v - 3), relative_humidity_2m: hours.map(() => 88), wind_speed_10m: hours.map((_, i) => 25 + (i % 5) * 3), wind_direction_10m: hours.map(() => 30), wind_gusts_10m: hours.map(() => 55), cloud_cover: hours.map((_, i) => (i % 24 < 12 ? 95 : 40)), uv_index: hours.map(() => 2), visibility: hours.map(() => 8000), snowfall: hours.map(() => 0), precipitation_probability: hPop, precipitation: hours.map(() => 0), weather_code: hCode, is_day: hDay, cape: hCape },
+    hourly: { time: hours, temperature_2m: hT, apparent_temperature: hT.map((v) => v - 3), relative_humidity_2m: hours.map(() => 88), wind_speed_10m: hours.map((_, i) => 25 + (i % 5) * 3), wind_direction_10m: hours.map(() => 30), wind_gusts_10m: hours.map(() => 55), cloud_cover: hours.map((_, i) => (i % 24 < 12 ? 95 : 40)), uv_index: hours.map(() => 2), visibility: hours.map(() => 8000), snowfall: hours.map(() => 0), precipitation_probability: hPop, precipitation: hPrecip, weather_code: hCode, is_day: hDay, cape: hCape },
     daily: { time: dT, weather_code: dCode, temperature_2m_max: dMax, temperature_2m_min: dMin, apparent_temperature_max: dMax.map((v) => v - 2), apparent_temperature_min: dMin.map((v) => v - 4), precipitation_probability_max: dPop, snowfall_sum: dSnow, uv_index_max: dUv, sunrise: dRise, sunset: dSet, wind_speed_10m_max: dW, wind_gusts_10m_max: dG },
   };
 }
@@ -60,7 +62,7 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false }) {
+async function page(browser, { mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42 }) {
   const ctx = await browser.newContext(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
     : { viewport: { width: 1366, height: 900 } });
@@ -106,6 +108,7 @@ async function page(browser, { mobile, fc = forecast(), geo = 'deny', failForeca
     if (radarNoCors && r.request().headers()['origin']) return r.fulfill({ status: 403, body: '' });
     r.fulfill({ path: path.join(FIX, wet ? 'rainUB.png' : 'empty.png'), contentType: 'image/png', headers: { 'Access-Control-Allow-Origin': '*' } });
   });
+  await p.route('https://air-quality-api.open-meteo.com/**', (r) => aqi == null ? r.fulfill({ status: 500, body: '{}' }) : r.fulfill({ json: { current: { us_aqi: aqi, pm2_5: 9.1 } } }));
   await p.route('https://api.weather.gov/**', (r) => { nwsCalls++; r.fulfill({ json: { features: [
     { properties: { event: 'Flood Warning', severity: 'Severe', onset: new Date().toISOString(), ends: new Date(Date.now() + 3 * 3600e3).toISOString(), headline: 'Flood Warning issued by NWS Boston MA', description: 'The Flood Warning continues for the Mystic River at Malden.', instruction: 'Turn around, don\'t drown.', areaDesc: 'Middlesex, MA', senderName: 'NWS Boston/Norton MA' } },
     { properties: { event: 'Gale Warning', severity: 'Moderate', effective: new Date().toISOString(), expires: new Date(Date.now() + 6 * 3600e3).toISOString(), headline: 'Gale Warning', description: 'Northeast winds 25 to 35 kt.', areaDesc: 'Coastal waters', senderName: 'NWS Boston/Norton MA' } },
@@ -466,6 +469,26 @@ async function page(browser, { mobile, fc = forecast(), geo = 'deny', failForeca
   t = await page(browser, { mobile: false, url: '/?lat=999&lon=abc' });
   await t.p.waitForTimeout(900);
   check('Link com coordenada inválida cai no padrão (Boston)', (await t.p.textContent('.hero__city')) === 'Boston', await t.p.textContent('.hero__city'));
+  await t.ctx.close();
+
+  // ADR-031/032: qualidade do ar e gelo na pista
+  t = await page(browser, { mobile: false });
+  await t.p.waitForTimeout(900);
+  check('AQI aparece com faixa EPA', (await t.p.textContent('#details')).includes('42 · Boa'), await t.p.locator('#details .tile:has-text("Qualidade do ar") dd').textContent().catch(() => '?'));
+  check('Gelo na pista: sem risco em dia ameno', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd').textContent()) === 'Sem risco');
+  await t.ctx.close();
+  t = await page(browser, { mobile: false, aqi: 165, fc: forecast({ icy: 'warn' }) });
+  await t.p.waitForTimeout(900);
+  check('AQI 165 → quadro vermelho', (await t.p.getAttribute('#details .tile:has-text("Qualidade do ar")', 'class')).includes('tile--danger'));
+  check('Chuva + frio → gelo POSSÍVEL (amarelo)', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd').textContent()) === 'Possível' && (await t.p.getAttribute('#details .tile:has-text("Gelo na pista")', 'class')).includes('tile--warn'));
+  await t.p.click('#details .tile:has-text("Gelo na pista")');
+  check('Gelo: cuidados ao dirigir', (await t.p.textContent('#care-panel')).includes('Pontes, viadutos'));
+  await t.p.locator('#details').screenshot({ path: `${OUT}/detalhe-ar-gelo.png` });
+  await t.ctx.close();
+  t = await page(browser, { mobile: false, aqi: null, fc: forecast({ icy: 'danger' }) });
+  await t.p.waitForTimeout(900);
+  check('Chuva congelante → gelo PROVÁVEL (vermelho)', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd').textContent()) === 'Provável');
+  check('Ar indisponível → "--" sem quebrar', (await t.p.locator('#details .tile:has-text("Qualidade do ar") dd').textContent()) === '--' && t.errors.length === 0, t.errors.join(' | '));
   await t.ctx.close();
 
   // T11 lembrar última cidade

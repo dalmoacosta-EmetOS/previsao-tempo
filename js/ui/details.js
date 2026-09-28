@@ -1,20 +1,22 @@
-import { el, fill } from './dom.js?v=2.8';
-import { speed, percent, snow, uvLevel } from '../domain/units.js?v=2.8';
-import { hourLabel } from '../domain/time.js?v=2.8';
-import { todayStormRisk } from '../domain/alerts.js?v=2.8';
-import { evaluateToday, SOURCES } from '../domain/safety.js?v=2.8';
+import { el, fill } from './dom.js?v=2.9';
+import { speed, percent, snow, uvLevel } from '../domain/units.js?v=2.9';
+import { hourLabel } from '../domain/time.js?v=2.9';
+import { todayStormRisk } from '../domain/alerts.js?v=2.9';
+import { evaluateToday, SOURCES } from '../domain/safety.js?v=2.9';
+import { aqiLevel } from '../api/air-quality.js?v=2.9';
 
 const RISK_TEXT = { alto: 'Alto', moderado: 'Moderado', baixo: 'Baixo' };
+const aqiClass = (v) => (v <= 50 ? 'good' : v <= 100 ? 'moderate' : v <= 150 ? 'sensitive' : 'bad');
 const canHover = () => window.matchMedia?.('(hover: hover)').matches;
 
 /**
  * "Hoje em detalhe" com níveis de atenção (ADR-022): quadros em amarelo/vermelho
  * quando passam do limite; tocar (ou passar o mouse) mostra recomendações.
  */
-export function renderDetails(root, { data, unit, tileSel }, onSelect = () => {}) {
+export function renderDetails(root, { data, unit, tileSel, air }, onSelect = () => {}) {
   const d = data.daily[0];
   const risk = todayStormRisk(data);
-  const { levels, rainMm } = evaluateToday(data, risk, unit);
+  const { levels, rainMm, ice } = evaluateToday(data, risk, unit, air);
   const rain = unit === 'F' ? `${(rainMm / 25.4).toFixed(1).replace('.', ',')} pol` : `${Math.round(rainMm)} mm`;
 
   const tile = (label, value, key, extraCls = '', note = '') => {
@@ -56,6 +58,8 @@ export function renderDetails(root, { data, unit, tileSel }, onSelect = () => {}
       tile('Neve prevista', snow(d.snow, unit), 'snow'),
       tile('Vento máx.', speed(d.windMax, unit), 'wind'),
       tile('Risco de tempestade', RISK_TEXT[risk], 'storm', `risk risk--${risk}`, 'Estimativa do site'),
+      tile('Qualidade do ar', air ? `${air.aqi} · ${aqiLevel(air.aqi)}` : '--', 'air', air ? `aqi aqi--${aqiClass(air.aqi)}` : '', 'Índice EPA (EUA)'),
+      tile('Gelo na pista', ice.label, 'ice', '', 'Próximas 24 h · estimativa'),
     ]),
     open && el('section', { class: `care care--${open.level}`, id: 'care-panel', 'aria-live': 'polite' }, [
       el('header', { class: 'care__head' }, [

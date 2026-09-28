@@ -1,10 +1,12 @@
 // Níveis de atenção para o "Hoje em detalhe" + recomendações (ADR-022).
 // Limites baseados em referências públicas (escala Beaufort, OMS para UV, faixas de
 // avisos de chuva do INMET). NÃO são alertas oficiais.
-import { speed } from './units.js?v=2.8';
-import { isWetHour } from './summary.js?v=2.8';
+import { speed } from './units.js?v=2.9';
+import { isWetHour } from './summary.js?v=2.9';
+import { roadIceRisk } from './road-ice.js?v=2.9';
+import { aqiLevel } from '../api/air-quality.js?v=2.9';
 
-export const SOURCES = 'Limites: escala Beaufort (vento), OMS (índice UV), faixas de aviso do INMET (chuva). Recomendações gerais de segurança — em emergência, siga a Defesa Civil e as autoridades locais.';
+export const SOURCES = 'Limites: escala Beaufort (vento), OMS (índice UV), faixas de aviso do INMET (chuva), EPA (qualidade do ar). Recomendações gerais de segurança — em emergência, siga a Defesa Civil e as autoridades locais.';
 
 const ADVICE = {
   gust: {
@@ -77,6 +79,34 @@ const ADVICE = {
       home: 'Prepare-se para falta de energia: lanternas, pilhas, agasalhos e comida.',
     },
   },
+  ice: {
+    warn: {
+      title: 'Possível gelo na pista (black ice)',
+      walk: 'Pisos molhados podem congelar: use calçado antiderrapante e cuidado em escadas e rampas.',
+      drive: 'Pontes, viadutos e trechos à sombra congelam primeiro; reduza a velocidade e evite freadas bruscas.',
+      home: 'Jogue sal ou areia na calçada e na escada da entrada antes de a temperatura cair.',
+    },
+    danger: {
+      title: 'Gelo na pista provável',
+      walk: 'Evite sair se não for necessário; o gelo fica quase invisível.',
+      drive: 'Adie a viagem se puder. Se dirigir: velocidade bem baixa, distância maior, sem freio brusco; se derrapar, tire o pé e esterce para onde quer ir.',
+      home: 'Galhos com gelo derrubam fios: tenha lanterna, pilhas e agasalhos à mão.',
+    },
+  },
+  air: {
+    warn: {
+      title: 'Ar ruim para grupos sensíveis',
+      walk: 'Quem tem asma ou doença do coração ou pulmão, crianças e idosos: reduzam o esforço ao ar livre.',
+      drive: 'Mantenha as janelas fechadas e o ar do carro em recirculação.',
+      home: 'Feche as janelas; se tiver purificador de ar, ligue.',
+    },
+    danger: {
+      title: 'Ar ruim para todos',
+      walk: 'Evite exercício ao ar livre; grupos sensíveis devem ficar em ambiente fechado.',
+      drive: 'Janelas fechadas e ar em recirculação durante todo o trajeto.',
+      home: 'Portas e janelas fechadas; evite fumaça dentro de casa (velas, fritura, cigarro).',
+    },
+  },
   storm: {
     warn: {
       title: 'Possibilidade de tempestade',
@@ -96,7 +126,7 @@ const ADVICE = {
 const kmh = (v) => v ?? 0;
 
 /** Avalia o dia de hoje; devolve { chave: { level, title, reason, walk, drive, home } }. */
-export function evaluateToday(data, stormRisk, unit = 'C') {
+export function evaluateToday(data, stormRisk, unit = 'C', air = null) {
   const sp = (v) => speed(v, unit);
   const mm = (v) => (unit === 'F' ? `${(v / 25.4).toFixed(1).replace('.', ',')} pol` : `${Math.round(v)} mm`);
   const d = data.daily[0];
@@ -117,5 +147,8 @@ export function evaluateToday(data, stormRisk, unit = 'C') {
   const sn = d.snow ?? 0;
   put('snow', sn >= 10 ? 'danger' : sn > 0 ? 'warn' : null, `Cerca de ${unit === 'F' ? (sn / 2.54).toFixed(1).replace('.', ',') + ' pol' : sn.toFixed(1).replace('.', ',') + ' cm'} de neve previstos.`);
   put('storm', stormRisk === 'alto' ? 'danger' : stormRisk === 'moderado' ? 'warn' : null, `Risco de tempestade ${stormRisk} (estimativa do site).`);
-  return { levels: out, rainMm };
+  const ice = roadIceRisk(data.hourly);
+  put('ice', ice.level, ice.reason);
+  if (air) put('air', air.aqi > 150 ? 'danger' : air.aqi > 100 ? 'warn' : null, `Índice de qualidade do ar ${air.aqi} (${aqiLevel(air.aqi)}; ruim para sensíveis a partir de 101, ruim para todos a partir de 151).`);
+  return { levels: out, rainMm, ice };
 }
