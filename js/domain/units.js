@@ -18,6 +18,12 @@ export function snow(cm, unit) {
   return unit === 'F' ? `${(cm / 2.54).toFixed(1)} in` : `${cm.toFixed(1)} cm`;
 }
 
+/** Quantidade de chuva: mm (°C) ou polegadas (°F), com vírgula. */
+export function rain(mm, unit) {
+  if (!isNum(mm)) return '--';
+  return unit === 'F' ? `${(mm / 25.4).toFixed(2).replace('.', ',')} pol` : `${mm.toFixed(1).replace('.', ',')} mm`;
+}
+
 export function percent(v) {
   return isNum(v) ? `${Math.round(v)}%` : '--';
 }

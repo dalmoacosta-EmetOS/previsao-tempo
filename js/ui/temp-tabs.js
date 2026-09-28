@@ -1,4 +1,4 @@
-import { el } from './dom.js?v=2.5.1';
+import { el } from './dom.js?v=2.6';
 
 // Abas "Temperatura | Sensação térmica" — o mesmo estado vale para as 24 h e para os dias.
 export function tempTabs(mode, onChange) {

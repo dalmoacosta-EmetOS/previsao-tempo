@@ -238,3 +238,9 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Causa:** a barra fixa da cidade (ADR-017) **ocupava espaço** ao aparecer. Exatamente no ponto de virada: a barra aparece → empurra a página ~46 px → o bloco da cidade volta à tela → a barra some → a página sobe → o bloco sai da tela → a barra aparece... um ciclo infinito. No computador o navegador compensa sozinho (por isso os testes não pegaram); o Safari do iPhone não.
 **Decisão:** a barra passa a ficar **por cima** do conteúdo, sem ocupar espaço. Aparecer ou sumir não mexe mais em nada da página. Teste novo: ligar/desligar a barra não pode mover o conteúdo nem 1 px (a versão antiga movia 46 px).
 
+## ADR-027 — Bloco principal no estilo do Weather Channel
+**Status:** Aceita · 28/09/2026 · pedido do Dalmo (prints lado a lado do app do Weather Channel e do site, 14:04)
+
+**Decisão:** o topo passa a seguir o desenho do Weather Channel: **temperatura bem grande e forte à esquerda**; **ícone e condição à direita** (o ícone muda conforme o tempo: sol, nuvem, chuva, neve, trovoada, neblina); abaixo, uma linha **Sensação | Máx | Mín** e outra **Chuva na próxima hora % | quantidade**. Sensação e Máx/Mín saem dos quadradinhos (estavam repetidos); ficam Umidade e Vento.
+**Mantido do nosso jeito:** o resumo "Agora" (mais completo que o "Outlook" do Weather Channel) e a frase curta da chuva. **Não copiado:** manchete de notícia e anúncio no meio da tela.
+
