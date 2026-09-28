@@ -287,6 +287,6 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 
 ## ADR-038 — Nome: Weather Forecast
 **Status:** Aceita · 28/09/2026 · decisão do Dalmo
-**Decisão:** o site passa a se chamar **Weather Forecast** (topo, título da aba, app instalado, prévia do link). Boas-vindas: "Weather Forecast: apresentado de maneira clara e confiável, para você se manter bem informado e planejar o seu dia com tranquilidade." O conteúdo continua em português.
+**Decisão:** o site passa a se chamar **Weather Forecast** (topo, título da aba, app instalado, prévia do link). Boas-vindas (revisada pelo Dalmo às 15:59): "Weather Forecast: o tempo onde você quiser e para onde você for, de maneira clara e precisa, para você se planejar bem." O conteúdo continua em português.
 **Endereço:** um endereço só "weatherforecast" exige domínio próprio (pago). Grátis, o mais curto possível é renomear o repositório → `dalmoacosta-emetos.github.io/weatherforecast` (o endereço antigo deixa de funcionar).
 
