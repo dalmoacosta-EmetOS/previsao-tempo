@@ -361,6 +361,11 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   const max = Number(await t.p.getAttribute('.radar__slider', 'max'));
   check('Linha do tempo: agora + ~23 h de previsão (sem passado)', max >= 21 && max <= 25, String(max));
   check('Rótulo RADAR', (await t.p.textContent('.radar__kind')) === 'RADAR');
+  await t.p.click('#radar .map-expand__btn'); await t.p.waitForTimeout(300);
+  const rm = await t.p.evaluate(() => { const r = document.getElementById('radar').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.top), innerWidth, !!document.querySelector('#radar .radar__play')]; });
+  check('Radar: botão ⤢ amplia o cartão (mapa + play) na tela toda', rm[0] === rm[2] && rm[1] === 0 && rm[3], JSON.stringify(rm));
+  await t.p.keyboard.press('Escape'); await t.p.waitForTimeout(300);
+  check('Radar: Esc fecha o mapa ampliado', !(await t.p.evaluate(() => document.getElementById('radar').classList.contains('is-expanded'))));
   check('Radar: começa em Agora', (await t.p.textContent('.radar__time')).startsWith('Agora') && (await t.p.getAttribute('.radar__slider', 'value')) === '0', await t.p.textContent('.radar__time'));
   check('Mapa claro por padrão', (await t.p.getAttribute('.radar__map', 'class')).includes('radar__map--light'));
   await t.p.click('#radar button:has-text("Escuro")');
@@ -588,6 +593,11 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('Viagem: trecho com névoa sinalizado', (await t.p.locator('.trip__stop--danger').count()) === 1 && (await t.p.locator('.trip__stop--warn').count()) === 1 && (await t.p.textContent('.trip__stops')).includes('Névoa (visibilidade'));
   check('Viagem: chegada calculada', (await t.p.textContent('.trip__stats')).includes('3 h 10 min · 290 km'), await t.p.textContent('.trip__stats'));
   check('Viagem: mapa com a rota', (await t.p.locator('.trip__map path.leaflet-interactive').count()) >= 1);
+  await t.p.click('.trip__map .map-expand__btn'); await t.p.waitForTimeout(300);
+  const tm = await t.p.evaluate(() => { const r = document.querySelector('.trip__map').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height), innerWidth, innerHeight]; });
+  check('Viagem: botão ⤢ amplia o mapa para a tela toda (ADR-041)', tm[0] === tm[2] && tm[1] >= tm[3] - 2, JSON.stringify(tm));
+  await t.p.click('.trip__map .map-expand__btn'); await t.p.waitForTimeout(300);
+  check('Viagem: ✕ volta ao tamanho normal', (await t.p.evaluate(() => document.querySelector('.trip__map').getBoundingClientRect().height)) < 300);
   await t.p.click('.trip__stop--danger >> .hit'); await t.p.waitForTimeout(200);
   check('Viagem: toque no alerta abre cuidados', (await t.p.textContent('.trip__care')).includes('Dirigindo') && (await t.p.textContent('.trip__care')).includes('Chuva'), (await t.p.textContent('.trip__care').catch(() => '?')).slice(0, 120));
   await t.p.click('.trip__care .detail__close'); await t.p.waitForTimeout(150);

@@ -1,9 +1,9 @@
-import { el, fill } from './dom.js?v=3.5.2';
-import { speed, percent, snow, uvLevel } from '../domain/units.js?v=3.5.2';
-import { hourLabel } from '../domain/time.js?v=3.5.2';
-import { todayStormRisk } from '../domain/alerts.js?v=3.5.2';
-import { evaluateToday, SOURCES } from '../domain/safety.js?v=3.5.2';
-import { aqiLevel } from '../api/air-quality.js?v=3.5.2';
+import { el, fill } from './dom.js?v=3.6';
+import { speed, percent, snow, uvLevel } from '../domain/units.js?v=3.6';
+import { hourLabel } from '../domain/time.js?v=3.6';
+import { todayStormRisk } from '../domain/alerts.js?v=3.6';
+import { evaluateToday, SOURCES } from '../domain/safety.js?v=3.6';
+import { aqiLevel } from '../api/air-quality.js?v=3.6';
 
 const RISK_TEXT = { alto: 'Alto', moderado: 'Moderado', baixo: 'Baixo' };
 const aqiClass = (v) => (v <= 50 ? 'good' : v <= 100 ? 'moderate' : v <= 150 ? 'sensitive' : 'bad');

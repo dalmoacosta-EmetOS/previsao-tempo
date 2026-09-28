@@ -307,3 +307,9 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - Conferidos sem problema: nenhuma chave ou senha no código; links externos com `noopener`; nome no link (`?cidade=`) entra como texto; localização só com permissão; dados guardados só no aparelho (última cidade, favoritas, preferências). Dependências dos testes sem vulnerabilidades conhecidas (npm audit).
 **Pendente (fora do código):** limitar o acesso do app do Claude no GitHub só a este repositório.
 **Revisão 3.5.2 (18:53) — efeito colateral da CSP, achado pelo Dalmo no iPhone:** o nome da cidade sumiu ("Sua localização"; na viagem "km 74" em vez de nomes). Causa: o BigDataCloud passou a redirecionar `api.bigdatacloud.net` → `api-bdc.io`, e a CSP só liberava o endereço antigo — o redirecionamento era bloqueado. Correção: chamar `api-bdc.io` direto e liberar os dois na CSP. Os testes agora simulam o redirecionamento real (a versão 3.5.1 falha nele, a 3.5.2 passa). **Lição:** testes com respostas simuladas não viram o redirecionamento; de novo, o uso real achou.
+
+## ADR-041 — Ampliar o mapa
+**Status:** Aceita · 28/09/2026 · último pedido do exercício (Dalmo)
+**Decisão:** botão ⤢ no canto do mapa do radar e do mapa da viagem. Tocar no mapa continua servindo para arrastar; o botão amplia para a tela toda (no radar, o cartão inteiro: mapa + ▶ + legenda). ✕ ou Esc volta. Enquanto ampliado, o mapa é movido para o nível da página (efeitos de vidro dos cartões impediam o "tela cheia" — o teste pegou isso na viagem).
+**Congelamento:** a v3.6 encerra o exercício 1 (ramo `congelado-v3.6`).
+

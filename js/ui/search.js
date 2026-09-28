@@ -1,6 +1,6 @@
 // Busca com autocompletar (RF-01): espera 300 ms, mínimo 2 letras, teclado acessível.
-import { el } from './dom.js?v=3.5.2';
-import { searchCities } from '../api/geocoding.js?v=3.5.2';
+import { el } from './dom.js?v=3.6';
+import { searchCities } from '../api/geocoding.js?v=3.6';
 
 export function setupSearch({ input, list, onSelect }) {
   let timer;
