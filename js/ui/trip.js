@@ -1,13 +1,13 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=3.3';
-import { icon } from './icons.js?v=3.3';
-import { setupSearch } from './search.js?v=3.3';
-import { temp, percent } from '../domain/units.js?v=3.3';
-import { getRoute } from '../api/route.js?v=3.3';
-import { getPointsForecast } from '../api/route-forecast.js?v=3.3';
-import { reverseGeocode } from '../api/geocoding.js?v=3.3';
-import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.3';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=3.3';
+import { el, fill } from './dom.js?v=3.3.1';
+import { icon } from './icons.js?v=3.3.1';
+import { setupSearch } from './search.js?v=3.3.1';
+import { temp, percent } from '../domain/units.js?v=3.3.1';
+import { getRoute } from '../api/route.js?v=3.3.1';
+import { getPointsForecast } from '../api/route-forecast.js?v=3.3.1';
+import { reverseGeocode } from '../api/geocoding.js?v=3.3.1';
+import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.3.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=3.3.1';
 
 let root, from = null, to = null, fromInput, toInput, departSel, goBtn, out, getCurrent, getUnit;
 let map = null, layer = null, lastResult = null;
@@ -44,8 +44,8 @@ export function mountTrip(container, { currentPlace, unit }) {
       .map(([v, l]) => el('option', { value: v, text: l })));
   goBtn = el('button', { type: 'button', class: 'btn trip__go', text: 'Ver o tempo no caminho', onclick: run });
   out = el('div', { class: 'trip__out', 'aria-live': 'polite' });
-  fill(root,
-    el('header', { class: 'card__head' }, [el('h2', { text: 'Tempo na viagem' }), el('span', { class: 'card__badge card__badge--new', text: 'novo' })]),
+  // Fechado por padrão (pedido do Dalmo): um botão convida; o formulário só aparece ao tocar.
+  const body = el('div', { class: 'trip__body', id: 'trip-body', hidden: true }, [
     el('p', { class: 'card__hint card__hint--line', text: 'De A até B: a previsão de cada trecho na hora em que você vai passar por lá.' }),
     el('div', { class: 'trip__form' }, [
       el('label', { class: 'trip__label', for: 'trip-from' }, [el('span', { text: 'De' }), el('span', { class: 'trip__chosen', id: 'trip-from-name' })]), f.box,
@@ -54,7 +54,24 @@ export function mountTrip(container, { currentPlace, unit }) {
       goBtn,
     ]),
     out,
-  );
+  ]);
+  const toggle = el('button', {
+    type: 'button', class: 'trip__toggle', 'aria-expanded': 'false', 'aria-controls': 'trip-body',
+    onclick: () => {
+      const open = body.hidden;
+      body.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      if (open) setTimeout(() => toInput.focus({ preventScroll: true }), 50);
+    },
+  }, [
+    el('span', { class: 'trip__toggle-icon', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M4 19c4 0 4-6 8-6s4 6 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="19" r="2" fill="currentColor"/><path d="M20 5c-1.7 0-3 1.3-3 3 0 2.2 3 5 3 5s3-2.8 3-5c0-1.7-1.3-3-3-3z" fill="currentColor"/></svg>' }),
+    el('span', { class: 'trip__toggle-text' }, [
+      el('strong', { text: 'Planeje seu passeio ou viagem' }),
+      el('small', { text: 'Veja o tempo em cada trecho do caminho' }),
+    ]),
+    el('span', { class: 'trip__chev', 'aria-hidden': 'true', text: '›' }),
+  ]);
+  fill(root, toggle, body);
   syncLabels();
 }
 

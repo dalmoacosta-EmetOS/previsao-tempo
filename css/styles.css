@@ -1064,3 +1064,19 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
 .trip__flags { color: #ffd28a !important; font-weight: 700; }
 .trip__note { color: var(--text-faint); font-size: 0.7rem; }
 .trip__search input { padding-left: 16px; }
+/* Viagem fechada por padrão (ADR-039, rev. 3.3.1) */
+.trip__toggle {
+  -webkit-appearance: none; appearance: none;
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  padding: 4px 0; border: 0; background: transparent; color: var(--text);
+  font: inherit; text-align: left; cursor: pointer;
+}
+.trip__toggle-icon { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: rgba(255, 200, 61, 0.18); color: var(--accent); flex: none; }
+.trip__toggle-text { display: flex; flex-direction: column; flex: 1; }
+.trip__toggle-text strong { font-size: 1.05rem; }
+.trip__toggle-text small { color: var(--text-soft); font-size: 0.82rem; }
+.trip__chev { font-size: 1.6rem; color: var(--text-soft); transition: transform .2s; }
+.trip__toggle[aria-expanded="true"] .trip__chev { transform: rotate(90deg); }
+.trip__toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: 4px; border-radius: 10px; }
+.trip__body { margin-top: 10px; }
+.trip__body[hidden] { display: none; }

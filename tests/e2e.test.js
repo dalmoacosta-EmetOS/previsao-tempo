@@ -566,6 +566,9 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   t = await page(browser, { mobile: true });
   await t.p.waitForTimeout(800);
   await t.p.locator('#trip').scrollIntoViewIfNeeded();
+  check('Viagem: fechada por padrão', await t.p.isHidden('#trip-body') && (await t.p.textContent('.trip__toggle')).includes('Planeje seu passeio ou viagem'));
+  await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);
+  check('Viagem: toque abre o formulário', await t.p.isVisible('#trip-to') && (await t.p.getAttribute('.trip__toggle', 'aria-expanded')) === 'true');
   check('Viagem: saída padrão = cidade atual', (await t.p.textContent('#trip-from-name')).startsWith('Boston'), await t.p.textContent('#trip-from-name'));
   await t.p.click('.trip__go'); await t.p.waitForTimeout(200);
   check('Viagem: sem destino pede o destino', (await t.p.textContent('.trip__out')).includes('Escolha o destino'));
@@ -584,6 +587,7 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   await t.ctx.close();
   t = await page(browser, { mobile: false, routeFail: true });
   await t.p.waitForTimeout(800);
+  await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);
   await t.p.fill('#trip-to', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
   await t.p.click('.trip__go'); await t.p.waitForTimeout(800);
   check('Viagem: sem rota → mensagem clara', (await t.p.textContent('.trip__out')).includes('Não encontrei rota'), await t.p.textContent('.trip__out'));
