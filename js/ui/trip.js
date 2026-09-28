@@ -1,15 +1,15 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=3.6';
-import { icon } from './icons.js?v=3.6';
-import { setupSearch } from './search.js?v=3.6';
-import { temp, percent } from '../domain/units.js?v=3.6';
-import { getRoute } from '../api/route.js?v=3.6';
-import { getPointsForecast } from '../api/route-forecast.js?v=3.6';
-import { reverseGeocode } from '../api/geocoding.js?v=3.6';
-import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.6';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=3.6';
-import { addExpandControl } from './map-expand.js?v=3.6';
-import { ADVICE, SOURCES } from '../domain/safety.js?v=3.6';
+import { el, fill } from './dom.js?v=3.6.1';
+import { icon } from './icons.js?v=3.6.1';
+import { setupSearch } from './search.js?v=3.6.1';
+import { temp, percent } from '../domain/units.js?v=3.6.1';
+import { getRoute } from '../api/route.js?v=3.6.1';
+import { getPointsForecast } from '../api/route-forecast.js?v=3.6.1';
+import { reverseGeocode } from '../api/geocoding.js?v=3.6.1';
+import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.6.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=3.6.1';
+import { addExpandControl } from './map-expand.js?v=3.6.1';
+import { ADVICE, SOURCES } from '../domain/safety.js?v=3.6.1';
 
 let root, from = null, to = null, fromInput, toInput, departSel, goBtn, out, getCurrent, getUnit;
 let map = null, layer = null, lastResult = null;

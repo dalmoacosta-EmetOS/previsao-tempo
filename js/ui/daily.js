@@ -1,10 +1,10 @@
-import { el, fill } from './dom.js?v=3.6';
-import { icon } from './icons.js?v=3.6';
-import { describe } from '../domain/weather-codes.js?v=3.6';
-import { temp, percent } from '../domain/units.js?v=3.6';
-import { dayLabel, dayMonth } from '../domain/time.js?v=3.6';
-import { periodSummary, splitDayNight } from '../domain/summary.js?v=3.6';
-import { tempTabs, pick } from './temp-tabs.js?v=3.6';
+import { el, fill } from './dom.js?v=3.6.1';
+import { icon } from './icons.js?v=3.6.1';
+import { describe } from '../domain/weather-codes.js?v=3.6.1';
+import { temp, percent } from '../domain/units.js?v=3.6.1';
+import { dayLabel, dayMonth } from '../domain/time.js?v=3.6.1';
+import { periodSummary, splitDayNight } from '../domain/summary.js?v=3.6.1';
+import { tempTabs, pick } from './temp-tabs.js?v=3.6.1';
 
 const TREND_FROM = 7; // índice 7 = 8º dia (ADR-006)
 
