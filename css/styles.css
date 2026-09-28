@@ -1024,3 +1024,43 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
 .hit:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .radar__status { color: var(--text); background: rgba(10, 20, 40, 0.55); }
 .welcome__brand { color: var(--accent); font-weight: 800; }
+
+/* Tempo na viagem (ADR-039) */
+.card__badge--new { background: rgba(255, 200, 61, 0.2); color: var(--accent); }
+.trip__form { display: grid; grid-template-columns: 1fr; gap: 6px; margin-top: 8px; }
+.trip__label { display: flex; justify-content: space-between; gap: 8px; margin-top: 6px; font-size: 0.8rem; font-weight: 700; color: var(--text-soft); }
+.trip__chosen { color: var(--accent); font-weight: 700; text-align: right; }
+.trip__search input { width: 100%; }
+.trip__select {
+  -webkit-appearance: none; appearance: none; width: 100%;
+  padding: 11px 14px; border-radius: 12px; border: 0;
+  background: #fff; color: #10223d; font: inherit; font-size: 1rem;
+}
+.trip__go {
+  -webkit-appearance: none; appearance: none;
+  margin-top: 10px; padding: 12px 16px; border: 0; border-radius: 12px;
+  background: var(--accent); color: #10223d; font: inherit; font-weight: 800; font-size: 1rem; cursor: pointer;
+}
+.trip__go:disabled { opacity: 0.6; cursor: progress; }
+.trip__out { margin-top: 14px; display: grid; gap: 10px; }
+.trip__msg { margin: 0; color: var(--text-soft); }
+.trip__msg--error { color: #ffb3b3; }
+.trip__summary { margin: 0; padding: 12px 14px; border-radius: 12px; font-weight: 700; line-height: 1.4; }
+.trip__summary--ok { background: rgba(124, 196, 255, 0.18); }
+.trip__summary--info { background: rgba(110, 215, 90, 0.18); }
+.trip__summary--warn { background: rgba(255, 178, 56, 0.22); box-shadow: inset 0 0 0 2px var(--warning); }
+.trip__summary--danger { background: rgba(255, 92, 92, 0.25); box-shadow: inset 0 0 0 2px var(--danger); }
+.trip__stats { margin: 0; font-size: 0.85rem; color: var(--text-soft); }
+.trip__map { height: 260px; border-radius: 12px; overflow: hidden; }
+.trip__stops { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.trip__stop { display: grid; grid-template-columns: 52px 40px 1fr; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(255, 255, 255, 0.07); border-left: 4px solid transparent; }
+.trip__stop--warn { border-left-color: var(--warning); }
+.trip__stop--danger { border-left-color: var(--danger); }
+.trip__stop--info { border-left-color: #6ed75a; }
+.trip__time { font-weight: 800; }
+.trip__icon .wx-icon { width: 38px; height: 38px; display: block; }
+.trip__where { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.trip__where span { font-size: 0.85rem; color: var(--text-soft); }
+.trip__flags { color: #ffd28a !important; font-weight: 700; }
+.trip__note { color: var(--text-faint); font-size: 0.7rem; }
+.trip__search input { padding-left: 16px; }

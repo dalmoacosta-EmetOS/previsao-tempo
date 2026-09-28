@@ -62,7 +62,7 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42 }) {
+async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false }) {
   // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
   const ctx = await browser.newContext({ serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
@@ -75,6 +75,15 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   await p.route('https://api.open-meteo.com/**', (r) => {
     const u = new URL(r.request().url());
     const lats = (u.searchParams.get('latitude') || '').split(',');
+    if (lats.length > 1 && u.searchParams.get('hourly').includes('wind_gusts_10m')) {
+      // "Tempo na viagem": previsão por ponto da rota (ADR-039)
+      const n = lats.length, now = Math.floor(Date.now() / 3600000) * 3600;
+      const times = Array.from({ length: 72 }, (_, t) => now + t * 3600);
+      return r.fulfill({ json: Array.from({ length: n }, (_, i) => ({ hourly: { time: times,
+        temperature_2m: times.map(() => 15 - i), precipitation: times.map(() => (i === 2 ? 9 : 0)),
+        precipitation_probability: times.map(() => (i === 2 ? 90 : 10)), weather_code: times.map(() => (i === 2 ? 65 : i === 3 ? 45 : 2)),
+        visibility: times.map(() => (i === 3 ? 300 : 20000)), wind_gusts_10m: times.map(() => 20), snowfall: times.map(() => 0), is_day: times.map(() => 1) } })) });
+    }
     if (lats.length > 1) {
       if (gridFail) return r.fulfill({ status: 500, body: '{}' });
       const n = lats.length, side = Math.round(Math.sqrt(n));
@@ -109,6 +118,10 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
     if (radarNoCors && r.request().headers()['origin']) return r.fulfill({ status: 403, body: '' });
     r.fulfill({ path: path.join(FIX, wet ? 'rainUB.png' : 'empty.png'), contentType: 'image/png', headers: { 'Access-Control-Allow-Origin': '*' } });
   });
+  await p.route('https://router.project-osrm.org/**', (r) => routeFail
+    ? r.fulfill({ status: 400, json: { code: 'NoRoute' } })
+    : r.fulfill({ json: { code: 'Ok', routes: [{ duration: 3 * 3600 + 600, distance: 290000,
+      geometry: { coordinates: Array.from({ length: 50 }, (_, i) => [-71.06 - i * 0.06, 42.36 - i * 0.034]) } }] } }));
   await p.route('https://air-quality-api.open-meteo.com/**', (r) => aqi == null ? r.fulfill({ status: 500, body: '{}' }) : r.fulfill({ json: { current: { us_aqi: aqi, pm2_5: 9.1 } } }));
   await p.route('https://api.weather.gov/**', (r) => { nwsCalls++; r.fulfill({ json: { features: [
     { properties: { event: 'Flood Warning', severity: 'Severe', onset: new Date().toISOString(), ends: new Date(Date.now() + 3 * 3600e3).toISOString(), headline: 'Flood Warning issued by NWS Boston MA', description: 'The Flood Warning continues for the Mystic River at Malden.', instruction: 'Turn around, don\'t drown.', areaDesc: 'Middlesex, MA', senderName: 'NWS Boston/Norton MA' } },
@@ -548,6 +561,33 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
     check(`Acessibilidade WCAG AA sem falhas (${label})`, v.length === 0, v.join(' ;; '));
     await t.ctx.close();
   }
+
+  // ADR-039: tempo na viagem
+  t = await page(browser, { mobile: true });
+  await t.p.waitForTimeout(800);
+  await t.p.locator('#trip').scrollIntoViewIfNeeded();
+  check('Viagem: saída padrão = cidade atual', (await t.p.textContent('#trip-from-name')).startsWith('Boston'), await t.p.textContent('#trip-from-name'));
+  await t.p.click('.trip__go'); await t.p.waitForTimeout(200);
+  check('Viagem: sem destino pede o destino', (await t.p.textContent('.trip__out')).includes('Escolha o destino'));
+  await t.p.fill('#trip-to', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  check('Viagem: destino escolhido', (await t.p.textContent('#trip-to-name')) === 'São Paulo');
+  await t.p.click('.trip__go'); await t.p.waitForTimeout(1800);
+  const trip = await t.p.textContent('.trip__summary').catch(() => '');
+  check('Viagem: resumo aponta o pior trecho', trip.startsWith('Atenção: chuva forte'), trip);
+  check('Viagem: 3h10 → pontos de hora em hora (5)', (await t.p.locator('.trip__stop').count()) === 5, String(await t.p.locator('.trip__stop').count()));
+  check('Viagem: trecho com névoa sinalizado', (await t.p.locator('.trip__stop--danger').count()) === 1 && (await t.p.locator('.trip__stop--warn').count()) === 1 && (await t.p.textContent('.trip__stops')).includes('Névoa (visibilidade'));
+  check('Viagem: chegada calculada', (await t.p.textContent('.trip__stats')).includes('3 h 10 min · 290 km'), await t.p.textContent('.trip__stats'));
+  check('Viagem: mapa com a rota', (await t.p.locator('.trip__map path.leaflet-interactive').count()) >= 1);
+  await t.p.evaluate(() => document.getElementById('toast').hidden = true);
+  await t.p.locator('#trip').screenshot({ path: `${OUT}/viagem.png` });
+  check('Sem erros JS (viagem)', t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+  t = await page(browser, { mobile: false, routeFail: true });
+  await t.p.waitForTimeout(800);
+  await t.p.fill('#trip-to', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  await t.p.click('.trip__go'); await t.p.waitForTimeout(800);
+  check('Viagem: sem rota → mensagem clara', (await t.p.textContent('.trip__out')).includes('Não encontrei rota'), await t.p.textContent('.trip__out'));
+  await t.ctx.close();
 
   // T11 lembrar última cidade
   t = await page(browser, { mobile: false });

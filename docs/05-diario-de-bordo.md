@@ -34,6 +34,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 28/09 14:45–15:00 | Dalmo: ícone de garoa (pontos) "infantil" | IA apontou que neve usava as mesmas bolinhas → redesenho da família inteira, com quadro antes/depois → ADR-028 | v2.7. 90/90 testes | 15 min |
 | 28/09 14:48–15:40 | Dalmo: "tudo o que vale e for gratuito, faça" (após análise crítica da IA) | IA avisou o que não dá (prévia por cidade, comparação de modelos) e fez o resto em etapas, cada uma testada e publicada → ADR-029 a 035 | v2.8 → v3.0: testes no projeto + GitHub, link/compartilhar/favoritas, qualidade do ar, gelo na pista, gráfico 2 h, instalar/sem internet, acessibilidade AA. 116/116 testes | 52 min |
 | 28/09 15:31–16:05 | Dalmo: link deve pedir localização antes; bordas vermelhas no radar; nome "Weather Forecast"; apresentação com versão errada | IA apontou que quem aceitar a localização não verá a cidade enviada (aceito) → ADR-036; causa do vermelho = regra "senão = muito forte" da repintura → ADR-037; ADR-038 | v3.1–3.2. 118/118 testes. Apresentação refeita, resumida | 34 min |
+| 28/09 17:51–18:40 | Dalmo: congelar a 3.2.1 e tentar a rota em até 1 h | 3.2.1 salva no ramo `congelado-v3.2.1`; rota feita em ramo separado → ADR-039 | v3.3: Tempo na viagem. 128/128 testes (com rota simulada) | 49 min |
 | | | | | |
 
 ## Lições (preencher ao final)

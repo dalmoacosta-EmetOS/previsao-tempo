@@ -3,18 +3,18 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { el, fill } from './dom.js?v=3.2.1';
-import { getRadarFrames } from '../api/radar.js?v=3.2.1';
-import { getPrecipGrid } from '../api/precip-grid.js?v=3.2.1';
-import { speed, windDirection } from '../domain/units.js?v=3.2.1';
-import { showToast } from './status.js?v=3.2.1';
-import { load, save } from '../storage.js?v=3.2.1';
+import { el, fill } from './dom.js?v=3.3';
+import { getRadarFrames } from '../api/radar.js?v=3.3';
+import { getPrecipGrid } from '../api/precip-grid.js?v=3.3';
+import { speed, windDirection } from '../domain/units.js?v=3.3';
+import { showToast } from './status.js?v=3.3';
+import { load, save } from '../storage.js?v=3.3';
 
 const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js';
 const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css';
 // OpenStreetMap: grátis, sem chave (atribuição obrigatória). Claro por padrão; "Escuro" aplica filtro CSS.
 // Obs.: o CARTO passou a exigir chave — descoberto no teste real de 27/09 (ADR-012).
-const BASE_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+export const BASE_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const RADAR_MAX_ZOOM = 7;   // limite do serviço gratuito
 const STEP_MS = 350;      // mais rápido (pedido do Dalmo)
 const HOLD_NOW_MS = 900;
@@ -552,7 +552,7 @@ function goToMe(btn) {
   );
 }
 
-function loadLeaflet() {
+export function loadLeaflet() {
   if (window.L) return Promise.resolve(window.L);
   return new Promise((resolve, reject) => {
     const css = document.createElement('link');
