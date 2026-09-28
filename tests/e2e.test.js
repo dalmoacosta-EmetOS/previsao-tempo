@@ -62,14 +62,15 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false }) {
+async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false }) {
   // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
-  const ctx = await browser.newContext({ serviceWorkers: sw ? 'allow' : 'block', ...(mobile
+  const ctx = await browser.newContext({ bypassCSP, serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
     : { viewport: { width: 1366, height: 900 } }) });
   if (geo === 'allow') { await ctx.grantPermissions(['geolocation']); await ctx.setGeolocation({ latitude: 42.39, longitude: -71.1 }); }
   const p = await ctx.newPage();
   const errors = [];
+  await p.addInitScript(() => { window.__csp = []; document.addEventListener('securitypolicyviolation', (e) => window.__csp.push(`${e.violatedDirective} ${e.blockedURI}`)); });
   p.on('pageerror', (e) => errors.push(e.message));
   p.on('console', (m) => m.type() === 'error' && !m.text().includes('Failed to load resource') && errors.push(m.text()));
   await p.route('https://api.open-meteo.com/**', (r) => {
@@ -102,7 +103,9 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
     }
     return failForecast ? r.fulfill({ status: 503, body: '{}' }) : r.fulfill({ json: fc });
   });
-  await p.route('https://geocoding-api.open-meteo.com/**', (r) => r.request().url().includes('xyz') ? r.fulfill({ json: {} }) : r.fulfill({ json: GEO }));
+  await p.route('https://geocoding-api.open-meteo.com/**', (r) => r.request().url().includes('xyz') ? r.fulfill({ json: {} })
+    : r.request().url().includes('hack') ? r.fulfill({ json: { results: [{ name: '<img src=x onerror="window.__xss=1">Hack', admin1: '<b>x</b>', country: 'BR', latitude: -10, longitude: -50 }] } })
+    : r.fulfill({ json: GEO }));
   await p.route('https://api.bigdatacloud.net/**', (r) => r.fulfill({ json: { city: 'Somerville', principalSubdivision: 'Massachusetts', countryName: 'Estados Unidos' } }));
   const LD = path.join(path.dirname(require.resolve('leaflet/package.json')), 'dist');
   await p.route('https://cdnjs.cloudflare.com/**', (r) => r.fulfill({ path: path.join(LD, r.request().url().endsWith('.css') ? 'leaflet.css' : 'leaflet.js') }));
@@ -551,7 +554,7 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   // Acessibilidade (axe-core, regras WCAG 2 A/AA) — ADR-035
   const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
   for (const [label, opts] of [['celular, chuva', { mobile: true, fc: forecast({ code: 3, rainNow: 0.6, rainNext: [0.5, 0.4, 0.2, 0, 0, 0, 0, 0] }) }], ['computador, sol', { mobile: false }]]) {
-    t = await page(browser, opts);
+    t = await page(browser, { ...opts, bypassCSP: true }); // só para injetar o auditor de acessibilidade
     await t.p.waitForTimeout(1200);
     await t.p.evaluate(() => { document.getElementById('toast').hidden = true; });
     await t.p.addScriptTag({ content: AXE });
@@ -604,6 +607,24 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   await t.p.fill('#trip-to', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
   await t.p.click('.trip__go'); await t.p.waitForTimeout(800);
   check('Viagem: sem rota → mensagem clara', (await t.p.textContent('.trip__out')).includes('Não encontrei rota'), await t.p.textContent('.trip__out'));
+  await t.ctx.close();
+
+  // ADR-040: segurança
+  t = await page(browser, { mobile: true, url: '/?cidade=%3Cscript%3Ewindow.__xss%3D2%3C%2Fscript%3E&lat=42.4&lon=-71.1' });
+  await t.p.waitForTimeout(900);
+  check('Segurança: nome no link entra como texto (sem executar)', (await t.p.evaluate(() => window.__xss)) === undefined && (await t.p.textContent('.hero__city')).includes('<script>'), await t.p.textContent('.hero__city'));
+  await t.p.fill('#search-input', 'hack'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(700);
+  check('Segurança: nome vindo da API entra como texto', (await t.p.evaluate(() => window.__xss)) === undefined && (await t.p.locator('img[src="x"]').count()) === 0);
+  await t.p.locator('#radar').scrollIntoViewIfNeeded(); await t.p.waitForTimeout(1500);
+  await t.p.click('.trip__toggle'); await t.p.fill('#trip-to', 'hack'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  await t.p.click('.trip__go'); await t.p.waitForTimeout(1800);
+  const nPaths = await t.p.locator('.trip__map path.leaflet-interactive').count();
+  for (let k = 1; k < nPaths; k++) await t.p.locator('.trip__map path.leaflet-interactive').nth(k).hover({ force: true }).catch(() => {});
+  check('Segurança: teste passou pelas dicas do mapa', (await t.p.locator('.leaflet-tooltip').count()) >= 1);
+  check('Segurança: mapa da viagem não executa nomes', (await t.p.evaluate(() => window.__xss)) === undefined && (await t.p.locator('img[src="x"]').count()) === 0);
+  const csp = await t.p.evaluate(() => window.__csp);
+  check('Segurança: política (CSP) ativa e sem bloqueios indevidos', (await t.p.locator('meta[http-equiv="Content-Security-Policy"]').count()) === 1 && csp.length === 0, csp.join(' | '));
+  check('Segurança: nenhum script de terceiros na página', (await t.p.evaluate(() => [...document.scripts].every((s) => !s.src || s.src.startsWith(location.origin)))));
   await t.ctx.close();
 
   // T11 lembrar última cidade

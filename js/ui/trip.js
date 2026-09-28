@@ -1,14 +1,14 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=3.5';
-import { icon } from './icons.js?v=3.5';
-import { setupSearch } from './search.js?v=3.5';
-import { temp, percent } from '../domain/units.js?v=3.5';
-import { getRoute } from '../api/route.js?v=3.5';
-import { getPointsForecast } from '../api/route-forecast.js?v=3.5';
-import { reverseGeocode } from '../api/geocoding.js?v=3.5';
-import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.5';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=3.5';
-import { ADVICE, SOURCES } from '../domain/safety.js?v=3.5';
+import { el, fill } from './dom.js?v=3.5.1';
+import { icon } from './icons.js?v=3.5.1';
+import { setupSearch } from './search.js?v=3.5.1';
+import { temp, percent } from '../domain/units.js?v=3.5.1';
+import { getRoute } from '../api/route.js?v=3.5.1';
+import { getPointsForecast } from '../api/route-forecast.js?v=3.5.1';
+import { reverseGeocode } from '../api/geocoding.js?v=3.5.1';
+import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.5.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=3.5.1';
+import { ADVICE, SOURCES } from '../domain/safety.js?v=3.5.1';
 
 let root, from = null, to = null, fromInput, toInput, departSel, goBtn, out, getCurrent, getUnit;
 let map = null, layer = null, lastResult = null;
@@ -208,6 +208,9 @@ function carePanel(s, alerts, id, onClose) {
   ]);
 }
 
+// Nome de cidade vem de serviço externo: entra como TEXTO, nunca como HTML (ADR-040)
+const tipText = (t) => { const span = document.createElement('span'); span.textContent = t; return span; };
+
 async function drawMap(box, route, stops) {
   const L = await loadLeaflet();
   if (map) { map.remove(); map = null; }
@@ -217,7 +220,7 @@ async function drawMap(box, route, stops) {
   L.polyline(route.coords, { color: '#1a4c8c', weight: 5, opacity: 0.85 }).addTo(layer);
   stops.forEach((s) => L.circleMarker([s.lat, s.lon], {
     radius: 8, weight: 2, color: '#fff', fillColor: LEVEL_COLOR[s.cond.level || 'ok'], fillOpacity: 1,
-  }).bindTooltip(`${fmtTime(s.etaMs)} · ${s.name} · ${s.cond.label}`).addTo(layer));
+  }).bindTooltip(tipText(`${fmtTime(s.etaMs)} · ${s.name} · ${s.cond.label}`)).addTo(layer));
   // O mapa só mede o tamanho depois de entrar na tela: ajusta de novo em seguida (senão fica preso na saída)
   const fit = () => { map.invalidateSize(); map.fitBounds(L.latLngBounds(route.coords), { padding: [20, 20] }); };
   fit();

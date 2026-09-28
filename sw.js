@@ -1,11 +1,11 @@
 // Funciona sem internet (ADR-034). Estratégia "rede primeiro": com internet, SEMPRE busca
 // a versão nova (não repete o problema de cache do ADR-016); sem internet, mostra a última
 // cópia guardada — inclusive a última previsão consultada.
-const VERSION = '3.5';
+const VERSION = '3.5.1';
 const CACHE = `previsao-tempo-${VERSION}`;
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'img/icon-192.png'];
 // Dados que vale guardar para usar sem internet (mapas e radar ficam de fora: são pesados).
-const DATA_HOSTS = ['api.open-meteo.com', 'air-quality-api.open-meteo.com', 'geocoding-api.open-meteo.com', 'cdnjs.cloudflare.com'];
+const DATA_HOSTS = ['api.open-meteo.com', 'air-quality-api.open-meteo.com', 'geocoding-api.open-meteo.com'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting()));

@@ -297,3 +297,13 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Revisão 3.3.1 (18:04):** a pedido do Dalmo, o cartão fica **fechado**: só aparece o botão "Planeje seu passeio ou viagem — Veja o tempo em cada trecho do caminho"; o formulário abre ao tocar (e fecha no segundo toque), com o cursor já no destino.
 **Revisão 3.4 (18:11, após teste real Brasília → Santa Rita do Itueto, 1.089 km — rota real funcionou):** (1) trecho com alerta vira clicável e abre os cuidados no mesmo padrão do "Hoje em detalhe" (🚗 Dirigindo / 🚶 Nas paradas), com cuidados novos para **névoa**; (2) a cidade escolhida aparece **dentro do próprio campo** (De / Para), sem rótulo no canto; (3) texto deixa claro "viagem por estrada (carro ou ônibus)". **Avião ficou de fora** (decisão conjunta): no voo só importa o tempo na saída e na chegada, não no caminho.
 **Revisão 3.5 (18:26):** botão "minha localização" (mira) dentro do campo **De**; correção do mapa da rota que ficava com zoom preso na cidade de saída (o mapa media o tamanho antes de aparecer — agora reajusta depois).
+
+## ADR-040 — Revisão de segurança
+**Status:** Aceita · 28/09/2026 · pedido do Dalmo ("algum teste de segurança?")
+**Achados e correções:**
+- **Injeção de código pelo nome da cidade (corrigido):** no mapa da viagem, a dica sobre cada ponto usava o nome vindo de serviço externo como HTML. Um nome malicioso poderia virar código na página. Agora entra como texto. Teste com nome malicioso: a versão antiga falhava, a nova passa.
+- **Política de segurança (CSP) na página:** só executa código do próprio site e só conversa com os serviços listados (previsão, qualidade do ar, busca, nome do local, radar, alertas, rotas). É a segunda camada: mesmo com o defeito acima, o navegador bloquearia o código.
+- **Mapa (Leaflet) hospedado no próprio site** em vez de vir de outro servidor: nenhum código de terceiros roda na página.
+- Conferidos sem problema: nenhuma chave ou senha no código; links externos com `noopener`; nome no link (`?cidade=`) entra como texto; localização só com permissão; dados guardados só no aparelho (última cidade, favoritas, preferências). Dependências dos testes sem vulnerabilidades conhecidas (npm audit).
+**Pendente (fora do código):** limitar o acesso do app do Claude no GitHub só a este repositório.
+
