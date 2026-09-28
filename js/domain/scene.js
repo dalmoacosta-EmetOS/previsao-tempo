@@ -2,7 +2,7 @@
 // O código de tempo sozinho às vezes diz "nublado" enquanto já chove.
 // Por isso o cenário também olha a chuva medida pelo modelo nos últimos 15 min
 // e a prevista para os próximos 30 min.
-import { describe, STORM_CODES } from './weather-codes.js?v=2.7';
+import { describe, STORM_CODES } from './weather-codes.js?v=2.8';
 
 const RAIN_ICONS = ['drizzle', 'rain', 'heavy-rain', 'showers', 'sleet'];
 const WET_MM = 0.1; // a partir de 0,1 mm em 15 min consideramos chuva

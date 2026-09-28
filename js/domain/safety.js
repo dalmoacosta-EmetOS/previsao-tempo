@@ -1,8 +1,8 @@
 // Níveis de atenção para o "Hoje em detalhe" + recomendações (ADR-022).
 // Limites baseados em referências públicas (escala Beaufort, OMS para UV, faixas de
 // avisos de chuva do INMET). NÃO são alertas oficiais.
-import { speed } from './units.js?v=2.7';
-import { isWetHour } from './summary.js?v=2.7';
+import { speed } from './units.js?v=2.8';
+import { isWetHour } from './summary.js?v=2.8';
 
 export const SOURCES = 'Limites: escala Beaufort (vento), OMS (índice UV), faixas de aviso do INMET (chuva). Recomendações gerais de segurança — em emergência, siga a Defesa Civil e as autoridades locais.';
 

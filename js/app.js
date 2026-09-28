@@ -1,22 +1,25 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=2.7';
-import { load, save } from './storage.js?v=2.7';
-import { getOfficialAlerts } from './api/official-alerts.js?v=2.7';
-import { getForecast } from './api/forecast.js?v=2.7';
-import { reverseGeocode } from './api/geocoding.js?v=2.7';
-import { resolveWeatherNow } from './domain/scene.js?v=2.7';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=2.7';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=2.7';
-import { renderHourly } from './ui/hourly.js?v=2.7';
-import { renderDaily } from './ui/daily.js?v=2.7';
-import { renderDetails } from './ui/details.js?v=2.7';
-import { renderAlerts } from './ui/alerts.js?v=2.7';
-import { renderError, showToast } from './ui/status.js?v=2.7';
-import { setupSearch } from './ui/search.js?v=2.7';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=2.7';
-import { mountRadar, updateRadar } from './ui/radar.js?v=2.7';
+import { getState, setState, subscribe } from './state.js?v=2.8';
+import { load, save } from './storage.js?v=2.8';
+import { getOfficialAlerts } from './api/official-alerts.js?v=2.8';
+import { getForecast } from './api/forecast.js?v=2.8';
+import { reverseGeocode } from './api/geocoding.js?v=2.8';
+import { resolveWeatherNow } from './domain/scene.js?v=2.8';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=2.8';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=2.8';
+import { renderHourly } from './ui/hourly.js?v=2.8';
+import { renderDaily } from './ui/daily.js?v=2.8';
+import { renderDetails } from './ui/details.js?v=2.8';
+import { renderAlerts } from './ui/alerts.js?v=2.8';
+import { renderError, showToast } from './ui/status.js?v=2.8';
+import { setupSearch } from './ui/search.js?v=2.8';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=2.8';
+import { mountRadar, updateRadar } from './ui/radar.js?v=2.8';
+import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=2.8';
+import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=2.8';
+import { renderFavorites } from './ui/favorites.js?v=2.8';
 
-export const VERSION = '2.7';
+export const VERSION = '2.8';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
@@ -45,7 +48,17 @@ function render(state) {
   }
 
   applyScene(state.demo || resolveWeatherNow(state.data));
-  renderCurrent(sections.current, state);
+  renderCurrent(sections.current, state, {
+    isFav: isFavorite(state.place),
+    onFav: () => {
+      const list = toggleFavorite(state.place);
+      showToast(list.some((f) => placeKey(f) === placeKey(state.place)) ? `${state.place.name} salva nos favoritos.` : `${state.place.name} saiu dos favoritos.`, 2500);
+      setState({});
+    },
+    onShare: () => sharePlace(state.place),
+  });
+  renderFavorites($('favs'), getFavorites(), state.place, (p) => loadPlace(p));
+  syncUrl(state.place);
   renderCityBar(state);
   renderAlerts(sections.alerts, state);
   const onTempMode = (tempMode) => { save('tempMode', tempMode); setState({ tempMode }); };
@@ -54,6 +67,28 @@ function render(state) {
     (daySel) => setState({ daySel, dayPart: 'day' }), (dayPart) => setState({ dayPart }));
   renderDetails(sections.details, state, (tileSel) => setState({ tileSel }));
   updateRadar(state);
+}
+
+// Endereço da página acompanha a cidade (ADR-030) — o link copiado abre a mesma cidade.
+let urlKey = '';
+function syncUrl(place) {
+  if (!place || place.isGeo && place.name === 'Sua localização') return;
+  const key = `${placeKey(place)}|${place.name}`;
+  if (key === urlKey) return;
+  urlKey = key;
+  try { history.replaceState(null, '', urlForPlace(place, location.href)); } catch { /* ignora */ }
+}
+
+async function sharePlace(place) {
+  const url = urlForPlace(place, location.href);
+  const title = `Previsão do tempo · ${place.name}`;
+  try {
+    if (navigator.share) { await navigator.share({ title, url }); return; }
+    await navigator.clipboard.writeText(url);
+    showToast('Link copiado. É só colar na conversa.', 3000);
+  } catch (e) {
+    if (e?.name !== 'AbortError') showToast('Não deu para compartilhar. Copie o endereço da barra do navegador.', 4000);
+  }
 }
 
 // ?debug=grade — mostra diagnósticos no rodapé (ADR-018/021)
@@ -165,9 +200,11 @@ function init() {
     if (place && status === 'ok' && !document.hidden) loadPlace(place, { remember: !place.isGeo });
   }, 10 * 60 * 1000);
 
-  // Ordem de abertura: última cidade pesquisada → localização → Boston.
+  // Ordem de abertura: link com cidade → última cidade pesquisada → localização → Boston.
+  const fromUrl = placeFromUrl(location.search);
   const saved = load('place');
-  if (saved) loadPlace(saved);
+  if (fromUrl) loadPlace(fromUrl, { remember: false });
+  else if (saved) loadPlace(saved);
   else locate({ auto: true });
 
   render(getState());

@@ -1,12 +1,12 @@
-import { el, fill } from './dom.js?v=2.7';
-import { icon } from './icons.js?v=2.7';
-import { describe } from '../domain/weather-codes.js?v=2.7';
-import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=2.7';
-import { hourLabel } from '../domain/time.js?v=2.7';
-import { nowSummary } from '../domain/summary.js?v=2.7';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=2.7';
+import { el, fill } from './dom.js?v=2.8';
+import { icon } from './icons.js?v=2.8';
+import { describe } from '../domain/weather-codes.js?v=2.8';
+import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=2.8';
+import { hourLabel } from '../domain/time.js?v=2.8';
+import { nowSummary } from '../domain/summary.js?v=2.8';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=2.8';
 
-export function renderCurrent(root, { place, data, unit }) {
+export function renderCurrent(root, { place, data, unit }, actions = {}) {
   const c = data.current;
   const today = data.daily[0];
   const now = resolveWeatherNow(data);
@@ -24,7 +24,20 @@ export function renderCurrent(root, { place, data, unit }) {
 
   fill(root,
     el('div', { class: 'hero__place' }, [
-      el('h1', { class: 'hero__city', text: place.name }),
+      el('div', { class: 'hero__title' }, [
+        el('h1', { class: 'hero__city', text: place.name }),
+        actions.onFav && el('button', {
+          class: 'hero__act', type: 'button', 'aria-pressed': String(!!actions.isFav),
+          'aria-label': actions.isFav ? 'Tirar dos favoritos' : 'Salvar nos favoritos',
+          title: actions.isFav ? 'Tirar dos favoritos' : 'Salvar nos favoritos',
+          text: actions.isFav ? '★' : '☆', onclick: actions.onFav,
+        }),
+        actions.onShare && el('button', {
+          class: 'hero__act', type: 'button', 'aria-label': 'Compartilhar link desta cidade', title: 'Compartilhar link desta cidade',
+          html: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6h14v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+          onclick: actions.onShare,
+        }),
+      ]),
       where && el('p', { class: 'hero__region', text: where }),
       el('p', { class: 'hero__updated', text: `Atualizado às ${hourLabel(c.time)} · horário local (${data.timezoneAbbr || data.timezone})` }),
     ]),

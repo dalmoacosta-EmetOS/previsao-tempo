@@ -442,6 +442,32 @@ async function page(browser, { mobile, fc = forecast(), geo = 'deny', failForeca
   await t.p.screenshot({ path: `${OUT}/mobile-erro.png` });
   await t.ctx.close();
 
+  // ADR-030: link por cidade, compartilhar e favoritos
+  t = await page(browser, { mobile: true, url: '/?cidade=Malden&regiao=Massachusetts&pais=EUA&lat=42.425&lon=-71.066' });
+  await t.p.waitForTimeout(800);
+  check('Link com cidade abre a cidade do link', (await t.p.textContent('.hero__city')) === 'Malden', await t.p.textContent('.hero__city'));
+  check('Sem favoritas: faixa escondida', await t.p.isHidden('#favs'));
+  await t.p.click('.hero__act[aria-pressed]');
+  await t.p.waitForTimeout(200);
+  check('Estrela salva a cidade', (await t.p.getAttribute('.hero__act[aria-pressed]', 'aria-pressed')) === 'true' && (await t.p.textContent('#favs')).includes('Malden'));
+  await t.p.fill('#search-input', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(600);
+  check('Endereço acompanha a cidade', (await t.p.evaluate(() => location.search)).includes('cidade=S%C3%A3o+Paulo'), await t.p.evaluate(() => location.search));
+  await t.p.click('.favs__chip:has-text("Malden")'); await t.p.waitForTimeout(600);
+  check('Toque na favorita abre a cidade', (await t.p.textContent('.hero__city')) === 'Malden');
+  await t.p.reload(); await t.p.waitForTimeout(900);
+  check('Favorita continua depois de recarregar', (await t.p.textContent('#favs')).includes('Malden'));
+  await t.p.evaluate(() => { navigator.share = undefined; });
+  await t.ctx.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await t.p.click('.hero__act[aria-label="Compartilhar link desta cidade"]'); await t.p.waitForTimeout(300);
+  const copied = await t.p.evaluate(() => navigator.clipboard.readText()).catch(() => '');
+  check('Compartilhar copia o link da cidade', copied.includes('cidade=Malden') && copied.includes('lat=42.425'), copied);
+  check('Sem erros JS (favoritos)', t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+  t = await page(browser, { mobile: false, url: '/?lat=999&lon=abc' });
+  await t.p.waitForTimeout(900);
+  check('Link com coordenada inválida cai no padrão (Boston)', (await t.p.textContent('.hero__city')) === 'Boston', await t.p.textContent('.hero__city'));
+  await t.ctx.close();
+
   // T11 lembrar última cidade
   t = await page(browser, { mobile: false });
   await t.p.fill('#search-input', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(500);
