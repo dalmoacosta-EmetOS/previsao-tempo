@@ -244,3 +244,8 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Decisão:** o topo passa a se inspirar na disposição do Weather Channel, ajustada ao nosso objetivo (princípio de referência, doc 01): **temperatura bem grande e forte à esquerda**; **ícone e condição à direita** (o ícone muda conforme o tempo: sol, nuvem, chuva, neve, trovoada, neblina); abaixo, uma linha **Sensação | Máx | Mín** e outra **Chuva na próxima hora % | quantidade**. Sensação e Máx/Mín saem dos quadradinhos (estavam repetidos); ficam Umidade e Vento.
 **Mantido do nosso jeito:** o resumo "Agora" (mais completo que o "Outlook" do Weather Channel) e a frase curta da chuva. **Não aproveitado:** manchete de notícia e anúncio no meio da tela.
 
+## ADR-028 — Ícones com traço mais maduro
+**Status:** Aceita · 28/09/2026 · Dalmo: "nuvem com gotas representadas por pontos… tão infantil"
+
+**Decisão:** a família de precipitação foi redesenhada junto (trocar só a garoa deixaria o conjunto desigual): nuvens com leve degradê (volume); **garoa** = riscos curtos e finos; **chuva** = riscos longos inclinados; **chuva forte** = mais riscos, nuvem escura; **neve** = flocos de 6 pontas (não bolinhas); **gelo/mistura** = risco + floco. Sol, lua, neblina e raio mantidos.
+

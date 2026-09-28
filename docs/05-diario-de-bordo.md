@@ -31,6 +31,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 28/09 13:28–14:00 | Dalmo discordou: "névoa deve entrar no radar"; gelo e neve também (viagem por serra, black ice) | IA reconheceu erro: dados de névoa/gelo/mistura existem na previsão gratuita; manteve que o radar em si não enxerga névoa nem tipo → sobreposição do modelo no "agora"; black ice só por alertas oficiais → ADR-025 | v2.5: gelo roxo, mistura rosa, névoa amarelo-claro, chuva sem amarelo. 88/88 testes | 32 min |
 | 28/09 13:40–14:05 | Dalmo mandou vídeo: página tremendo ao parar num ponto da rolagem | Vídeo medido quadro a quadro → ciclo liga/desliga da barra da cidade, que empurrava a página 46 px → ADR-026 | v2.5.1: barra por cima do conteúdo; legenda com título "Legenda:". 90/90 testes | 25 min |
 | 28/09 14:06–14:25 | Dalmo comparou o topo do site com o app do Weather Channel e pediu layout parecido | Copiado só o bloco principal; mantido o resumo "Agora"; sem anúncio/manchete → ADR-027 | v2.6: temperatura grande à esquerda, ícone + condição à direita, linhas Sensação/Máx/Mín e chuva da próxima hora. 90/90 testes | 19 min |
+| 28/09 14:45–15:00 | Dalmo: ícone de garoa (pontos) "infantil" | IA apontou que neve usava as mesmas bolinhas → redesenho da família inteira, com quadro antes/depois → ADR-028 | v2.7. 90/90 testes | 15 min |
 | | | | | |
 
 ## Lições (preencher ao final)

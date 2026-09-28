@@ -1,10 +1,10 @@
-import { el, fill } from './dom.js?v=2.6';
-import { icon } from './icons.js?v=2.6';
-import { describe } from '../domain/weather-codes.js?v=2.6';
-import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=2.6';
-import { hourLabel } from '../domain/time.js?v=2.6';
-import { nowSummary } from '../domain/summary.js?v=2.6';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=2.6';
+import { el, fill } from './dom.js?v=2.7';
+import { icon } from './icons.js?v=2.7';
+import { describe } from '../domain/weather-codes.js?v=2.7';
+import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=2.7';
+import { hourLabel } from '../domain/time.js?v=2.7';
+import { nowSummary } from '../domain/summary.js?v=2.7';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=2.7';
 
 export function renderCurrent(root, { place, data, unit }) {
   const c = data.current;
