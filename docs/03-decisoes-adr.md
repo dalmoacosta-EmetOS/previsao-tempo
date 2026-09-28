@@ -231,3 +231,10 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Limite honesto — gelo na pista (black ice):** é gelo que se forma no asfalto depois da chuva, com temperatura abaixo de zero; não cai do céu, então não aparece em radar nem no mapa de precipitação. O que o site mostra dele são os **alertas oficiais do NWS** (ex.: Winter Weather Advisory). Ideia para depois: aviso próprio quando chover e a temperatura cair abaixo de 0 °C nas horas seguintes.
 **Lição:** a IA confundiu "o radar não mostra" com "o dado não existe". O usuário, pensando no uso real (viagem, estrada), forçou a checagem.
 
+## ADR-026 — Barra da cidade por cima do conteúdo (fim da página tremendo)
+**Status:** Aceita · 28/09/2026 · vídeo do Dalmo no iPhone (13:39)
+
+**Problema:** parado num certo ponto da rolagem, a página tremia sem parar. Medido no vídeo quadro a quadro: todo o conteúdo pulava até ~13 px para cima e para baixo, várias vezes por segundo; só a barra do topo ficava parada.
+**Causa:** a barra fixa da cidade (ADR-017) **ocupava espaço** ao aparecer. Exatamente no ponto de virada: a barra aparece → empurra a página ~46 px → o bloco da cidade volta à tela → a barra some → a página sobe → o bloco sai da tela → a barra aparece... um ciclo infinito. No computador o navegador compensa sozinho (por isso os testes não pegaram); o Safari do iPhone não.
+**Decisão:** a barra passa a ficar **por cima** do conteúdo, sem ocupar espaço. Aparecer ou sumir não mexe mais em nada da página. Teste novo: ligar/desligar a barra não pode mover o conteúdo nem 1 px (a versão antiga movia 46 px).
+

@@ -737,24 +737,30 @@ body:not(.has-data) #alerts { display: none; }
 
 /* ---------------- Barra fixa da cidade ---------------- */
 .citybar {
+  /* Por cima do conteúdo, sem ocupar espaço (ADR-026): se empurrasse a página, o bloco da cidade
+     voltava para a tela, a barra sumia, a página subia... e tremia sem parar no iPhone. */
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
   display: flex;
   align-items: center;
   gap: 10px;
   width: 100%;
-  max-width: 1120px;
-  margin: 0 auto;
-  padding: 0 16px;
+  margin: 0;
+  padding: 0 max(16px, calc((100% - 1120px) / 2 + 16px));
   border: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
-  background: transparent;
+  background: var(--bar-2);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
   color: #fff;
   text-align: left;
   overflow: hidden;
   max-height: 0;
   opacity: 0;
+  pointer-events: none;
   transition: max-height 0.25s ease, opacity 0.25s ease, padding 0.25s ease;
 }
-body.show-citybar .citybar { max-height: 60px; opacity: 1; padding: 8px 16px; }
+body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; padding-bottom: 8px; pointer-events: auto; }
 .citybar__icon .wx-icon { width: 30px; height: 30px; display: block; }
 .citybar strong { font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 45vw; }
 .citybar__temp { font-size: 1.15rem; font-weight: 300; }
