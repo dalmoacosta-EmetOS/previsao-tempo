@@ -1,4 +1,4 @@
-import { getJSON } from './http.js?v=3.4';
+import { getJSON } from './http.js?v=3.5';
 
 // Previsão hora a hora para vários pontos numa única chamada (Open-Meteo, grátis).
 const URL = 'https://api.open-meteo.com/v1/forecast';

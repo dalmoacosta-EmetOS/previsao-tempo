@@ -1,6 +1,6 @@
 // Tempo ao longo da viagem (ADR-039): pontos a cada X minutos de estrada e, para cada um,
 // a previsão NA HORA EM QUE VOCÊ PASSA por ali (não a de agora).
-import { describe } from './weather-codes.js?v=3.4';
+import { describe } from './weather-codes.js?v=3.5';
 
 const R = 6371;
 const rad = (d) => (d * Math.PI) / 180;

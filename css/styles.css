@@ -1089,3 +1089,13 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
 .trip__tap { color: var(--text-faint); font-weight: 400; font-size: 0.72rem; }
 .trip__care { list-style: none; }
 .trip__care-item + .trip__care-item { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 6px; }
+/* Saída: botão "minha localização" dentro do campo (3.5) */
+.trip__search--loc input { padding-right: 52px; }
+.trip__locate {
+  -webkit-appearance: none; appearance: none;
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 40px; height: 40px; display: grid; place-items: center;
+  border: 0; border-radius: 50%; background: #e8eef7; color: #1a4c8c; cursor: pointer;
+}
+.trip__locate.is-busy { animation: spin 1s linear infinite; }
+.trip__locate:focus-visible { outline: 3px solid var(--accent); }

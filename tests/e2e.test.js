@@ -591,6 +591,13 @@ async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny'
   await t.p.locator('#trip').screenshot({ path: `${OUT}/viagem.png` });
   check('Sem erros JS (viagem)', t.errors.length === 0, t.errors.join(' | '));
   await t.ctx.close();
+  t = await page(browser, { mobile: true, geo: 'allow', url: '/?cidade=Malden&lat=42.425&lon=-71.066' });
+  await t.p.waitForTimeout(900);
+  await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);
+  await t.p.fill('#trip-from', 'xyz');
+  await t.p.click('.trip__locate'); await t.p.waitForTimeout(700);
+  check('Viagem: botão "minha localização" preenche a saída', (await t.p.inputValue('#trip-from')).startsWith('Somerville'), await t.p.inputValue('#trip-from'));
+  await t.ctx.close();
   t = await page(browser, { mobile: false, routeFail: true });
   await t.p.waitForTimeout(800);
   await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);

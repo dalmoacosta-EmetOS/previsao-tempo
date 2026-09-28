@@ -1,14 +1,14 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=3.4';
-import { icon } from './icons.js?v=3.4';
-import { setupSearch } from './search.js?v=3.4';
-import { temp, percent } from '../domain/units.js?v=3.4';
-import { getRoute } from '../api/route.js?v=3.4';
-import { getPointsForecast } from '../api/route-forecast.js?v=3.4';
-import { reverseGeocode } from '../api/geocoding.js?v=3.4';
-import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.4';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=3.4';
-import { ADVICE, SOURCES } from '../domain/safety.js?v=3.4';
+import { el, fill } from './dom.js?v=3.5';
+import { icon } from './icons.js?v=3.5';
+import { setupSearch } from './search.js?v=3.5';
+import { temp, percent } from '../domain/units.js?v=3.5';
+import { getRoute } from '../api/route.js?v=3.5';
+import { getPointsForecast } from '../api/route-forecast.js?v=3.5';
+import { reverseGeocode } from '../api/geocoding.js?v=3.5';
+import { samplePoints, classify, tripSummary } from '../domain/route-weather.js?v=3.5';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=3.5';
+import { ADVICE, SOURCES } from '../domain/safety.js?v=3.5';
 
 let root, from = null, to = null, fromInput, toInput, departSel, goBtn, out, getCurrent, getUnit;
 let map = null, layer = null, lastResult = null;
@@ -39,6 +39,14 @@ export function mountTrip(container, { currentPlace, unit }) {
   const f = searchBox('trip-from', 'Saída', 'De onde você sai?', (p) => { from = p; syncLabels(); });
   const t = searchBox('trip-to', 'Destino', 'Para onde você vai?', (p) => { to = p; syncLabels(); });
   fromInput = f.input; toInput = t.input;
+  // "Minha localização" dentro do campo de saída (3.5)
+  const locBtn = el('button', {
+    type: 'button', class: 'trip__locate', 'aria-label': 'Usar minha localização como saída', title: 'Usar minha localização',
+    html: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+    onclick: () => useMyLocation(locBtn),
+  });
+  f.box.classList.add('trip__search--loc');
+  f.box.append(locBtn);
   departSel = el('select', { id: 'trip-when', 'aria-label': 'Horário de saída', class: 'trip__select' },
     [['0', 'Saindo agora'], ['60', 'Em 1 hora'], ['120', 'Em 2 horas'], ['180', 'Em 3 horas'], ['360', 'Em 6 horas'],
       ['amanha-6', 'Amanhã às 6h'], ['amanha-8', 'Amanhã às 8h'], ['amanha-14', 'Amanhã às 14h']]
@@ -78,6 +86,23 @@ export function mountTrip(container, { currentPlace, unit }) {
 
 /** Chamado a cada renderização: a saída padrão acompanha a cidade da página. */
 export function updateTrip() { if (root) syncLabels(); }
+
+function useMyLocation(btn) {
+  if (!('geolocation' in navigator)) { fill(out, el('p', { class: 'trip__msg trip__msg--error', text: 'Seu navegador não oferece localização.' })); return; }
+  btn.classList.add('is-busy');
+  fromInput.value = 'Buscando sua localização…';
+  navigator.geolocation.getCurrentPosition(async (pos) => {
+    const { latitude: lat, longitude: lon } = pos.coords;
+    const named = await reverseGeocode(lat, lon);
+    from = { name: named?.name || 'Minha localização', region: named?.region || '', country: named?.country || '', lat, lon };
+    btn.classList.remove('is-busy');
+    syncLabels();
+  }, () => {
+    btn.classList.remove('is-busy');
+    syncLabels();
+    fill(out, el('p', { class: 'trip__msg trip__msg--error', text: 'Localização não permitida. Digite a cidade de saída.' }));
+  }, { enableHighAccuracy: false, timeout: 8000, maximumAge: 10 * 60 * 1000 });
+}
 
 // A cidade escolhida aparece DENTRO do próprio campo (pedido do Dalmo, 3.4)
 const placeText = (p) => [p.name, p.region].filter(Boolean).join(', ');
@@ -193,5 +218,8 @@ async function drawMap(box, route, stops) {
   stops.forEach((s) => L.circleMarker([s.lat, s.lon], {
     radius: 8, weight: 2, color: '#fff', fillColor: LEVEL_COLOR[s.cond.level || 'ok'], fillOpacity: 1,
   }).bindTooltip(`${fmtTime(s.etaMs)} · ${s.name} · ${s.cond.label}`).addTo(layer));
-  map.fitBounds(L.latLngBounds(route.coords), { padding: [20, 20] });
+  // O mapa só mede o tamanho depois de entrar na tela: ajusta de novo em seguida (senão fica preso na saída)
+  const fit = () => { map.invalidateSize(); map.fitBounds(L.latLngBounds(route.coords), { padding: [20, 20] }); };
+  fit();
+  requestAnimationFrame(() => setTimeout(fit, 60));
 }
