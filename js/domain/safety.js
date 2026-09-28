@@ -1,10 +1,10 @@
 // Níveis de atenção para o "Hoje em detalhe" + recomendações (ADR-022).
 // Limites baseados em referências públicas (escala Beaufort, OMS para UV, faixas de
 // avisos de chuva do INMET). NÃO são alertas oficiais.
-import { speed } from './units.js?v=2.10';
-import { isWetHour } from './summary.js?v=2.10';
-import { roadIceRisk } from './road-ice.js?v=2.10';
-import { aqiLevel } from '../api/air-quality.js?v=2.10';
+import { speed } from './units.js?v=3.0';
+import { isWetHour } from './summary.js?v=3.0';
+import { roadIceRisk } from './road-ice.js?v=3.0';
+import { aqiLevel } from '../api/air-quality.js?v=3.0';
 
 export const SOURCES = 'Limites: escala Beaufort (vento), OMS (índice UV), faixas de aviso do INMET (chuva), EPA (qualidade do ar). Recomendações gerais de segurança — em emergência, siga a Defesa Civil e as autoridades locais.';
 

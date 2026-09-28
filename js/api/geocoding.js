@@ -1,4 +1,4 @@
-import { getJSON } from './http.js?v=2.10';
+import { getJSON } from './http.js?v=3.0';
 
 const SEARCH_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const REVERSE_URL = 'https://api.bigdatacloud.net/data/reverse-geocode-client';

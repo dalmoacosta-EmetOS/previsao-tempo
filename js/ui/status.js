@@ -1,4 +1,4 @@
-import { el, fill } from './dom.js?v=2.10';
+import { el, fill } from './dom.js?v=3.0';
 
 const MESSAGES = {
   offline: ['Sem conexão', 'Verifique sua internet e tente de novo.'],

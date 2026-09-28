@@ -1,6 +1,6 @@
 // Regras derivadas (ADR-005). Estimativas do site — NÃO são alertas oficiais.
-import { STORM_CODES } from './weather-codes.js?v=2.10';
-import { temp, speed } from './units.js?v=2.10';
+import { STORM_CODES } from './weather-codes.js?v=3.0';
+import { temp, speed } from './units.js?v=3.0';
 
 /** Risco de tempestade: 'alto' | 'moderado' | 'baixo' (arquitetura, seção 6.1). */
 export function stormRisk({ code, cape, pop }) {

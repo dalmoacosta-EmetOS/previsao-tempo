@@ -9,7 +9,7 @@ const OUT = path.join(__dirname, 'shots');           // capturas de tela (fora d
 const FIX = path.join(__dirname, 'fixtures');
 fs.mkdirSync(OUT, { recursive: true });
 const VERSION = fs.readFileSync(path.join(ROOT, 'js/app.js'), 'utf8').match(/VERSION = '([^']+)'/)[1];
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
 const server = http.createServer((req, res) => {
   const p = path.join(ROOT, decodeURIComponent(req.url.split('?')[0]) === '/' ? 'index.html' : decodeURIComponent(req.url.split('?')[0]));
@@ -62,10 +62,11 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42 }) {
-  const ctx = await browser.newContext(mobile
+async function page(browser, { sw = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42 }) {
+  // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
+  const ctx = await browser.newContext({ serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
-    : { viewport: { width: 1366, height: 900 } });
+    : { viewport: { width: 1366, height: 900 } }) });
   if (geo === 'allow') { await ctx.grantPermissions(['geolocation']); await ctx.setGeolocation({ latitude: 42.39, longitude: -71.1 }); }
   const p = await ctx.newPage();
   const errors = [];
@@ -493,6 +494,25 @@ async function page(browser, { mobile, fc = forecast(), geo = 'deny', failForeca
   await t.p.waitForTimeout(900);
   check('Chuva congelante → gelo PROVÁVEL (vermelho)', (await t.p.locator('#details .tile:has-text("Gelo na pista") dd').textContent()) === 'Provável');
   check('Ar indisponível → "--" sem quebrar', (await t.p.locator('#details .tile:has-text("Qualidade do ar") dd').textContent()) === '--' && t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+
+  // ADR-034: instalar na tela inicial + funcionar sem internet
+  t = await page(browser, { mobile: true, sw: true });
+  await t.p.waitForTimeout(800);
+  const man = await t.p.evaluate(async () => {
+    const href = document.querySelector('link[rel="manifest"]')?.href;
+    const m = await (await fetch(href)).json();
+    const icons = await Promise.all(m.icons.map(async (i) => (await fetch(new URL(i.src, href))).status));
+    return { name: m.name, display: m.display, icons, apple: !!document.querySelector('link[rel="apple-touch-icon"]'), og: document.querySelector('meta[property="og:image"]')?.content };
+  });
+  check('Manifesto válido com ícones', man.name === 'Previsão do Tempo' && man.display === 'standalone' && man.icons.every((c) => c === 200) && man.apple, JSON.stringify(man));
+  check('Prévia de compartilhamento (og:image)', /\/img\/og\.png$/.test(man.og || ''), man.og);
+  const swOk = await t.p.evaluate(() => Promise.race([navigator.serviceWorker.ready.then(() => true), new Promise((r) => setTimeout(() => r(false), 5000))]));
+  check('Modo sem internet registrado', swOk);
+  await t.p.reload(); await t.p.waitForTimeout(800);            // agora a página passa pelo sw.js e fica guardada
+  await t.ctx.setOffline(true);
+  await t.p.reload().catch(() => {}); await t.p.waitForTimeout(1500);
+  check('Sem internet: a página abre (não fica em branco)', (await t.p.textContent('#version').catch(() => '')) === `versão ${VERSION}`, await t.p.textContent('body').then((b) => b.slice(0, 80)).catch((e) => e.message));
   await t.ctx.close();
 
   // T11 lembrar última cidade
