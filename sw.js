@@ -1,7 +1,7 @@
 // Funciona sem internet (ADR-034). Estratégia "rede primeiro": com internet, SEMPRE busca
 // a versão nova (não repete o problema de cache do ADR-016); sem internet, mostra a última
 // cópia guardada — inclusive a última previsão consultada.
-const VERSION = '5.2';
+const VERSION = '5.3';
 const CACHE = `previsao-tempo-${VERSION}`;
 const CORE = ['./', 'index.html', 'manifest.webmanifest', 'img/icon-192.png'];
 // Dados que vale guardar para usar sem internet (mapas e radar ficam de fora: são pesados).

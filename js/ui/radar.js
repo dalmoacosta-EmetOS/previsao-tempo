@@ -3,14 +3,14 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { addExpandControl } from './map-expand.js?v=5.2';
-import { el, fill } from './dom.js?v=5.2';
-import { getRadarFrames } from '../api/radar.js?v=5.2';
-import { getPrecipGrid } from '../api/precip-grid.js?v=5.2';
-import { speed, windDirection } from '../domain/units.js?v=5.2';
-import { showToast } from './status.js?v=5.2';
-import { load, save } from '../storage.js?v=5.2';
-import { t, locale, getLang } from '../i18n/index.js?v=5.2';
+import { addExpandControl } from './map-expand.js?v=5.3';
+import { el, fill } from './dom.js?v=5.3';
+import { getRadarFrames } from '../api/radar.js?v=5.3';
+import { getPrecipGrid } from '../api/precip-grid.js?v=5.3';
+import { speed, windDirection } from '../domain/units.js?v=5.3';
+import { showToast } from './status.js?v=5.3';
+import { load, save } from '../storage.js?v=5.3';
+import { t, locale, getLang } from '../i18n/index.js?v=5.3';
 
 // Leaflet 1.9.4 hospedado no próprio site (ADR-040): sem depender de terceiros para código que roda na página
 const LEAFLET_JS = 'vendor/leaflet/leaflet.js';
