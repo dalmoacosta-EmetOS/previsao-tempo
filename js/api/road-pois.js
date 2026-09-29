@@ -2,6 +2,8 @@
 // Fonte: OpenStreetMap via Overpass API (grátis, sem chave, dados colaborativos).
 // Limites honestos: o mapa é feito por voluntários — pode faltar posto ou balança, e não
 // sabemos se a balança está aberta agora (isso só serviços pagos, como PrePass/Drivewyze nos EUA).
+import { t } from '../i18n/index.js?v=5.0';
+
 const OVERPASS = 'https://overpass-api.de/api/interpreter';
 const R = 6371;
 const rad = (d) => (d * Math.PI) / 180;
@@ -58,12 +60,12 @@ export async function getRoadPois(route, { trucks = false } = {}) {
   for (const e of data.elements || []) {
     const lat = e.lat ?? e.center?.lat, lon = e.lon ?? e.center?.lon;
     if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-    const t = e.tags || {};
+    const tags = e.tags || {};
     const { km, offKm } = kmAlong(route.coords, cum, [lat, lon]);
     if (offKm > 2) continue;
-    const item = { lat, lon, km: Math.round(km), name: clean(t.name || t.brand || t.operator), truck: t.hgv === 'yes' || /truck|caminh/i.test(t.name || '') };
-    if (t.amenity === 'fuel') fuel.push({ ...item, name: item.name || 'Posto de combustível', diesel: t['fuel:diesel'] === 'yes' });
-    else weigh.push({ ...item, name: item.name || 'Balança de pesagem' });
+    const item = { lat, lon, km: Math.round(km), name: clean(tags.name || tags.brand || tags.operator), truck: tags.hgv === 'yes' || /truck|caminh/i.test(tags.name || '') };
+    if (tags.amenity === 'fuel') fuel.push({ ...item, name: item.name || t('poi.fuel'), diesel: tags['fuel:diesel'] === 'yes' });
+    else weigh.push({ ...item, name: item.name || t('poi.weigh') });
   }
   const byKm = (a, b) => a.km - b.km;
   // tira duplicados muito próximos (mesmo posto como ponto e como área)

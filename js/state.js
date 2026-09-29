@@ -1,10 +1,11 @@
 // Estado único da aplicação. A interface sempre se redesenha a partir dele.
-import { load } from './storage.js?v=4.1';
+import { load } from './storage.js?v=5.0';
+import { getUnits } from './units-settings.js?v=5.0';
 
 const state = {
   place: null,        // { name, region, country, lat, lon, isGeo }
   data: null,         // previsão normalizada
-  unit: load('unit') || 'C',
+  unit: getUnits().temp, // 'C' | 'F' — as demais medidas vêm de getUnits() (ADR-045)
   days: 7,            // 7 ou 15
   tempMode: load('tempMode') || 'real', // 'real' (temperatura) | 'feels' (sensação térmica)
   hourSel: null,      // hora aberta no detalhe (índice nas 24 h) — ADR-019

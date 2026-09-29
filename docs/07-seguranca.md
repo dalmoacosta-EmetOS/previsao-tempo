@@ -4,7 +4,7 @@
 > (superfície de ataque), ter várias camadas de defesa e revisar sempre. Este documento registra
 > o que o Weather Forecast faz hoje, o que falta e o que muda quando virar produto na AWS.
 
-Última revisão: 28/09/2026 (versão 4.0) · decisões: ADR-040 e ADR-043.
+Última revisão: 29/09/2026 (versão 5.0) · decisões: ADR-040, ADR-043 e ADR-045.
 
 ---
 
@@ -16,7 +16,7 @@
 | Conta do GitHub do Dalmo | GitHub | Controle total do site e do código |
 | Confiança do usuário | Navegador de quem usa | Site usado para enganar (phishing, código malicioso) |
 | Localização do usuário | Só no aparelho, só com permissão | Privacidade |
-| Favoritas / última cidade | `localStorage` do aparelho | Baixo (não sai do aparelho) |
+| Favoritas / última cidade / idioma e unidades | `localStorage` do aparelho | Baixo (não sai do aparelho); valores lidos são validados (idioma só entre os existentes; unidades só C/F, km/mi, mm/in) |
 
 **Não temos:** servidor próprio, banco de dados, contas de usuário, senhas, pagamentos.
 Isso elimina as categorias de ataque mais comuns (vazamento de banco, roubo de senha, invasão de servidor).
@@ -35,6 +35,7 @@ Isso elimina as categorias de ataque mais comuns (vazamento de banco, roubo de s
 | A8 | **Falha nova no nosso código** | Erro de programação | CodeQL a cada envio + toda segunda; 171 testes | ✅ Coberto |
 | A9 | **Abuso das APIs gratuitas** (DoS indireto) | Muitos acessos esgotam a cota gratuita da Open-Meteo | Cache de 10 min/1 h; limites por usuário são do próprio serviço | ⚠️ Risco de produto — ver §5 |
 | A10 | **Privacidade** | Rastrear usuários | Sem cookies, sem analytics, sem rastreadores; localização só com permissão e não é enviada a nós | ✅ Coberto |
+| A11 | **Tradução adulterada** | Texto malicioso num dicionário | Dicionários são arquivos do próprio site (CSP `script-src 'self'`); textos entram como **texto**, nunca HTML; teste confere chaves e marcadores a cada envio | ✅ Coberto |
 
 ## 3. Controles em vigor (v4.0)
 

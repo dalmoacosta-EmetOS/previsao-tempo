@@ -343,3 +343,33 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - **Busca por toque:** não reproduzida no navegador de testes; escolha reforçada para os diferentes eventos de toque do iPhone (o primeiro que chegar escolhe, os outros são ignorados) e o fechamento da lista espera o teclado fechar. Testes novos escolhem cidade **por toque** no topo e na viagem, antes e depois de calcular.
 **Segurança:** novo serviço (overpass-api.de) liberado na CSP; nomes vindos do mapa entram como texto (teste com nome contendo HTML).
 
+
+## ADR-045 — Idiomas e unidades por país (v5.0)
+**Status:** Aceita · 29/09/2026 · pedido do Dalmo: "multilíngue, assumindo o idioma do aparelho, com escolha manual (visão EMET OS, imigrantes)"; "km ou mi na viagem"; "medidas no costume de cada país"; "idioma padrão, se não identificar, inglês"; "faça tudo conjuntamente".
+**Decisões:**
+- **Três idiomas:** português (fonte), inglês e espanhol. O idioma vem de `navigator.languages`. Se não houver dicionário para o idioma do aparelho, o site abre em **inglês**. A escolha manual no botão 🌐 fica salva no aparelho e vale mais que a detecção.
+- **Unidades separadas do idioma.** O modo Automático segue o **país** do aparelho:
+  - EUA e territórios, Libéria e Mianmar: °F, milhas, polegadas;
+  - Reino Unido: °C, milhas, mm;
+  - demais países: métrico.
+  Também há Métrico, EUA, Reino Unido e **Personalizado** (temperatura, distância/velocidade e chuva escolhidas uma a uma). O °C/°F do topo muda só a temperatura. A escolha antiga de °F (chave `unit`) é migrada.
+- **Formatos pelo `Intl` do navegador:** números, datas e horas (07:00 no Brasil, 7:00 AM nos EUA).
+- **Viagem:** distância, marcos ("mi 75"), trechos sem posto, visibilidade e velocidades na unidade escolhida. Arquivo de calendário e e-mail saem no idioma de quem gera o plano.
+- **Links compartilhados não carregam idioma nem unidade:** quem abre vê no seu padrão.
+- **Nomes de cidades** são pedidos aos serviços de mapa no idioma escolhido.
+- **Alertas do NWS:** o nome é traduzido (40 tipos) e o texto fica no original em inglês, com aviso (o aviso não aparece em inglês).
+- **Validação dos textos:**
+  - teste automático de chaves, marcadores `{…}` e **ortografia Hunspell** (pt-BR VERO, en-US, es-MX), com lista explícita de exceções;
+  - revisão de sentido por um segundo agente de IA;
+  - checagem humana do Dalmo pendente.
+  Detalhes em [08-idiomas-e-unidades.md](08-idiomas-e-unidades.md).
+
+**Alternativas descartadas:**
+- **Biblioteca de tradução (i18next):** mais código de terceiros e mais superfície de ataque; o nosso `t()` tem 20 linhas.
+- **Tradução automática na hora:** sem controle de qualidade nos cuidados de segurança.
+- **Unidades presas ao idioma:** falha justamente com o imigrante.
+
+**Limites honestos:**
+- O corretor confere palavras, não frases.
+- As traduções de segurança (`adv.*`) devem ser lidas por falantes nativos antes do lançamento nesses mercados.
+- A pesquisa de concorrentes ([09-concorrentes.md](09-concorrentes.md)) mostra que os líderes já têm português e espanhol. O diferencial é a escolha manual com unidades por medida, e isso ainda é [Provável], não [Certo].

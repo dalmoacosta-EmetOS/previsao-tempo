@@ -1,8 +1,9 @@
 // Boas-vindas, barra fixa da cidade e "voltar ao topo" (ADR-017).
-import { icon } from './icons.js?v=4.1';
-import { describe } from '../domain/weather-codes.js?v=4.1';
-import { temp } from '../domain/units.js?v=4.1';
-import { resolveWeatherNow } from '../domain/scene.js?v=4.1';
+import { icon } from './icons.js?v=5.0';
+import { describe } from '../domain/weather-codes.js?v=5.0';
+import { temp } from '../domain/units.js?v=5.0';
+import { resolveWeatherNow } from '../domain/scene.js?v=5.0';
+import { t } from '../i18n/index.js?v=5.0';
 
 const $ = (id) => document.getElementById(id);
 const toTop = () => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
@@ -10,8 +11,8 @@ const toTop = () => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-red
 /** Saudação pelo horário de quem está usando o site. */
 function greeting() {
   const h = new Date().getHours();
-  const part = h < 5 ? 'Boa noite' : h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
-  return `${part}! Seja bem-vindo.`;
+  const part = h < 5 ? 'night' : h < 12 ? 'morning' : h < 18 ? 'afternoon' : 'night';
+  return t(`greet.${part}`);
 }
 
 export function setupScrollHelpers() {
@@ -38,15 +39,15 @@ export function renderCityBar({ place, data, unit }) {
   bar.innerHTML = `<span class="citybar__icon">${icon(iconName, data.current.isDay)}</span>`;
   const name = document.createElement('strong');
   name.textContent = place.name;
-  const t = document.createElement('span');
-  t.className = 'citybar__temp';
-  t.textContent = temp(data.current.temp, unit);
+  const tp = document.createElement('span');
+  tp.className = 'citybar__temp';
+  tp.textContent = temp(data.current.temp, unit);
   const l = document.createElement('span');
   l.className = 'citybar__label';
   l.textContent = label;
   const up = document.createElement('span');
   up.className = 'citybar__up';
   up.textContent = '↑';
-  bar.append(name, t, l, up);
-  bar.setAttribute('aria-label', `${place.name}, ${t.textContent}, ${label}. Voltar ao topo`);
+  bar.append(name, tp, l, up);
+  bar.setAttribute('aria-label', `${place.name}, ${tp.textContent}, ${label}. ${t('nav.toTop')}`);
 }

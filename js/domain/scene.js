@@ -2,7 +2,8 @@
 // O código de tempo sozinho às vezes diz "nublado" enquanto já chove.
 // Por isso o cenário também olha a chuva medida pelo modelo nos últimos 15 min
 // e a prevista para os próximos 30 min.
-import { describe, STORM_CODES } from './weather-codes.js?v=4.1';
+import { describe, STORM_CODES } from './weather-codes.js?v=5.0';
+import { t } from '../i18n/index.js?v=5.0';
 
 const RAIN_ICONS = ['drizzle', 'rain', 'heavy-rain', 'showers', 'sleet'];
 const WET_MM = 0.1; // a partir de 0,1 mm em 15 min consideramos chuva
@@ -24,17 +25,17 @@ export function resolveWeatherNow(data) {
   const time = c.isDay ? 'day' : 'night';
 
   if (STORM_CODES.includes(c.code)) return { scene: 'storm', time, intensity: 'heavy', wet: true };
-  if (icon === 'snow' || snowNow || hourSnow) return { scene: 'snow', time, intensity: mmPerHour > 4 ? 'heavy' : 'normal', wet: true, byMeasure: icon !== 'snow', label: icon !== 'snow' ? 'Neve' : null };
+  if (icon === 'snow' || snowNow || hourSnow) return { scene: 'snow', time, intensity: mmPerHour > 4 ? 'heavy' : 'normal', wet: true, byMeasure: icon !== 'snow', label: icon !== 'snow' ? t('scene.snow') : null, kind: 'snow' };
   if (RAIN_ICONS.includes(icon) || precipNow >= WET_MM || rainSoon || hourRain) {
     // mm/h aproximado → intensidade
     const heavy = mmPerHour >= 6 || icon === 'heavy-rain' || hourIcon === 'heavy-rain';
     const normal = mmPerHour >= 1.5 || ['rain', 'showers'].includes(icon) || ['rain', 'showers'].includes(hourIcon);
     const intensity = heavy ? 'heavy' : normal ? 'normal' : 'light';
     const byMeasure = !RAIN_ICONS.includes(icon);
-    const label = !byMeasure ? null
-      : intensity === 'heavy' ? 'Chuva forte' : intensity === 'normal' ? 'Chuva'
-      : hourIcon === 'drizzle' ? 'Garoa' : 'Chuva fraca';
-    return { scene: 'rain', time, intensity, wet: true, byMeasure, label };
+    const kind = intensity === 'heavy' ? 'heavyRain' : intensity === 'normal' ? 'rain'
+      : hourIcon === 'drizzle' ? 'drizzle' : 'lightRain';
+    const label = byMeasure ? t(`scene.${kind}`) : null;
+    return { scene: 'rain', time, intensity, wet: true, byMeasure, label, kind };
   }
   const scene = { clear: 'clear', 'mostly-clear': 'clear', partly: 'partly', cloudy: 'cloudy', fog: 'fog' }[icon] || 'cloudy';
   return { scene, time, intensity: 'normal', wet: false };
@@ -49,15 +50,16 @@ export function nowcastText(data) {
   const n = data.nowcast;
   if (!n.length) return '';
   const wet = (x) => x.precip >= WET_MM || x.snow > 0;
-  const kind = n.some((x) => x.snow > 0) ? 'Neve' : 'Chuva';
+  const snow = n.some((x) => x.snow > 0);
+  const say = (key, min) => t(`cast.${snow ? 'snow' : 'rain'}.${key}`, { min });
   const sceneWet = resolveWeatherNow(data).wet;
 
   if (sceneWet) {
     const nowWet = wet(n[0]) || data.current.precip >= WET_MM;
     if (!nowWet) return ''; // sinais divergem → silêncio
     const stop = n.findIndex((x, i) => i > 0 && !wet(x));
-    return stop < 0 ? `${kind} deve continuar pelas próximas 2 horas` : `${kind} deve parar em ~${stop * 15} min`;
+    return stop < 0 ? say('continues') : say('stops', stop * 15);
   }
   const start = n.findIndex((x, i) => i > 0 && wet(x));
-  return start < 0 ? '' : `${kind} deve começar em ~${start * 15} min`;
+  return start < 0 ? '' : say('starts', start * 15);
 }

@@ -1149,3 +1149,44 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
 .trip__road small, .trip__share-note { display: block; color: var(--text-faint); font-size: 0.72rem; margin-top: 6px; }
 .trip__fuel { color: var(--text-soft) !important; }
 .trip__share-btn--wide { grid-column: 1 / -1; }
+
+/* ---------------- Idioma e unidades (ADR-045) ---------------- */
+.lang-btn { width: auto; min-width: 40px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+.lang-btn__code { font-weight: 700; font-size: 0.78rem; letter-spacing: 0.04em; }
+.lang-btn[aria-expanded="true"] { background: #fff; color: var(--bar); }
+.settings {
+  max-width: 460px;
+  margin: 0 auto 10px;
+  padding: 14px 16px;
+  width: calc(100% - 24px);
+  max-height: calc(100vh - 90px);
+  overflow: auto;
+  background: #fff;
+  color: #13233a;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+.settings__title { margin: 0 0 10px; font-size: 1.05rem; }
+.settings__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px; margin: 10px 0 4px; }
+.settings__row label { font-weight: 600; }
+.settings__select {
+  flex: 1 1 220px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border: 1px solid #b9c6d8;
+  border-radius: 10px;
+  background: #f6f9fd;
+  color: #13233a;
+  font: inherit;
+}
+.settings__select--small { flex: 0 0 170px; }
+.settings__custom .settings__row label { flex: 1 1 140px; }
+.settings__custom { margin: 4px 0 0 12px; padding-left: 10px; border-left: 3px solid #d6e2f2; }
+.settings__hint { margin: 2px 0 8px; font-size: 0.82rem; color: #4d5f78; }
+.settings__actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 12px; }
+.settings .btn { background: var(--bar); color: #fff; }
+.settings .btn--ghost { background: transparent; color: var(--bar); border: 1px solid #b9c6d8; }
+@media (max-width: 560px) {
+  .lang-btn { padding: 0; width: 40px; }
+  .lang-btn__code { display: none; }
+}

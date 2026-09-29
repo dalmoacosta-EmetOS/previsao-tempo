@@ -1,6 +1,8 @@
 // Link por cidade (ADR-030): ?cidade=Malden&lat=42.43&lon=-71.07&regiao=...&pais=...
 // Quem abre o link vê a MESMA cidade, e não a própria localização.
 
+import { t } from '../i18n/index.js?v=5.0';
+
 const round = (v) => Number(v).toFixed(3);
 
 export function placeFromUrl(search) {
@@ -9,7 +11,7 @@ export function placeFromUrl(search) {
   if (!q.has('lat') || !q.has('lon') || !Number.isFinite(lat) || !Number.isFinite(lon)) return null;
   if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return null;
   return {
-    name: (q.get('cidade') || 'Local compartilhado').slice(0, 80),
+    name: (q.get('cidade') || t('place.shared')).slice(0, 80),
     region: (q.get('regiao') || '').slice(0, 80),
     country: (q.get('pais') || '').slice(0, 80),
     lat, lon,

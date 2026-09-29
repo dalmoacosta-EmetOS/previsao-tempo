@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # Corretor ortográfico dos dicionários de idioma (ADR-045): pt-BR (VERO), en-US, es
+      - run: sudo apt-get update && sudo apt-get install -y hunspell hunspell-pt-br hunspell-en-us hunspell-es
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - run: npm test

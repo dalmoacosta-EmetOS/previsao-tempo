@@ -2,6 +2,19 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 5.0 — 29/09/2026 · Idiomas e unidades
+- **Português, inglês e espanhol.** O site abre no idioma do celular; se o celular estiver em outro idioma, abre em inglês. Botão 🌐 para escolher à mão, pensado para imigrantes (ADR-045).
+- **Unidades pelo costume do país:**
+  - EUA: °F, milhas, polegadas;
+  - Reino Unido: °C, milhas;
+  - demais países: métrico.
+  Opção Personalizado para escolher cada medida.
+- **Viagem em km ou milhas:** distância, marcos, trechos sem posto e balanças.
+- **Horas, datas e números** no formato de cada país (7:00 AM nos EUA).
+- **Dicionários conferidos** automaticamente (chaves, marcadores e ortografia Hunspell) a cada envio.
+- **Pesquisa de concorrentes** registrada em [docs/09-concorrentes.md](docs/09-concorrentes.md).
+- Rodapé: "Exercício do Treinamento de IA" passou a "Construído 100% com IA" (o site agora é produto); crédito do OpenStreetMap para rotas e postos.
+
 ## 4.1 — 28/09/2026 · Na estrada
 - **Postos de combustível** no caminho, posto mais perto das paradas e aviso de trecho longo sem posto (ADR-044).
 - **Caminhão/van:** balanças de pesagem com km e horário estimado.

@@ -1,16 +1,29 @@
 {
   "name": "Weather Forecast",
   "short_name": "Weather",
-  "description": "Previsão do tempo: agora, por hora, 15 dias, radar e alertas.",
-  "lang": "pt-BR",
+  "description": "Weather now, hourly, 15 days, radar, alerts and road-trip weather. · Previsão do tempo · Pronóstico del tiempo.",
+  "lang": "en",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b2a55",
   "theme_color": "#0b2a55",
   "icons": [
-    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" },
-    { "src": "img/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "img/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "img/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "img/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

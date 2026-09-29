@@ -7,7 +7,7 @@
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Weather Forecast</title>
-  <meta name="description" content="Weather Forecast — previsão do tempo agora, por hora, 7 e 15 dias. Exercício construído 100% com IA.">
+  <meta name="description" content="Weather Forecast — weather now, hourly, 7 and 15 days, radar and road-trip weather. Previsão do tempo · Pronóstico del tiempo.">
   <meta name="theme-color" content="#0b2a55">
   <!-- Instalar na tela inicial (ADR-034) -->
   <link rel="manifest" href="manifest.webmanifest">
@@ -19,7 +19,7 @@
   <!-- Prévia ao compartilhar o link (WhatsApp, iMessage, redes) -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="Weather Forecast">
-  <meta property="og:description" content="Agora, por hora, 15 dias, radar e alertas. Grátis e sem anúncios.">
+  <meta property="og:description" content="Now, hourly, 15 days, radar, alerts and road-trip weather. Free, no ads. · Agora, por hora, radar e viagem. Grátis e sem anúncios.">
   <meta property="og:image" content="https://dalmoacosta-emetos.github.io/previsao-tempo/img/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -27,7 +27,7 @@
   <meta property="og:locale" content="pt_BR">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='26' cy='24' r='12' fill='%23FFC83D'/%3E%3Cpath d='M20 50h26a10 10 0 0 0 0-20 14 14 0 0 0-27-3A11 11 0 0 0 20 50z' fill='%23fff'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css?v=4.1">
+  <link rel="stylesheet" href="css/styles.css?v=5.0">
 </head>
 <body data-scene="cloudy" data-time="day" class="is-booting">
 
@@ -45,7 +45,7 @@
 
   <header class="topbar">
     <div class="topbar__inner">
-      <a class="brand" href="./" aria-label="Weather Forecast — início">
+      <a class="brand" href="./" aria-label="Weather Forecast — início" data-i18n-attr="aria-label:top.home">
         <svg viewBox="0 0 64 64" width="28" height="28" aria-hidden="true"><circle cx="26" cy="24" r="12" fill="#FFC83D"/><path d="M20 50h26a10 10 0 0 0 0-20 14 14 0 0 0-27-3A11 11 0 0 0 20 50z" fill="#fff"/></svg>
         <span>Weather<span class="brand__light"> Forecast</span></span>
       </a>
@@ -53,52 +53,56 @@
       <div class="search" id="search">
         <svg class="search__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         <input id="search-input" type="search" autocomplete="off" spellcheck="false"
-               placeholder="Buscar cidade" aria-label="Buscar cidade"
+               placeholder="Buscar cidade" aria-label="Buscar cidade" data-i18n-attr="placeholder:top.search;aria-label:top.search"
                role="combobox" aria-expanded="false" aria-controls="search-list" aria-autocomplete="list">
         <ul class="search__list" id="search-list" role="listbox" hidden></ul>
       </div>
 
-      <button class="icon-btn" id="locate-btn" type="button" title="Usar minha localização" aria-label="Usar minha localização">
+      <button class="icon-btn" id="locate-btn" type="button" title="Usar minha localização" aria-label="Usar minha localização" data-i18n-attr="title:top.locate;aria-label:top.locate">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
       </button>
 
-      <div class="segmented" role="group" aria-label="Unidade de temperatura">
+      <button class="icon-btn lang-btn" id="lang-btn" type="button"></button>
+
+      <div class="segmented" role="group" aria-label="Unidade de temperatura" data-i18n-attr="aria-label:top.tempUnit">
         <button type="button" data-unit="C" aria-pressed="true">°C</button>
         <button type="button" data-unit="F" aria-pressed="false">°F</button>
       </div>
     </div>
     <!-- Barra fixa com a cidade: aparece quando o bloco principal sai da tela -->
-    <button class="citybar" id="citybar" type="button" aria-label="Voltar ao topo" tabindex="-1"></button>
+    <button class="citybar" id="citybar" type="button" aria-label="Voltar ao topo" data-i18n-attr="aria-label:nav.toTop" tabindex="-1"></button>
+    <!-- Idioma e unidades (ADR-045) -->
+    <section class="settings" id="settings" aria-labelledby="set-title" hidden></section>
   </header>
 
   <main class="layout" id="app">
-    <section class="welcome" id="welcome" aria-label="Boas-vindas">
-      <p class="welcome__hi" id="greeting">Seja bem-vindo!</p>
-      <p class="welcome__text"><strong class="welcome__brand">Weather Forecast</strong>: o tempo onde você quiser e para onde você for, de maneira clara e precisa, para você se planejar bem.</p>
+    <section class="welcome" id="welcome" aria-label="Boas-vindas" data-i18n-attr="aria-label:welcome.aria">
+      <p class="welcome__hi" id="greeting"></p>
+      <p class="welcome__text"><strong class="welcome__brand">Weather Forecast</strong>: <span data-i18n="welcome.text">o tempo onde você quiser e para onde você for, de maneira clara e precisa, para você se planejar bem.</span></p>
     </section>
-    <nav class="favs" id="favs" aria-label="Cidades favoritas" hidden></nav>
+    <nav class="favs" id="favs" aria-label="Cidades favoritas" data-i18n-attr="aria-label:fav.aria" hidden></nav>
     <section class="hero" id="current" aria-live="polite"></section>
     <div id="status"></div>
-    <section id="alerts" class="alerts" aria-label="Avisos"></section>
-    <section id="hourly" class="card card--wide" aria-label="Previsão por hora"></section>
-    <section id="radar" class="card card--wide" aria-label="Radar de chuva"></section>
-    <section id="trip" class="card card--wide trip" aria-label="Tempo na viagem"></section>
-    <section id="daily" class="card" aria-label="Previsão diária"></section>
-    <section id="details" class="card" aria-label="Detalhes de hoje"></section>
+    <section id="alerts" class="alerts" aria-label="Avisos" data-i18n-attr="aria-label:sec.alerts"></section>
+    <section id="hourly" class="card card--wide" aria-label="Previsão por hora" data-i18n-attr="aria-label:sec.hourly"></section>
+    <section id="radar" class="card card--wide" aria-label="Radar de chuva" data-i18n-attr="aria-label:sec.radar"></section>
+    <section id="trip" class="card card--wide trip" aria-label="Tempo na viagem" data-i18n-attr="aria-label:sec.trip"></section>
+    <section id="daily" class="card" aria-label="Previsão diária" data-i18n-attr="aria-label:sec.daily"></section>
+    <section id="details" class="card" aria-label="Detalhes de hoje" data-i18n-attr="aria-label:sec.details"></section>
   </main>
 
   <footer class="footer">
-    <button class="to-top" id="to-top" type="button" aria-label="Voltar ao topo da página">
+    <button class="to-top" id="to-top" type="button" aria-label="Voltar ao topo da página" data-i18n-attr="aria-label:footer.toTopAria">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5l-7 7M12 5l7 7M12 5v14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span>Voltar ao topo</span>
+      <span data-i18n="nav.toTop">Voltar ao topo</span>
     </button>
-    <p>Dados de previsão: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> (uso não comercial) · Nome da localização: <a href="https://www.bigdatacloud.com/" target="_blank" rel="noopener">BigDataCloud</a> · Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">Weather data by RainViewer</a></p>
-    <p>Exercício do Treinamento de IA · construído 100% com IA · <a href="https://github.com/dalmoacosta-EmetOS/previsao-tempo" target="_blank" rel="noopener">código e documentação</a> · <span id="version"></span></p>
+    <p><span data-i18n="footer.forecast">Dados de previsão:</span> <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> <span data-i18n="footer.nonCommercial">(uso não comercial)</span> · <span data-i18n="footer.names">Nome da localização:</span> <a href="https://www.bigdatacloud.com/" target="_blank" rel="noopener">BigDataCloud</a> · <span data-i18n="footer.radar">Radar:</span> <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">Weather data by RainViewer</a> · <span data-i18n="footer.roads">Rotas e postos:</span> <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">© OpenStreetMap</a></p>
+    <p><span data-i18n="footer.builtWithAi">Construído 100% com IA</span> · <a href="https://github.com/dalmoacosta-EmetOS/previsao-tempo" target="_blank" rel="noopener" data-i18n="footer.code">código e documentação</a> · <span id="version"></span></p>
   </footer>
 
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   <div class="demo-badge" id="demo-badge" hidden>DEMO</div>
 
-  <script type="module" src="js/app.js?v=4.1"></script>
+  <script type="module" src="js/app.js?v=5.0"></script>
 </body>
 </html>

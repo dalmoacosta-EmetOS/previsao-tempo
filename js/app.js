@@ -1,30 +1,33 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=4.1';
-import { load, save } from './storage.js?v=4.1';
-import { getOfficialAlerts } from './api/official-alerts.js?v=4.1';
-import { getForecast } from './api/forecast.js?v=4.1';
-import { getAirQuality } from './api/air-quality.js?v=4.1';
-import { reverseGeocode } from './api/geocoding.js?v=4.1';
-import { resolveWeatherNow } from './domain/scene.js?v=4.1';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=4.1';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=4.1';
-import { renderHourly } from './ui/hourly.js?v=4.1';
-import { renderDaily } from './ui/daily.js?v=4.1';
-import { renderDetails } from './ui/details.js?v=4.1';
-import { renderAlerts } from './ui/alerts.js?v=4.1';
-import { renderError, showToast } from './ui/status.js?v=4.1';
-import { setupSearch } from './ui/search.js?v=4.1';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=4.1';
-import { mountRadar, updateRadar } from './ui/radar.js?v=4.1';
-import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=4.1';
-import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=4.1';
-import { renderFavorites } from './ui/favorites.js?v=4.1';
-import { mountTrip, updateTrip } from './ui/trip.js?v=4.1';
+import { getState, setState, subscribe } from './state.js?v=5.0';
+import { load, save } from './storage.js?v=5.0';
+import { getOfficialAlerts } from './api/official-alerts.js?v=5.0';
+import { getForecast } from './api/forecast.js?v=5.0';
+import { getAirQuality } from './api/air-quality.js?v=5.0';
+import { reverseGeocode } from './api/geocoding.js?v=5.0';
+import { resolveWeatherNow } from './domain/scene.js?v=5.0';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=5.0';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=5.0';
+import { renderHourly } from './ui/hourly.js?v=5.0';
+import { renderDaily } from './ui/daily.js?v=5.0';
+import { renderDetails } from './ui/details.js?v=5.0';
+import { renderAlerts } from './ui/alerts.js?v=5.0';
+import { renderError, showToast } from './ui/status.js?v=5.0';
+import { setupSearch } from './ui/search.js?v=5.0';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=5.0';
+import { mountRadar, updateRadar } from './ui/radar.js?v=5.0';
+import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=5.0';
+import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=5.0';
+import { renderFavorites } from './ui/favorites.js?v=5.0';
+import { mountTrip, updateTrip } from './ui/trip.js?v=5.0';
+import { mountSettings } from './ui/settings.js?v=5.0';
+import { t, applyStatic } from './i18n/index.js?v=5.0';
+import { setOneUnit } from './units-settings.js?v=5.0';
 
-export const VERSION = '4.1';
+export const VERSION = '5.0';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
-const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
+const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: '', lat: 42.3601, lon: -71.0589 };
 
 const $ = (id) => document.getElementById(id);
 const sections = {
@@ -54,7 +57,7 @@ function render(state) {
     isFav: isFavorite(state.place),
     onFav: () => {
       const list = toggleFavorite(state.place);
-      showToast(list.some((f) => placeKey(f) === placeKey(state.place)) ? `${state.place.name} salva nos favoritos.` : `${state.place.name} saiu dos favoritos.`, 2500);
+      showToast(t(list.some((f) => placeKey(f) === placeKey(state.place)) ? 'fav.saved' : 'fav.removed', { name: state.place.name }), 2500);
       setState({});
     },
     onShare: () => sharePlace(state.place),
@@ -75,7 +78,7 @@ function render(state) {
 // Endereço da página acompanha a cidade (ADR-030) — o link copiado abre a mesma cidade.
 let urlKey = '';
 function syncUrl(place) {
-  if (!place || place.isGeo && place.name === 'Sua localização') return;
+  if (!place || place.isGeo && place.name === t('geo.yourLocation')) return;
   const key = `${placeKey(place)}|${place.name}`;
   if (key === urlKey) return;
   urlKey = key;
@@ -88,9 +91,9 @@ async function sharePlace(place) {
   try {
     if (navigator.share) { await navigator.share({ title, url }); return; }
     await navigator.clipboard.writeText(url);
-    showToast('Link copiado. É só colar na conversa.', 3000);
+    showToast(t('share.copied'), 3000);
   } catch (e) {
-    if (e?.name !== 'AbortError') showToast('Não deu para compartilhar. Copie o endereço da barra do navegador.', 4000);
+    if (e?.name !== 'AbortError') showToast(t('share.fail'), 4000);
   }
 }
 
@@ -136,24 +139,24 @@ function locate({ auto = false, fallback = null } = {}) {
   const fail = (msg) => {
     if (auto && fallback) {
       // Link recebido e localização negada → mostra a cidade do link (ADR-036)
-      showToast(`${msg} Mostrando ${fallback.name}, a cidade do link.`);
+      showToast(`${msg} ${t('geo.showingLink', { name: fallback.name })}`);
       loadPlace(fallback, { remember: false });
     } else if (auto) {
-      showToast(`${msg} Mostrando Boston — busque sua cidade acima.`);
+      showToast(`${msg} ${t('geo.showingBoston')}`);
       loadPlace(FALLBACK_PLACE, { remember: false });
     } else {
       showToast(msg);
     }
   };
 
-  if (!('geolocation' in navigator)) return fail('Seu navegador não oferece localização.');
+  if (!('geolocation' in navigator)) return fail(t('geo.unsupported'));
 
   $('locate-btn').classList.add('is-busy');
   navigator.geolocation.getCurrentPosition(
     async (pos) => {
       $('locate-btn').classList.remove('is-busy');
       const { latitude: lat, longitude: lon } = pos.coords;
-      const place = { name: 'Sua localização', region: '', country: '', lat, lon, isGeo: true };
+      const place = { name: t('geo.yourLocation'), region: '', country: '', lat, lon, isGeo: true };
       const [named] = await Promise.all([reverseGeocode(lat, lon), loadPlace(place)]);
       if (named && getState().place === place) {
         const updated = { ...place, ...named };
@@ -163,9 +166,7 @@ function locate({ auto = false, fallback = null } = {}) {
     },
     (err) => {
       $('locate-btn').classList.remove('is-busy');
-      fail(err.code === err.PERMISSION_DENIED
-        ? 'Localização não permitida.'
-        : 'Não foi possível obter sua localização.');
+      fail(t(err.code === err.PERMISSION_DENIED ? 'geo.denied' : 'geo.failed'));
     },
     { enableHighAccuracy: false, timeout: 8000, maximumAge: 10 * 60 * 1000 },
   );
@@ -179,11 +180,13 @@ if (window.top !== window.self) {
 
 // ---------- Início ----------
 function init() {
+  applyStatic();
+  mountSettings($('lang-btn'), $('settings'));
   subscribe(render);
   mountRadar(document.getElementById('radar'));
   mountTrip($('trip'), { currentPlace: () => getState().place, unit: () => getState().unit });
   setupScrollHelpers();
-  $('version').textContent = `versão ${VERSION}`;
+  $('version').textContent = t('footer.version', { v: VERSION });
 
   // Modo demonstração: ?demo=chuva | neve | tempestade | noite | sol | nublado | neblina | parcial
   const demoKey = new URLSearchParams(location.search).get('demo');
@@ -203,7 +206,7 @@ function init() {
 
   document.querySelectorAll('.topbar [data-unit]').forEach((btn) =>
     btn.addEventListener('click', () => {
-      save('unit', btn.dataset.unit);
+      setOneUnit('temp', btn.dataset.unit); // só a temperatura; distância e chuva continuam como estão
       setState({ unit: btn.dataset.unit });
     }));
 
