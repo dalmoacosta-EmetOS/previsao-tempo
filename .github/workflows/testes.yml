@@ -21,7 +21,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm test
       - if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: capturas-de-tela
           path: tests/shots/
