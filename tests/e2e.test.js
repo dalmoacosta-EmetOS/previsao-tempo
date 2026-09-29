@@ -62,7 +62,7 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false, locale = 'pt-BR', init = null }) {
+async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false, overpassDelay = 0, locale = 'pt-BR', init = null }) {
   // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
   const ctx = await browser.newContext({ locale, bypassCSP, serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
@@ -129,13 +129,13 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
     ? r.fulfill({ status: 400, json: { code: 'NoRoute' } })
     : r.fulfill({ json: { code: 'Ok', routes: [{ duration: 3 * 3600 + 600, distance: 290000,
       geometry: { coordinates: Array.from({ length: 50 }, (_, i) => [-71.06 - i * 0.06, 42.36 - i * 0.034]) } }] } }));
-  await p.route('https://overpass-api.de/**', (r) => overpassFail ? r.fulfill({ status: 504, body: '' }) : r.fulfill({ json: { elements: [
+  await p.route('https://overpass-api.de/**', async (r) => { if (overpassDelay) await new Promise((ok) => setTimeout(ok, overpassDelay)); return overpassFail ? r.fulfill({ status: 504, body: '' }) : r.fulfill({ json: { elements: [
     { type: 'node', lat: 42.36 - 5 * 0.034, lon: -71.06 - 5 * 0.06, tags: { amenity: 'fuel', name: 'Posto Shell', 'fuel:diesel': 'yes' } },
     { type: 'node', lat: 42.36 - 20 * 0.034, lon: -71.06 - 20 * 0.06, tags: { amenity: 'fuel', brand: 'Ipiranga' } },
     { type: 'node', lat: 42.36 - 32 * 0.034, lon: -71.06 - 32 * 0.06, tags: { amenity: 'fuel', name: 'Posto Graal', hgv: 'yes' } },
     { type: 'way', center: { lat: 42.36 - 30 * 0.034, lon: -71.06 - 30 * 0.06 }, tags: { amenity: 'weighbridge', name: 'Balança DNIT <b>x</b>' } },
     { type: 'node', lat: 10, lon: 10, tags: { amenity: 'fuel', name: 'Longe da rota' } },
-  ] } }));
+  ] } }); });
   await p.route('https://air-quality-api.open-meteo.com/**', (r) => aqi == null ? r.fulfill({ status: 500, body: '{}' }) : r.fulfill({ json: { current: { us_aqi: aqi, pm2_5: 9.1 } } }));
   await p.route('https://api.weather.gov/**', (r) => { nwsCalls++; const pt = new URL(r.request().url()).searchParams.get('point') || '';
     if (!nwsAll && !/^42\.(3601|3900|4250|4000|4200),/.test(pt) && !/^42\.36\d\d,-71\.05/.test(pt)) return r.fulfill({ json: { features: [] } });
@@ -620,6 +620,8 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   const tz2 = await th();
   await t.p.tap('.trip__map .map-expand__btn'); await t.p.waitForTimeout(400);
   check('Viagem: ⤢ amplia, diminui e amplia de novo (toque)', tz1 > tz0 + 150 && tz2 === tz0 && (await th()) === tz1, `${tz0}→${tz1}→${tz2}`);
+  const vh = await t.p.evaluate(() => innerHeight);
+  check('Viagem: mapa ampliado deixa espaço para rolar a página (≤ 62% da tela)', tz1 <= vh * 0.62, `${tz1}px de ${vh}px`);
   await t.p.tap('.trip__map .map-expand__btn'); await t.p.waitForTimeout(300);
   await t.p.click('.trip__stop--danger >> .hit'); await t.p.waitForTimeout(200);
   check('Viagem: toque no alerta abre cuidados', (await t.p.textContent('.trip__care')).includes('Dirigindo') && (await t.p.textContent('.trip__care')).includes('Chuva'), (await t.p.textContent('.trip__care').catch(() => '?')).slice(0, 120));
@@ -695,6 +697,19 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   t = await page(browser, { mobile: false, url: '/?viagem=1&de=42.36,-71.06&den=%3Cimg%20src=x%20onerror=window.__xss=4%3E&para=41.76,-72.68&paran=Hartford&saida=1&veiculo=tanque' });
   await t.p.waitForTimeout(1800);
   check('Segurança: nome no link do plano vira texto; veículo desconhecido vira carro', (await t.p.evaluate(() => window.__xss)) === undefined && (await t.p.locator('img[src="x"]').count()) === 0 && (await t.p.getAttribute('.trip__veh button[data-veh="car"]', 'aria-pressed')) === 'true');
+  await t.ctx.close();
+
+  // 5.1: postos e balanças não seguram a resposta — mapa colaborativo lento (8 s)
+  t = await page(browser, { mobile: false, overpassDelay: 8000 });
+  await t.p.waitForTimeout(800);
+  await t.p.click('.trip__toggle'); await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  const tGo = Date.now();
+  await t.p.click('.trip__go'); await t.p.waitForSelector('.trip__stop', { timeout: 15000 });
+  const tShown = Date.now() - tGo;
+  check('Rapidez: previsão aparece sem esperar os postos', tShown < 4000 && (await t.p.textContent('.trip__road')).includes('Buscando postos'), `${tShown} ms`);
+  await t.p.waitForTimeout(8500);
+  check('Rapidez: postos entram depois, sozinhos', (await t.p.textContent('.trip__road')).includes('postos de combustível no caminho') && (await t.p.locator('.trip__fuel').count()) >= 1, (await t.p.textContent('.trip__road')).slice(0, 80));
+  check('Sem erros JS (postos atrasados)', t.errors.length === 0, t.errors.join(' | '));
   await t.ctx.close();
 
   t = await page(browser, { mobile: false, overpassFail: true });

@@ -2,7 +2,7 @@
 // Fonte: OpenStreetMap via Overpass API (grátis, sem chave, dados colaborativos).
 // Limites honestos: o mapa é feito por voluntários — pode faltar posto ou balança, e não
 // sabemos se a balança está aberta agora (isso só serviços pagos, como PrePass/Drivewyze nos EUA).
-import { t } from '../i18n/index.js?v=5.0';
+import { t } from '../i18n/index.js?v=5.1';
 
 const OVERPASS = 'https://overpass-api.de/api/interpreter';
 const R = 6371;
@@ -12,8 +12,8 @@ const dist = (a, b) => {
   return 2 * R * Math.asin(Math.sqrt(x));
 };
 
-/** Reduz a rota a no máximo ~120 pontos (a consulta fica leve). */
-function simplify(coords, max = 120) {
+/** Reduz a rota a no máximo ~80 pontos (a consulta fica leve; o Overpass trata os pontos como uma linha). */
+function simplify(coords, max = 80) {
   if (coords.length <= max) return coords;
   const step = (coords.length - 1) / (max - 1);
   return Array.from({ length: max }, (_, i) => coords[Math.round(i * step)]);

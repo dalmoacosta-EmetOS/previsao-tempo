@@ -2,6 +2,12 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 5.1 — 29/09/2026 · Viagem mais rápida, mapa ampliado menor no celular
+- **Resposta da viagem sem esperar postos e balanças.** A previsão aparece assim que rota e tempo chegam. Postos e balanças entram depois, sozinhos (ADR-046). No vídeo do Dalmo (Brasília → Rio), a espera era de cerca de 20 s, porque o site esperava o mapa colaborativo, que acabou falhando.
+- **Mensagens de progresso:** "Calculando a rota…" → "Buscando a previsão de N pontos…".
+- **Consulta de postos mais leve** (rota resumida em 80 pontos em vez de 120).
+- **Mapa ampliado no celular:** cerca de 60% da tela (antes, quase a tela toda), para sobrar espaço de rolar a página com o dedo; ao ampliar, o mapa fica centralizado. No computador, continua grande.
+
 ## 5.0 — 29/09/2026 · Idiomas e unidades
 - **Português, inglês e espanhol.** O site abre no idioma do celular; se o celular estiver em outro idioma, abre em inglês. Botão 🌐 para escolher à mão, pensado para imigrantes (ADR-045).
 - **Unidades pelo costume do país:**

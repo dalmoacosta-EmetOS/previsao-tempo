@@ -1,25 +1,27 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=5.0';
-import { icon } from './icons.js?v=5.0';
-import { setupSearch } from './search.js?v=5.0';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=5.0';
-import { clock, shortDate } from '../domain/time.js?v=5.0';
-import { t } from '../i18n/index.js?v=5.0';
-import { getRoute } from '../api/route.js?v=5.0';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=5.0';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=5.0';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=5.0';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=5.0';
-import { reverseGeocode } from '../api/geocoding.js?v=5.0';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES } from '../domain/route-weather.js?v=5.0';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=5.0';
-import { addExpandControl } from './map-expand.js?v=5.0';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=5.0';
+import { el, fill } from './dom.js?v=5.1';
+import { icon } from './icons.js?v=5.1';
+import { setupSearch } from './search.js?v=5.1';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=5.1';
+import { clock, shortDate } from '../domain/time.js?v=5.1';
+import { t } from '../i18n/index.js?v=5.1';
+import { getRoute } from '../api/route.js?v=5.1';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=5.1';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=5.1';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=5.1';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=5.1';
+import { reverseGeocode } from '../api/geocoding.js?v=5.1';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES } from '../domain/route-weather.js?v=5.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=5.1';
+import { addExpandControl } from './map-expand.js?v=5.1';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=5.1';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
 const MAX_DAYS = 7;
 let map = null, layer = null, lastResult = null;
+let lastRender = {};
+let poisArrived = null; // { route, pois } — resposta do mapa colaborativo, que chega por fora // o que está na tela, para completar com postos e balanças quando chegarem
 
 const LEVEL_COLOR = { danger: '#e1322a', warn: '#ffb238', info: '#6ed75a', ok: '#7cc4ff' };
 const fmtTime = clock;
@@ -164,21 +166,35 @@ async function run(opts = {}) {
     return;
   }
   goBtn.disabled = true; goBtn.textContent = t('trip.calculating');
-  fill(out, el('p', { class: 'trip__msg', text: t('trip.calculatingLong') }));
+  const step = (key, vars) => fill(out, el('p', { class: 'trip__msg', role: 'status', text: t(key, vars) }));
+  step('trip.stepRoute');
   try {
     const key = `${origin.lat},${origin.lon}>${to.lat},${to.lon}`;
     const stale = !cache || cache.key !== key || cache.fetchedAt < Date.now() - 15 * 60e3;
     if (stale || start - cache.baseStart > 12 * 3600e3 || start + cache.route.duration * 1000 + 7 * 3600e3 > cache.seriesEnd) {
       const route = stale ? await getRoute(origin, to) : cache.route;
       const probe = samplePoints(route, start);
+      step('trip.stepForecast', { n: probe.length });
+      // Postos e balanças NÃO seguram a resposta (5.1): o mapa colaborativo pode levar 20 s numa rota longa.
+      // A previsão aparece primeiro; postos e balanças entram no cartão quando chegarem.
+      const keepPois = !stale && cache.pois !== undefined ? cache.pois : undefined;
+      if (keepPois === undefined) {
+        poisArrived = null;
+        getRoadPois(route, { trucks: true }).catch(() => null).then((pois) => {
+          poisArrived = { route, pois }; // pode chegar antes ou depois da previsão
+          if (cache?.route !== route) return;
+          cache.pois = pois;
+          refreshRoad();
+        });
+      }
       const days = (start + route.duration * 1000 + 8 * 3600e3 - Date.now()) / 86400e3 + 1;
-      const [series, names, official, pois] = await Promise.all([
+      const [series, names, official] = await Promise.all([
         getPointsSeries(probe, days),
-        Promise.all(probe.map((p, i) => (i === 0 ? { name: origin.name } : i === probe.length - 1 ? { name: to.name } : reverseGeocode(p.lat, p.lon)))),
+        Promise.all(probe.map((p, i) => (i === 0 ? { name: origin.name } : i === probe.length - 1 ? { name: to.name } : reverseGeocode(p.lat, p.lon, { timeout: 3500 })))),
         officialAlongRoute(probe),
-        stale || !cache.pois ? getRoadPois(route, { trucks: true }).catch(() => null) : Promise.resolve(cache.pois),
       ]);
       const seriesEnd = Math.min(...series.map((h) => (h.time[h.time.length - 1] || 0) * 1000));
+      const pois = poisArrived?.route === route ? poisArrived.pois : keepPois;
       cache = { key, route, series, names: names.map((n, i) => n?.name || milestone(probe[i].km)), official, pois, seriesEnd, baseStart: start, fetchedAt: Date.now() };
     }
     const result = evaluate(start);
@@ -247,6 +263,7 @@ function renderResult({ origin, dest, route, stops, start, score, passed, fromLi
   const night = stops.filter((s) => s.w.isDay === false).length;
   const officialTitles = [...new Set(stops.flatMap((s) => s.cond.flags.filter((f) => f.key === 'official').map((f) => f.title)))];
   const pauses = suggestedStops(stops, start);
+  lastRender = { route, stops, start, unit, pauses };
   const alt = bestAlternative({ start, score });
   const plan = { from: origin, to: dest, departMs: start, vehicle, durationS: route.duration };
   const link = planToUrl(plan, location.href);
@@ -268,9 +285,9 @@ function renderResult({ origin, dest, route, stops, start, score, passed, fromLi
         ` ${t('trip.betterWhy', { a: countAttention(alt.stops), b: countAttention(stops) })}`]),
       el('button', { type: 'button', class: 'btn trip__alt-btn', text: t('trip.useTime'), onclick: () => { setDepart(alt.start); run(); } }),
     ]),
-    roadBlock(route, start),
+    lastRender.road = roadBlock(route, start),
     mapBox,
-    el('ol', { class: 'trip__stops' }, stops.map((s, i) => stopItem(s, i, unit, pauses.has(i), cache.pois && pauses.has(i) ? nearestFuel(cache.pois.fuel, s.km) : null))),
+    lastRender.list = stopList(stops, unit, pauses),
     el('div', { class: 'trip__share' }, [
       el('p', { class: 'trip__share-title', text: t('trip.shareTitle') }),
       el('div', { class: 'trip__share-btns' }, [
@@ -305,9 +322,28 @@ function openIcs(ics) {
   setTimeout(() => URL.revokeObjectURL(url), 60000);
 }
 
+const stopList = (stops, unit, pauses) => el('ol', { class: 'trip__stops' },
+  stops.map((s, i) => stopItem(s, i, unit, pauses.has(i), cache.pois && pauses.has(i) ? nearestFuel(cache.pois.fuel, s.km) : null)));
+
+// Postos e balanças chegaram depois da previsão: troca só o cartão "Na estrada", a lista de paradas e os marcadores.
+function refreshRoad() {
+  const r = lastRender;
+  if (!r.road?.isConnected || r.route !== cache.route) return;
+  const road = roadBlock(r.route, r.start);
+  r.road.replaceWith(road); r.road = road;
+  const list = stopList(r.stops, r.unit, r.pauses);
+  r.list.replaceWith(list); r.list = list;
+  if (map && layer) addWeighMarkers(window.L);
+}
+
+function addWeighMarkers(L) {
+  if (vehicle === 'large' && cache?.pois) cache.pois.weigh.forEach((w) => L.circleMarker([w.lat, w.lon], { radius: 6, weight: 2, color: '#fff', fillColor: '#8e44ad', fillOpacity: 1 }).bindTooltip(tipText(`⚖️ ${milestone(w.km)} · ${w.name}`)).addTo(layer));
+}
+
 // Na estrada (ADR-044): postos e, para caminhão/van, balanças de pesagem — OpenStreetMap
 function roadBlock(route, start) {
   const pois = cache.pois;
+  if (pois === undefined) return el('p', { class: 'trip__road trip__road--muted', role: 'status', text: `⛽ ${t('road.loading')}` });
   const totalKm = route.distance / 1000;
   const eta = (km) => fmtTime(start + (km / (pois?.totalKm || totalKm)) * route.duration * 1000);
   if (!pois) return el('p', { class: 'trip__road trip__road--muted', text: `⛽ ${t('road.fail')}` });
@@ -392,7 +428,7 @@ async function drawMap(box, route, stops) {
   layer = L.layerGroup().addTo(map);
   addExpandControl(L, map, box);
   L.polyline(route.coords, { color: '#1a4c8c', weight: 5, opacity: 0.85 }).addTo(layer);
-  if (vehicle === 'large' && cache?.pois) cache.pois.weigh.forEach((w) => L.circleMarker([w.lat, w.lon], { radius: 6, weight: 2, color: '#fff', fillColor: '#8e44ad', fillOpacity: 1 }).bindTooltip(tipText(`⚖️ ${milestone(w.km)} · ${w.name}`)).addTo(layer));
+  addWeighMarkers(L);
   stops.forEach((s) => L.circleMarker([s.lat, s.lon], {
     radius: 8, weight: 2, color: '#fff', fillColor: LEVEL_COLOR[s.cond.level || 'ok'], fillOpacity: 1,
   }).bindTooltip(tipText(`${fmtTime(s.etaMs)} · ${s.name} · ${s.cond.label}`)).addTo(layer));

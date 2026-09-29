@@ -1111,8 +1111,13 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
 .map-expand__btn { display: grid !important; place-items: center; width: 40px !important; height: 40px !important; background: #fff; color: #1a4c8c; }
 .map-expand__btn svg { width: 22px; height: 22px; }
 .radar__map, .trip__map { scroll-margin-top: 140px; }
+/* 5.1: no CELULAR, ampliado = ~60% da tela (antes quase a tela toda); no computador continua grande. Sobra espaço acima e abaixo para rolar a página
+   com o dedo — dentro do mapa, o dedo arrasta o mapa. */
 .radar__map.is-tall, .trip__map.is-tall { height: calc(100vh - 170px) !important; min-height: 360px; }
-@supports (height: 100svh) { .radar__map.is-tall, .trip__map.is-tall { height: calc(100svh - 170px) !important; } }
+@media (hover: none), (max-width: 700px) {
+  .radar__map.is-tall, .trip__map.is-tall { height: min(60vh, 560px) !important; min-height: 340px; }
+  @supports (height: 100svh) { .radar__map.is-tall, .trip__map.is-tall { height: min(60svh, 560px) !important; } }
+}
 
 /* Viagem — Fase 1 do produto (ADR-042) */
 .trip__when { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }

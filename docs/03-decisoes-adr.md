@@ -373,3 +373,26 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - O corretor confere palavras, não frases.
 - As traduções de segurança (`adv.*`) devem ser lidas por falantes nativos antes do lançamento nesses mercados.
 - A pesquisa de concorrentes ([09-concorrentes.md](09-concorrentes.md)) mostra que os líderes já têm português e espanhol. O diferencial é a escolha manual com unidades por medida, e isso ainda é [Provável], não [Certo].
+
+## ADR-046 — Viagem: resposta sem esperar postos; mapa ampliado menor no celular (v5.1)
+**Status:** Aceita · 29/09/2026 · retorno de um usuário (mapa ampliado grande demais no celular) e vídeo do Dalmo (resposta demorada).
+**Diagnóstico:**
+- O vídeo mostra cerca de 20 s em "Calculando…" numa viagem Brasília → Rio (1.400 km), e ao final a mensagem "não consegui carregar postos e balanças".
+- O cálculo esperava **todas** as consultas juntas, inclusive a do mapa colaborativo (Overpass), que tem limite de 20 s e é lenta em rotas longas.
+- Daqui não conseguimos medir os serviços reais (a rede de testes não acessa essas APIs). O diagnóstico vem do vídeo e do código: [Provável], não medição.
+
+**Decisões:**
+- Postos e balanças correm **em paralelo e fora do caminho crítico**:
+  - a previsão aparece assim que rota, tempo, nomes e alertas chegam;
+  - o cartão "Na estrada" mostra "Buscando postos…" e é trocado quando a resposta chega, junto com a lista de paradas (posto perto) e os marcadores das balanças;
+  - se a resposta chegar depois que a pessoa pediu outra rota, é descartada.
+- Mensagens de etapa ("Calculando a rota…", "Buscando a previsão de N pontos…").
+- A consulta de postos usa no máximo 80 pontos da rota (antes 120).
+- O limite de espera pelos nomes dos pontos caiu de 5 s para 3,5 s. Sem nome, o ponto aparece como "km 120".
+- **Mapa ampliado em telas de toque:** `min(60% da tela, 560 px)`, antes quase a tela toda. Dentro do mapa o dedo arrasta o mapa, então é preciso sobrar página para rolar. Ao ampliar, o mapa é centralizado. No computador, continua grande.
+
+**Testes novos:**
+- mapa colaborativo com 8 s de atraso: a previsão aparece em menos de 4 s e os postos entram depois;
+- mapa ampliado no celular ocupa no máximo 62% da tela.
+
+**Limite que continua:** os serviços gratuitos (OSRM de demonstração e Overpass) não têm garantia de velocidade. Um servidor próprio de rotas ou um cache fica para a fase AWS.

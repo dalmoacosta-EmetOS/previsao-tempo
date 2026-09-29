@@ -1,5 +1,5 @@
-import { getJSON } from './http.js?v=5.0';
-import { getLang } from '../i18n/index.js?v=5.0';
+import { getJSON } from './http.js?v=5.1';
+import { getLang } from '../i18n/index.js?v=5.1';
 
 const SEARCH_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 // O BigDataCloud passou a redirecionar api.bigdatacloud.net → api-bdc.io (ADR-040, 3.5.2): chamamos o endereço novo direto
@@ -22,10 +22,10 @@ export async function searchCities(query) {
  * Descobre o nome da cidade a partir das coordenadas (para "Sua localização").
  * Opcional: se falhar, devolve null e o site segue com "Sua localização".
  */
-export async function reverseGeocode(lat, lon) {
+export async function reverseGeocode(lat, lon, { timeout = 5000 } = {}) {
   try {
     const url = `${REVERSE_URL}?latitude=${lat}&longitude=${lon}&localityLanguage=${getLang()}`;
-    const d = await getJSON(url, { timeout: 5000 });
+    const d = await getJSON(url, { timeout });
     const name = d.city || d.locality;
     if (!name) return null;
     return { name, region: d.principalSubdivision || '', country: d.countryName || '' };
