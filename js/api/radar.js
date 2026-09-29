@@ -1,4 +1,4 @@
-import { getJSON } from './http.js?v=3.6.1';
+import { getJSON } from './http.js?v=4.0';
 
 // Radar de precipitação da RainViewer (grátis, sem chave, com atribuição obrigatória).
 // Entrega os quadros das últimas ~2 horas, de 10 em 10 min (ADR-012).

@@ -313,3 +313,23 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Decisão:** botão ⤢ no canto do mapa do radar e do mapa da viagem. Tocar no mapa continua servindo para arrastar; o botão amplia para a tela toda (no radar, o cartão inteiro: mapa + ▶ + legenda). ✕ ou Esc volta. Enquanto ampliado, o mapa é movido para o nível da página (efeitos de vidro dos cartões impediam o "tela cheia" — o teste pegou isso na viagem).
 **Congelamento:** a v3.6 encerra o exercício 1 (ramo `congelado-v3.6`).
 **Revisão 3.6.1 (19:28) — falha no iPhone achada pelo Dalmo:** ao tocar em ⤢ o mapa "fechava" e não abria de novo. A 1ª versão tirava o mapa do lugar e o fazia flutuar por cima da página; no Safari do iPhone isso falhou (no Chromium funcionava — não temos Safari no ambiente de testes). Troca por um método sem esse risco: o mapa **cresce no próprio lugar** (quase a altura da tela) e a página rola até ele; tocar de novo volta ao tamanho normal. O teste também pegou que uma animação de altura confundia o mapa sobre o próprio tamanho — removida. **Congelamento atualizado para a v3.6.1** (ramo `congelado-v3.6`).
+
+## ADR-042 — Fase 1 do produto: viagem completa
+**Status:** Aceita · 28/09/2026 · pedido do Dalmo após a nota A+ ("faça a implementação das outras funções agora"). Versão do exercício congelada antes: **3.6.1** (ramo `congelado-v3.6.1`).
+**Decisões:**
+- **Data e hora de saída** livres, até **7 dias** à frente (NOAA: 7 dias ≈ 80% de acerto; 10+ dias ≈ metade). Acima disso o site recusa.
+- **Aviso de confiabilidade** por antecedência (até 3 dias "confiável por trecho"; 4–7 "tendência") e por país: **EUA → números da NOAA com link**; **Brasil → sem percentual (não achamos número oficial do INMET/CPTEC), aviso sobre pancadas de chuva e link de alertas do INMET**; outros países → aviso genérico.
+- **Veículo**: carro/ônibus (limites de antes), **moto** (chuva a partir de 0,2 mm/h já pede atenção; rajadas 30/50 km/h; noite = atenção), **caminhão/van/reboque** (rajadas 30/50 km/h — vento lateral).
+- **Noite**: cada ponto marca se é dia ou noite na hora da passagem.
+- **Melhor horário**: com a rota e a série de previsão já baixadas, testa saídas de −3 h a +6 h e sugere a de menor risco (se melhorar de fato); botão "Usar este horário".
+- **Paradas sugeridas** a cada ~2 h de estrada.
+- **Alertas oficiais do NWS ao longo da rota** (EUA), considerando o horário de passagem.
+- **Levar o plano**: link com origem, destino, saída e veículo (validado ao abrir) — por **e-mail** (abre o e-mail do próprio usuário), **WhatsApp**, **calendário** (.ics com lembrete na véspera e 2 h antes) e **copiar link**. Ao abrir o link, a viagem é **recalculada com a previsão mais nova**; se o horário já passou, recalcula saindo agora e avisa.
+**Fora (Fase 2+):** alertas do INMET na rota (confirmar fonte), postos, dados da PRF, notificações, relatos de usuários — ver [06-produto-roadmap.md](06-produto-roadmap.md).
+
+## ADR-043 — Segurança em nível de produto
+**Status:** Aceita · 28/09/2026 · pedido do Dalmo ("verifique nos mais altos padrões")
+**Premissa honesta:** proteção completa não existe; o objetivo é reduzir a superfície de ataque e ter camadas.
+**Decisões:** validação de todo parâmetro de link de viagem; anti-clickjacking por script (o cabeçalho ideal só é possível na AWS); CI com permissão mínima; **CodeQL** (varredura de segurança semanal e a cada envio); **Dependabot**; `SECURITY.md` com canal privado de relato; modelo de ameaças e plano para AWS em [07-seguranca.md](07-seguranca.md). Testes novos: link de plano adulterado e nome malicioso no plano.
+**Ações que dependem do Dalmo:** 2 fatores no GitHub, limitar o app do Claude a este repositório, proteger o ramo `main`, ativar relato privado de vulnerabilidades.
+

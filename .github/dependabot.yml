@@ -1,0 +1,9 @@
+# Avisos e atualizações automáticas de dependências com falhas conhecidas (ADR-043).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /tests
+    schedule: { interval: weekly }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: weekly }

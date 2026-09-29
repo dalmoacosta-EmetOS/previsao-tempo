@@ -1,6 +1,6 @@
 // Faixa de cidades favoritas (ADR-030): atalho de um toque.
-import { el, fill } from './dom.js?v=3.6.1';
-import { placeKey } from '../domain/place-url.js?v=3.6.1';
+import { el, fill } from './dom.js?v=4.0';
+import { placeKey } from '../domain/place-url.js?v=4.0';
 
 export function renderFavorites(root, favorites, current, onPick) {
   root.hidden = favorites.length === 0;

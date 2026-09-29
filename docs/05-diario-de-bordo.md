@@ -40,6 +40,8 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 28/09 18:53–19:10 | Dalmo: "parou de perguntar a hora de saída" (prints) | O campo existia, mas sem cara de escolha → setinha + "Horário de saída". IA notou nos prints: nomes de cidade sumiram — CSP da 3.5.1 bloqueava o redirecionamento do serviço de nomes | v3.5.2. 140/140 testes (agora simulando o redirecionamento) | 17 min |
 | 28/09 19:09–19:25 | Dalmo: último pedido — ampliar o mapa; depois fechar o projeto e gerar a apresentação | Botão ⤢ nos dois mapas → ADR-041. Teste pegou o mapa da viagem preso ao cartão (efeito de vidro) → corrigido. **Projeto congelado na v3.6** | v3.6. 144/144 testes | 16 min |
 | 28/09 19:28–19:45 | Dalmo: no iPhone, ⤢ fecha o mapa e não abre de novo | Não reproduz no Chromium; causa provável = mapa flutuante no Safari → troca por "crescer no lugar" | v3.6.1. 143/143 testes | 17 min |
+| 28/09 21:30 | **Trabalho apresentado — nota A+.** Dalmo pergunta o limite de dias da previsão (NOAA: 5 d ≈ 90%, 7 d ≈ 80%, 10+ ≈ 50%) e como fica no Brasil | Número oficial do INMET/CPTEC não encontrado → aviso sem percentual no Brasil | — | — |
+| 28/09 22:08–23:30 | Dalmo: vira candidato a produto (AWS no futuro); congelar a versão; implementar as outras funções; documentar; segurança "nos mais altos padrões" | 3.6.1 congelada (`congelado-v3.6.1`); Fase 1 feita em ramo separado → ADR-042; segurança de produto → ADR-043; CHANGELOG, roadmap, SECURITY.md, modelo de ameaças | **v4.0** | ~80 min |
 | | | | | |
 
 ## Lições (preencher ao final)

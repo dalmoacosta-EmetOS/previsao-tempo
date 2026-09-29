@@ -1,14 +1,36 @@
 // Níveis de atenção para o "Hoje em detalhe" + recomendações (ADR-022).
 // Limites baseados em referências públicas (escala Beaufort, OMS para UV, faixas de
 // avisos de chuva do INMET). NÃO são alertas oficiais.
-import { speed } from './units.js?v=3.6.1';
-import { isWetHour } from './summary.js?v=3.6.1';
-import { roadIceRisk } from './road-ice.js?v=3.6.1';
-import { aqiLevel } from '../api/air-quality.js?v=3.6.1';
+import { speed } from './units.js?v=4.0';
+import { isWetHour } from './summary.js?v=4.0';
+import { roadIceRisk } from './road-ice.js?v=4.0';
+import { aqiLevel } from '../api/air-quality.js?v=4.0';
 
 export const SOURCES = 'Limites: escala Beaufort (vento), OMS (índice UV), faixas de aviso do INMET (chuva), EPA (qualidade do ar). Recomendações gerais de segurança — em emergência, siga a Defesa Civil e as autoridades locais.';
 
 export const ADVICE = {
+  night: {
+    warn: {
+      title: 'Trecho à noite',
+      walk: 'Nas paradas, use roupa clara ou refletiva perto da pista.',
+      drive: 'De moto, a visibilidade cai muito à noite: colete refletivo, farol ligado e velocidade menor. Se puder, planeje chegar antes de escurecer.',
+      home: 'Se der, ajuste o horário de saída para fazer este trecho de dia.',
+    },
+  },
+  official: {
+    danger: {
+      title: 'Alerta oficial em vigor neste trecho',
+      walk: 'Siga as orientações do serviço de meteorologia e da Defesa Civil local.',
+      drive: 'Considere adiar ou mudar o horário da viagem; acompanhe o rádio e os painéis da estrada.',
+      home: 'Veja o texto completo do alerta no site oficial antes de sair.',
+    },
+    warn: {
+      title: 'Vigilância oficial neste trecho',
+      walk: 'Fique atento a mudanças rápidas do tempo.',
+      drive: 'Acompanhe atualizações durante a viagem; tenha um plano B de parada.',
+      home: 'Confira o alerta oficial antes de sair.',
+    },
+  },
   fog: {
     warn: {
       title: 'Névoa na estrada',

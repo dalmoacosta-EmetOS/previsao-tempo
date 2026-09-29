@@ -1,5 +1,5 @@
-import { el, fill } from './dom.js?v=3.6.1';
-import { computeAlerts } from '../domain/alerts.js?v=3.6.1';
+import { el, fill } from './dom.js?v=4.0';
+import { computeAlerts } from '../domain/alerts.js?v=4.0';
 
 export function renderAlerts(root, { data, unit, official = [] }) {
   const alerts = computeAlerts(data, unit);

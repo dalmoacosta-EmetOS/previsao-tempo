@@ -1,0 +1,23 @@
+# Varredura automática de segurança do código (GitHub CodeQL) — ADR-043.
+# Gratuita para repositório público. Procura falhas como injeção de código (XSS),
+# uso inseguro de dados vindos de fora e padrões perigosos. Resultado: aba Security → Code scanning.
+name: Segurança (CodeQL)
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 9 * * 1'   # toda segunda-feira, além de cada envio
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-extended
+      - uses: github/codeql-action/analyze@v3

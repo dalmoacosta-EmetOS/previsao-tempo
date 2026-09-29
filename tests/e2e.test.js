@@ -62,7 +62,7 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false }) {
+async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false }) {
   // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
   const ctx = await browser.newContext({ bypassCSP, serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
@@ -79,11 +79,11 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
     if (lats.length > 1 && u.searchParams.get('hourly').includes('wind_gusts_10m')) {
       // "Tempo na viagem": previsão por ponto da rota (ADR-039)
       const n = lats.length, now = Math.floor(Date.now() / 3600000) * 3600;
-      const times = Array.from({ length: 72 }, (_, t) => now + t * 3600);
+      const times = Array.from({ length: 8 * 24 }, (_, t) => now + t * 3600);
       return r.fulfill({ json: Array.from({ length: n }, (_, i) => ({ hourly: { time: times,
-        temperature_2m: times.map(() => 15 - i), precipitation: times.map(() => (i === 2 ? 9 : 0)),
-        precipitation_probability: times.map(() => (i === 2 ? 90 : 10)), weather_code: times.map(() => (i === 2 ? 65 : i === 3 ? 45 : 2)),
-        visibility: times.map(() => (i === 3 ? 300 : 20000)), wind_gusts_10m: times.map(() => 20), snowfall: times.map(() => 0), is_day: times.map(() => 1) } })) });
+        temperature_2m: times.map(() => 15 - i), precipitation: times.map((_, t) => (i === 2 && t < 5 ? 9 : 0)),
+        precipitation_probability: times.map(() => (i === 2 ? 90 : 10)), weather_code: times.map((_, t) => (i === 2 && t < 5 ? 65 : i === 3 ? 45 : 2)),
+        visibility: times.map(() => (i === 3 ? 300 : 20000)), wind_gusts_10m: times.map(() => 20), snowfall: times.map(() => 0), is_day: times.map(() => (i === 4 ? 0 : 1)) } })) });
     }
     if (lats.length > 1) {
       if (gridFail) return r.fulfill({ status: 500, body: '{}' });
@@ -104,6 +104,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
     return failForecast ? r.fulfill({ status: 503, body: '{}' }) : r.fulfill({ json: fc });
   });
   await p.route('https://geocoding-api.open-meteo.com/**', (r) => r.request().url().includes('xyz') ? r.fulfill({ json: {} })
+    : r.request().url().includes('Hart') ? r.fulfill({ json: { results: [{ name: 'Hartford', admin1: 'Connecticut', country: 'Estados Unidos', latitude: 41.76, longitude: -72.68 }] } })
     : r.request().url().includes('hack') ? r.fulfill({ json: { results: [{ name: '<img src=x onerror="window.__xss=1">Hack', admin1: '<b>x</b>', country: 'BR', latitude: -10, longitude: -50 }] } })
     : r.fulfill({ json: GEO }));
   // Igual ao serviço real desde set/2026: o endereço antigo redireciona para api-bdc.io
@@ -128,7 +129,9 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
     : r.fulfill({ json: { code: 'Ok', routes: [{ duration: 3 * 3600 + 600, distance: 290000,
       geometry: { coordinates: Array.from({ length: 50 }, (_, i) => [-71.06 - i * 0.06, 42.36 - i * 0.034]) } }] } }));
   await p.route('https://air-quality-api.open-meteo.com/**', (r) => aqi == null ? r.fulfill({ status: 500, body: '{}' }) : r.fulfill({ json: { current: { us_aqi: aqi, pm2_5: 9.1 } } }));
-  await p.route('https://api.weather.gov/**', (r) => { nwsCalls++; r.fulfill({ json: { features: [
+  await p.route('https://api.weather.gov/**', (r) => { nwsCalls++; const pt = new URL(r.request().url()).searchParams.get('point') || '';
+    if (!nwsAll && !/^42\.(3601|3900|4250|4000|4200),/.test(pt) && !/^42\.36\d\d,-71\.05/.test(pt)) return r.fulfill({ json: { features: [] } });
+    r.fulfill({ json: { features: [
     { properties: { event: 'Flood Warning', severity: 'Severe', onset: new Date().toISOString(), ends: new Date(Date.now() + 3 * 3600e3).toISOString(), headline: 'Flood Warning issued by NWS Boston MA', description: 'The Flood Warning continues for the Mystic River at Malden.', instruction: 'Turn around, don\'t drown.', areaDesc: 'Middlesex, MA', senderName: 'NWS Boston/Norton MA' } },
     { properties: { event: 'Gale Warning', severity: 'Moderate', effective: new Date().toISOString(), expires: new Date(Date.now() + 6 * 3600e3).toISOString(), headline: 'Gale Warning', description: 'Northeast winds 25 to 35 kt.', areaDesc: 'Coastal waters', senderName: 'NWS Boston/Norton MA' } },
   ] } }); });
@@ -596,7 +599,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   const trip = await t.p.textContent('.trip__summary').catch(() => '');
   check('Viagem: resumo aponta o pior trecho', trip.startsWith('Atenção: chuva forte'), trip);
   check('Viagem: 3h10 → pontos de hora em hora (5)', (await t.p.locator('.trip__stop').count()) === 5, String(await t.p.locator('.trip__stop').count()));
-  check('Viagem: trecho com névoa sinalizado', (await t.p.locator('.trip__stop--danger').count()) === 1 && (await t.p.locator('.trip__stop--warn').count()) === 1 && (await t.p.textContent('.trip__stops')).includes('Névoa (visibilidade'));
+  check('Viagem: trecho com névoa sinalizado', (await t.p.locator('.trip__stop--danger').count()) >= 1 && (await t.p.locator('.trip__stop--warn').count()) >= 1 && (await t.p.textContent('.trip__stops')).includes('Névoa (visibilidade'));
   check('Viagem: chegada calculada', (await t.p.textContent('.trip__stats')).includes('3 h 10 min · 290 km'), await t.p.textContent('.trip__stats'));
   check('Viagem: mapa com a rota', (await t.p.locator('.trip__map path.leaflet-interactive').count()) >= 1);
   const th = async () => t.p.evaluate(() => Math.round(document.querySelector('.trip__map').getBoundingClientRect().height));
@@ -614,8 +617,34 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('Viagem: × fecha os cuidados', (await t.p.locator('.trip__care').count()) === 0);
   await t.p.click('.trip__stop--warn >> .hit'); await t.p.waitForTimeout(150);
   check('Viagem: névoa tem cuidados próprios', (await t.p.textContent('.trip__care')).includes('Farol baixo e de neblina'));
+  // ADR-042: fase 1 do produto
+  check('Viagem: aviso de confiabilidade (Brasil → INMET)', (await t.p.textContent('.trip__horizon')).includes('INMET') && (await t.p.textContent('.trip__horizon')).includes('confiável'), await t.p.textContent('.trip__horizon'));
+  check('Viagem: aviso de trecho à noite', (await t.p.textContent('.trip__night')).includes('à noite'));
+  check('Viagem: parada sugerida a cada ~2 h', (await t.p.locator('.trip__pause').count()) >= 1);
+  const altTxt = await t.p.textContent('.trip__alt').catch(() => '');
+  check('Viagem: sugere melhor horário de saída', altTxt.includes('Melhor horário'), altTxt.slice(0, 100));
+  const mail = await t.p.getAttribute('.trip__share-btn:has-text("E-mail")', 'href');
+  const ics = decodeURIComponent((await t.p.getAttribute('.trip__share-btn:has-text("Calendário")', 'href')).split(',')[1]);
+  check('Viagem: e-mail leva o link que atualiza', mail.startsWith('mailto:') && decodeURIComponent(mail).includes('viagem=1'), decodeURIComponent(mail).slice(0, 120));
+  check('Viagem: calendário com lembrete na véspera e 2 h antes', ics.includes('BEGIN:VEVENT') && ics.includes('TRIGGER:-P1D') && ics.includes('TRIGGER:-PT2H') && ics.includes('viagem=1'));
+  const planLink = decodeURIComponent(mail).match(/http:\/\/localhost:\d+\/\?[^\s]+/)[0];
   await t.p.evaluate(() => document.getElementById('toast').hidden = true);
   await t.p.locator('#trip').screenshot({ path: `${OUT}/viagem.png` });
+  await t.p.click('.trip__alt-btn'); await t.p.waitForTimeout(600);
+  check('Viagem: "Usar este horário" evita a chuva', !(await t.p.textContent('.trip__summary')).includes('chuva forte'), await t.p.textContent('.trip__summary'));
+  await t.p.click('.trip__veh button[data-veh="moto"]');
+  await t.p.evaluate(() => { const d = new Date(Date.now() + 3600e3); const p = (n) => String(n).padStart(2, '0'); document.getElementById('trip-date').value = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; document.getElementById('trip-time').value = `${p(d.getHours())}:00`; });
+  await t.p.click('.trip__go'); await t.p.waitForTimeout(600);
+  check('Viagem: moto tem limites próprios', (await t.p.textContent('.trip__stops')).includes('de moto') || (await t.p.textContent('.trip__stops')).includes('escorregadia'), (await t.p.textContent('.trip__stops')).slice(0, 160));
+  await t.p.evaluate(() => { const d = new Date(Date.now() + 9 * 86400e3); const p = (n) => String(n).padStart(2, '0'); document.getElementById('trip-date').value = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; });
+  await t.p.click('.trip__go'); await t.p.waitForTimeout(300);
+  check('Viagem: mais de 7 dias é recusado', (await t.p.textContent('.trip__out')).includes('até 7 dias'));
+  // abrir o link do plano em outra "pessoa": recalcula sozinho
+  const t2 = await page(browser, { mobile: true, url: planLink.replace(/^http:\/\/localhost:\d+/, '') });
+  await t2.p.waitForTimeout(1800);
+  check('Link do plano abre e recalcula sozinho', (await t2.p.textContent('.trip__out')).includes('Plano aberto pelo link') && (await t2.p.locator('.trip__stop').count()) >= 3, (await t2.p.textContent('.trip__out').catch(() => '')).slice(0, 100));
+  check('Link do plano mantém veículo e destino', (await t2.p.inputValue('#trip-to')).startsWith('São Paulo'));
+  await t2.ctx.close();
   check('Sem erros JS (viagem)', t.errors.length === 0, t.errors.join(' | '));
   await t.ctx.close();
   t = await page(browser, { mobile: true, geo: 'allow', url: '/?cidade=Malden&lat=42.425&lon=-71.066' });
@@ -625,6 +654,24 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.p.click('.trip__locate'); await t.p.waitForTimeout(700);
   check('Viagem: botão "minha localização" preenche a saída', (await t.p.inputValue('#trip-from')).startsWith('Somerville'), await t.p.inputValue('#trip-from'));
   await t.ctx.close();
+  // Viagem só nos EUA: aviso da NOAA + alertas oficiais no caminho
+  t = await page(browser, { mobile: false, nwsAll: true });
+  await t.p.waitForTimeout(800);
+  await t.p.click('.trip__toggle'); await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  await t.p.click('.trip__go'); await t.p.waitForTimeout(1800);
+  check('Viagem EUA: aviso da NOAA com fonte', (await t.p.textContent('.trip__horizon')).includes('NOAA') && (await t.p.getAttribute('.trip__horizon a', 'href')).includes('scijinks'), await t.p.textContent('.trip__horizon').catch(() => ''));
+  check('Viagem EUA: alerta oficial no caminho', (await t.p.textContent('.trip__official')).includes('Alerta de enchente'), await t.p.textContent('.trip__official').catch(() => ''));
+  await t.ctx.close();
+  // Link de plano adulterado: ignorado com segurança
+  t = await page(browser, { mobile: false, url: '/?viagem=1&de=999,1&para=1,1&den=%3Cimg%20src=x%20onerror=window.__xss=3%3E' });
+  await t.p.waitForTimeout(900);
+  check('Segurança: link de plano inválido é ignorado', (await t.p.isHidden('#trip-body')) && (await t.p.evaluate(() => window.__xss)) === undefined);
+  await t.ctx.close();
+  t = await page(browser, { mobile: false, url: '/?viagem=1&de=42.36,-71.06&den=%3Cimg%20src=x%20onerror=window.__xss=4%3E&para=41.76,-72.68&paran=Hartford&saida=1&veiculo=tanque' });
+  await t.p.waitForTimeout(1800);
+  check('Segurança: nome no link do plano vira texto; veículo desconhecido vira carro', (await t.p.evaluate(() => window.__xss)) === undefined && (await t.p.locator('img[src="x"]').count()) === 0 && (await t.p.getAttribute('.trip__veh button[data-veh="car"]', 'aria-pressed')) === 'true');
+  await t.ctx.close();
+
   t = await page(browser, { mobile: false, routeFail: true });
   await t.p.waitForTimeout(800);
   await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);

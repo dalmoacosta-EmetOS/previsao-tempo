@@ -1113,3 +1113,28 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
 .radar__map, .trip__map { scroll-margin-top: 140px; }
 .radar__map.is-tall, .trip__map.is-tall { height: calc(100vh - 170px) !important; min-height: 360px; }
 @supports (height: 100svh) { .radar__map.is-tall, .trip__map.is-tall { height: calc(100svh - 170px) !important; } }
+
+/* Viagem — Fase 1 do produto (ADR-042) */
+.trip__when { display: grid; grid-template-columns: 1.3fr 1fr; gap: 8px; }
+.trip__date { background-image: none !important; padding-right: 14px !important; min-height: 46px; }
+.trip__limit { color: var(--text-faint); font-weight: 400; }
+.trip__veh { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; }
+.trip__veh button { white-space: nowrap; padding-left: 4px; padding-right: 4px; }
+.trip__horizon { margin: 0; padding: 10px 12px; border-radius: 10px; font-size: 0.85rem; line-height: 1.45; background: rgba(124, 196, 255, 0.14); color: var(--text-soft); }
+.trip__horizon strong { color: var(--text); }
+.trip__horizon--trend { background: rgba(255, 178, 56, 0.16); }
+.trip__horizon a { color: var(--accent); }
+.trip__official { margin: 0; padding: 10px 12px; border-radius: 10px; background: rgba(255, 92, 92, 0.22); box-shadow: inset 0 0 0 2px var(--danger); }
+.trip__night { margin: 0; font-size: 0.88rem; color: var(--text-soft); }
+.trip__alt { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 12px; border-radius: 10px; background: rgba(255, 200, 61, 0.14); }
+.trip__alt p { margin: 0; flex: 1 1 220px; }
+.trip__alt-btn, .trip__share-btn {
+  -webkit-appearance: none; appearance: none; display: inline-flex; align-items: center; justify-content: center;
+  padding: 9px 14px; border: 0; border-radius: 10px; background: #fff; color: #10223d;
+  font: inherit; font-weight: 700; font-size: 0.9rem; text-decoration: none; cursor: pointer;
+}
+.trip__pause { color: var(--accent) !important; font-weight: 700; }
+.trip__share { padding-top: 6px; border-top: 1px solid var(--line); }
+.trip__share-title { margin: 0 0 8px; font-size: 0.85rem; color: var(--text-soft); }
+.trip__share-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.trip__msg--link { color: var(--accent); }

@@ -1,27 +1,27 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=3.6.1';
-import { load, save } from './storage.js?v=3.6.1';
-import { getOfficialAlerts } from './api/official-alerts.js?v=3.6.1';
-import { getForecast } from './api/forecast.js?v=3.6.1';
-import { getAirQuality } from './api/air-quality.js?v=3.6.1';
-import { reverseGeocode } from './api/geocoding.js?v=3.6.1';
-import { resolveWeatherNow } from './domain/scene.js?v=3.6.1';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=3.6.1';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=3.6.1';
-import { renderHourly } from './ui/hourly.js?v=3.6.1';
-import { renderDaily } from './ui/daily.js?v=3.6.1';
-import { renderDetails } from './ui/details.js?v=3.6.1';
-import { renderAlerts } from './ui/alerts.js?v=3.6.1';
-import { renderError, showToast } from './ui/status.js?v=3.6.1';
-import { setupSearch } from './ui/search.js?v=3.6.1';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=3.6.1';
-import { mountRadar, updateRadar } from './ui/radar.js?v=3.6.1';
-import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=3.6.1';
-import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=3.6.1';
-import { renderFavorites } from './ui/favorites.js?v=3.6.1';
-import { mountTrip, updateTrip } from './ui/trip.js?v=3.6.1';
+import { getState, setState, subscribe } from './state.js?v=4.0';
+import { load, save } from './storage.js?v=4.0';
+import { getOfficialAlerts } from './api/official-alerts.js?v=4.0';
+import { getForecast } from './api/forecast.js?v=4.0';
+import { getAirQuality } from './api/air-quality.js?v=4.0';
+import { reverseGeocode } from './api/geocoding.js?v=4.0';
+import { resolveWeatherNow } from './domain/scene.js?v=4.0';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=4.0';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=4.0';
+import { renderHourly } from './ui/hourly.js?v=4.0';
+import { renderDaily } from './ui/daily.js?v=4.0';
+import { renderDetails } from './ui/details.js?v=4.0';
+import { renderAlerts } from './ui/alerts.js?v=4.0';
+import { renderError, showToast } from './ui/status.js?v=4.0';
+import { setupSearch } from './ui/search.js?v=4.0';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=4.0';
+import { mountRadar, updateRadar } from './ui/radar.js?v=4.0';
+import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=4.0';
+import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=4.0';
+import { renderFavorites } from './ui/favorites.js?v=4.0';
+import { mountTrip, updateTrip } from './ui/trip.js?v=4.0';
 
-export const VERSION = '3.6.1';
+export const VERSION = '4.0';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: 'Estados Unidos', lat: 42.3601, lon: -71.0589 };
@@ -169,6 +169,12 @@ function locate({ auto = false, fallback = null } = {}) {
     },
     { enableHighAccuracy: false, timeout: 8000, maximumAge: 10 * 60 * 1000 },
   );
+}
+
+// Proteção contra "clickjacking" (ADR-043): o site não funciona embutido dentro de outro site.
+// (No GitHub Pages não dá para mandar o cabeçalho de segurança; na AWS isso vira cabeçalho.)
+if (window.top !== window.self) {
+  try { window.top.location = window.self.location.href; } catch { document.documentElement.hidden = true; }
 }
 
 // ---------- Início ----------

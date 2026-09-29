@@ -1,11 +1,20 @@
 # Weather Forecast
 
-Exercício do Treinamento de IA (linha de base) — construído 100% com IA.
+**O tempo onde você quiser e para onde você for** — previsão do tempo clara, gratuita e sem anúncios, com um diferencial: **a previsão de cada trecho da sua viagem na hora em que você vai passar por lá**.
 
-**Autor:** Dalmo Costa · **Início:** 27/09/2026
+🌦️ **Site:** https://dalmoacosta-emetos.github.io/previsao-tempo/ · 📱 instalável no celular (Safari → Compartilhar → Adicionar à Tela de Início)
+
+Nasceu como Exercício 1 do Treinamento de IA (nota **A+**, versão congelada **3.6.1**) e hoje é **candidato a produto** — ver [roteiro](docs/06-produto-roadmap.md).
+
+**Autor:** Dalmo Costa · **Início:** 27/09/2026 · **Versão atual:** 4.0 · [Histórico de versões](CHANGELOG.md)
 
 ## O que faz
-Busca de cidade com autocompletar, radar de chuva com linha do tempo (agora → próximas 24 h) em mapa navegável, localização atual, clima agora, previsão por hora (24h), 7 e 15 dias, °C/°F, abas Temperatura/Sensação térmica, detalhe por hora, resumo Dia/Noite, alertas oficiais do NWS (EUA), avisos automáticos com cuidados (vento, UV, chuva, neve, tempestade, qualidade do ar, gelo na pista), gráfico da chuva nas próximas 2 horas, tempo ao longo da viagem (de A até B), cidades favoritas, link por cidade para compartilhar, instalação na tela inicial do celular (funciona sem internet com a última previsão) e fundo que muda conforme o clima.
+- **Agora:** céu animado, temperatura, sensação, chuva da próxima hora, gráfico das próximas 2 horas e resumo automático.
+- **Previsão:** 24 horas (toque numa hora para detalhes), 7 e 15 dias com resumo Dia/Noite, °C/°F, temperatura ou sensação.
+- **Radar:** chuva agora + previsão no mapa por 24 h, com neve, gelo, mistura e névoa; mapa ampliável.
+- **Alertas:** oficiais do NWS (EUA) e avisos com cuidados — vento, UV, chuva, neve, tempestade, qualidade do ar, gelo na pista.
+- **Tempo na viagem:** de A até B, com data e hora (até 7 dias), tipo de veículo, trechos à noite, paradas sugeridas, melhor horário para sair, alertas oficiais na rota e o plano por e-mail, WhatsApp ou calendário — o link sempre abre atualizado.
+- **Praticidade:** favoritas, link por cidade, funciona sem internet com a última previsão, acessível (WCAG 2 AA).
 
 ## Documentação
 1. [Requisitos](docs/01-requisitos.md)
@@ -13,6 +22,8 @@ Busca de cidade com autocompletar, radar de chuva com linha do tempo (agora → 
 3. [Decisões (ADR)](docs/03-decisoes-adr.md)
 4. [Plano e testes](docs/04-plano-e-testes.md)
 5. [Diário de bordo](docs/05-diario-de-bordo.md)
+6. [Produto e roteiro](docs/06-produto-roadmap.md)
+7. [Segurança](docs/07-seguranca.md) · [Política de segurança](SECURITY.md)
 
 ## Modo demonstração
 Acrescente `?demo=` ao endereço para forçar o céu: `sol`, `parcial`, `nublado`, `neblina`, `garoa`, `chuva`, `temporal`, `neve`, `tempestade`, `noite`.
@@ -25,7 +36,7 @@ Testes de ponta a ponta com as APIs simuladas, incluindo auditoria de acessibili
 ```
 cd tests && npm install && npx playwright install chromium && npm test
 ```
-Rodam sozinhos no GitHub a cada envio (aba **Actions**).
+Rodam sozinhos no GitHub a cada envio (aba **Actions**), junto com a varredura de segurança **CodeQL**.
 
 ## Rodar localmente
 Abrir com qualquer servidor estático, por exemplo: `npx serve .`

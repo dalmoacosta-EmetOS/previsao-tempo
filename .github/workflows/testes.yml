@@ -3,6 +3,9 @@ name: Testes
 on:
   push:
   pull_request:
+# Menor permissão possível (ADR-043): os testes só leem o código
+permissions:
+  contents: read
 jobs:
   e2e:
     runs-on: ubuntu-latest

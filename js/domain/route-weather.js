@@ -1,6 +1,6 @@
 // Tempo ao longo da viagem (ADR-039): pontos a cada X minutos de estrada e, para cada um,
 // a previsão NA HORA EM QUE VOCÊ PASSA por ali (não a de agora).
-import { describe } from './weather-codes.js?v=3.6.1';
+import { describe } from './weather-codes.js?v=4.0';
 
 const R = 6371;
 const rad = (d) => (d * Math.PI) / 180;
@@ -39,8 +39,16 @@ export function samplePoints(route, departMs) {
 const ICE = [56, 57, 66, 67];
 const STORM = [95, 96, 99];
 
+// Limites por veículo (ADR-042): moto e veículos altos sentem muito mais chuva e vento lateral.
+export const VEHICLES = {
+  car: { label: 'Carro ou ônibus', short: 'Carro/ônibus', rainWarn: 2.5, rainDanger: 7.6, gustWarn: 40, gustDanger: 62, nightLevel: 'info' },
+  moto: { label: 'Moto', short: 'Moto', rainWarn: 0.2, rainDanger: 2.5, gustWarn: 30, gustDanger: 50, nightLevel: 'warn' },
+  large: { label: 'Caminhão, van ou reboque', short: 'Caminhão/van', rainWarn: 2.5, rainDanger: 7.6, gustWarn: 30, gustDanger: 50, nightLevel: 'info' },
+};
+
 /** Condição de um trecho + nível de atenção: null | 'info' | 'warn' | 'danger'. */
-export function classify(h) {
+export function classify(h, vehicle = 'car') {
+  const v = VEHICLES[vehicle] || VEHICLES.car;
   const info = describe(h.code);
   const flags = [];
   const add = (level, text, key) => flags.push({ level, text, key });
@@ -49,29 +57,71 @@ export function classify(h) {
   if ((h.snow ?? 0) >= 1) add('danger', 'Neve forte', 'snow');
   else if ((h.snow ?? 0) > 0.05) add('warn', 'Neve', 'snow');
   const mm = h.precip ?? 0;
-  if (mm >= 7.6) add('danger', 'Chuva forte', 'rain');
-  else if (mm >= 2.5) add('warn', 'Chuva moderada', 'rain');
+  if (mm >= v.rainDanger) add('danger', vehicle === 'moto' ? 'Chuva (perigosa de moto)' : 'Chuva forte', 'rain');
+  else if (mm >= v.rainWarn) add('warn', vehicle === 'moto' ? 'Chuva (pista escorregadia)' : 'Chuva moderada', 'rain');
   else if (mm >= 0.2) add('info', 'Chuva fraca', 'rain');
   if ((h.visibility ?? 99999) < 200) add('danger', 'Névoa densa (visibilidade < 200 m)', 'fog');
   else if ((h.visibility ?? 99999) < 1000) add('warn', 'Névoa (visibilidade < 1 km)', 'fog');
-  if ((h.gust ?? 0) >= 62) add('danger', 'Ventania', 'gust');
-  else if ((h.gust ?? 0) >= 40) add('warn', 'Rajadas fortes', 'gust');
+  const lateral = vehicle === 'car' ? '' : ' (vento lateral)';
+  if ((h.gust ?? 0) >= v.gustDanger) add('danger', `Ventania${lateral}`, 'gust');
+  else if ((h.gust ?? 0) >= v.gustWarn) add('warn', `Rajadas fortes${lateral}`, 'gust');
+  if (h.isDay === false) add(v.nightLevel, 'Trecho à noite', 'night');
   const order = { danger: 3, warn: 2, info: 1 };
   const level = flags.reduce((best, f) => (order[f.level] > (order[best] || 0) ? f.level : best), null);
   return { label: info.label, icon: info.icon, level, flags };
 }
 
+/** Pontuação de risco de uma viagem (menor = melhor). Usada para sugerir o melhor horário. */
+export function tripScore(conds) {
+  const w = { danger: 10, warn: 4, info: 1 };
+  return conds.reduce((sum, c) => sum + c.flags.reduce((a, f) => a + (w[f.level] || 0), 0), 0);
+}
+
+/** Paradas sugeridas: o ponto mais próximo de cada 2 h de estrada (cansaço ao volante). */
+export function suggestedStops(points, departMs, everyH = 2) {
+  const marks = new Set();
+  const last = points[points.length - 1]?.etaMs ?? departMs;
+  for (let t = departMs + everyH * 3600e3; t < last - 30 * 60e3; t += everyH * 3600e3) {
+    let best = -1;
+    points.forEach((p, i) => { if (i > 0 && i < points.length - 1 && (best < 0 || Math.abs(p.etaMs - t) < Math.abs(points[best].etaMs - t))) best = i; });
+    if (best > 0) marks.add(best);
+  }
+  return marks;
+}
+
+const inUS = (p) => p && p.lat > 18 && p.lat < 72 && p.lon > -170 && p.lon < -60 && /estados unidos|united states|eua|usa/i.test(p.country || 'Estados Unidos');
+const inBR = (p) => p && /brasil|brazil/i.test(p.country || '');
+
+/** Aviso de confiabilidade conforme a antecedência e o país (ADR-042). */
+export function horizonNote(departMs, origin, dest, nowMs = Date.now()) {
+  const days = (departMs - nowMs) / 86400e3;
+  const level = days <= 3 ? 'ok' : 'trend';
+  const head = level === 'ok'
+    ? 'Previsão confiável por trecho (até 3 dias de antecedência).'
+    : `Viagem daqui a ${Math.round(days)} dias: use como TENDÊNCIA e confira de novo mais perto da data.`;
+  if (inUS(origin) && inUS(dest)) {
+    return { level, head, text: 'Segundo a NOAA (serviço de meteorologia dos EUA), a previsão acerta cerca de 90% das vezes com 5 dias de antecedência, 80% com 7 dias e só metade das vezes com 10 dias ou mais.', source: 'NOAA', href: 'https://scijinks.gov/forecast-reliability/' };
+  }
+  if (inBR(origin) || inBR(dest)) {
+    return { level, head, text: 'No Brasil, pancadas de chuva são difíceis de prever com hora e local exatos. Para alertas oficiais, consulte o INMET.', source: 'INMET', href: 'https://alertas2.inmet.gov.br/' };
+  }
+  return { level, head, text: 'A precisão cai a cada dia de antecedência; confira de novo perto da data.', source: '', href: '' };
+}
+
 /** Resumo em uma frase para o topo do resultado. */
 export function tripSummary(stops, fmtTime) {
-  const bad = stops.filter((s) => s.cond.level === 'danger' || s.cond.level === 'warn');
+  const weatherFlags = (s) => s.cond.flags.filter((f) => f.key !== 'night' && f.key !== 'official');
+  const lvl = (s) => (weatherFlags(s).some((f) => f.level === 'danger') ? 'danger' : weatherFlags(s).some((f) => f.level === 'warn') ? 'warn' : null);
+  const bad = stops.filter((s) => lvl(s));
   if (!bad.length) {
-    const wet = stops.some((s) => s.cond.level === 'info');
+    const wet = stops.some((s) => weatherFlags(s).some((f) => f.level === 'info'));
     return { level: wet ? 'info' : 'ok', text: wet ? 'Viagem tranquila: no máximo chuva fraca em alguns trechos.' : 'Viagem tranquila: sem chuva, névoa ou vento forte previstos no caminho.' };
   }
-  const worst = bad.find((s) => s.cond.level === 'danger') || bad[0];
-  const what = worst.cond.flags.filter((f) => f.level === worst.cond.level).map((f) => f.text.toLowerCase()).join(' e ');
+  const worst = bad.find((s) => lvl(s) === 'danger') || bad[0];
+  const wl = lvl(worst);
+  const what = weatherFlags(worst).filter((f) => f.level === wl).map((f) => f.text.toLowerCase()).join(' e ');
   return {
-    level: worst.cond.level,
+    level: wl,
     text: `Atenção: ${what} perto de ${worst.name} por volta das ${fmtTime(worst.etaMs)}.${bad.length > 1 ? ` ${bad.length} trechos pedem cuidado.` : ''}`,
   };
 }
