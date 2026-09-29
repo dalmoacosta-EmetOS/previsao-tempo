@@ -1138,3 +1138,14 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
 .trip__share-title { margin: 0 0 8px; font-size: 0.85rem; color: var(--text-soft); }
 .trip__share-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .trip__msg--link { color: var(--accent); }
+/* Na estrada: postos e balanças (ADR-044) */
+.trip__road { padding: 10px 12px; border-radius: 10px; background: rgba(255, 255, 255, 0.07); font-size: 0.88rem; }
+.trip__road p { margin: 4px 0; }
+.trip__road-title { display: block; margin-bottom: 2px; }
+.trip__road-warn { color: #ffd28a; font-weight: 600; }
+.trip__road-sub { font-weight: 700; margin-top: 8px !important; }
+.trip__road--muted { color: var(--text-faint); margin: 0; }
+.trip__weigh { margin: 4px 0 6px; padding-left: 18px; }
+.trip__road small, .trip__share-note { display: block; color: var(--text-faint); font-size: 0.72rem; margin-top: 6px; }
+.trip__fuel { color: var(--text-soft) !important; }
+.trip__share-btn--wide { grid-column: 1 / -1; }

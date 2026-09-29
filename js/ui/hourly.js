@@ -1,10 +1,10 @@
-import { el, fill } from './dom.js?v=4.0';
-import { icon } from './icons.js?v=4.0';
-import { describe } from '../domain/weather-codes.js?v=4.0';
-import { temp, percent, speed, windDirection, uvLevel } from '../domain/units.js?v=4.0';
-import { hourLabel } from '../domain/time.js?v=4.0';
-import { resolveWeatherNow } from '../domain/scene.js?v=4.0';
-import { tempTabs, pick } from './temp-tabs.js?v=4.0';
+import { el, fill } from './dom.js?v=4.1';
+import { icon } from './icons.js?v=4.1';
+import { describe } from '../domain/weather-codes.js?v=4.1';
+import { temp, percent, speed, windDirection, uvLevel } from '../domain/units.js?v=4.1';
+import { hourLabel } from '../domain/time.js?v=4.1';
+import { resolveWeatherNow } from '../domain/scene.js?v=4.1';
+import { tempTabs, pick } from './temp-tabs.js?v=4.1';
 
 export function renderHourly(root, { data, unit, tempMode, hourSel }, onTempMode, onSelect) {
   const now = resolveWeatherNow(data);

@@ -1,17 +1,18 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=4.0';
-import { icon } from './icons.js?v=4.0';
-import { setupSearch } from './search.js?v=4.0';
-import { temp, percent } from '../domain/units.js?v=4.0';
-import { getRoute } from '../api/route.js?v=4.0';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=4.0';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=4.0';
-import { planFromUrl, planToUrl, planToIcs } from '../domain/trip-plan.js?v=4.0';
-import { reverseGeocode } from '../api/geocoding.js?v=4.0';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES } from '../domain/route-weather.js?v=4.0';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=4.0';
-import { addExpandControl } from './map-expand.js?v=4.0';
-import { ADVICE, SOURCES } from '../domain/safety.js?v=4.0';
+import { el, fill } from './dom.js?v=4.1';
+import { icon } from './icons.js?v=4.1';
+import { setupSearch } from './search.js?v=4.1';
+import { temp, percent } from '../domain/units.js?v=4.1';
+import { getRoute } from '../api/route.js?v=4.1';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=4.1';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=4.1';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=4.1';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=4.1';
+import { reverseGeocode } from '../api/geocoding.js?v=4.1';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES } from '../domain/route-weather.js?v=4.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=4.1';
+import { addExpandControl } from './map-expand.js?v=4.1';
+import { ADVICE, SOURCES } from '../domain/safety.js?v=4.1';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
@@ -169,13 +170,14 @@ async function run(opts = {}) {
       const route = stale ? await getRoute(origin, to) : cache.route;
       const probe = samplePoints(route, start);
       const days = (start + route.duration * 1000 + 8 * 3600e3 - Date.now()) / 86400e3 + 1;
-      const [series, names, official] = await Promise.all([
+      const [series, names, official, pois] = await Promise.all([
         getPointsSeries(probe, days),
         Promise.all(probe.map((p, i) => (i === 0 ? { name: origin.name } : i === probe.length - 1 ? { name: to.name } : reverseGeocode(p.lat, p.lon)))),
         officialAlongRoute(probe),
+        stale || !cache.pois ? getRoadPois(route, { trucks: true }).catch(() => null) : Promise.resolve(cache.pois),
       ]);
       const seriesEnd = Math.min(...series.map((h) => (h.time[h.time.length - 1] || 0) * 1000));
-      cache = { key, route, series, names: names.map((n, i) => n?.name || `km ${probe[i].km}`), official, seriesEnd, baseStart: start, fetchedAt: Date.now() };
+      cache = { key, route, series, names: names.map((n, i) => n?.name || `km ${probe[i].km}`), official, pois, seriesEnd, baseStart: start, fetchedAt: Date.now() };
     }
     const result = evaluate(start);
     if (!result) { fill(out, el('p', { class: 'trip__msg trip__msg--error', text: 'Não há previsão para esse horário. Escolha uma saída mais próxima.' })); return; }
@@ -264,26 +266,66 @@ function renderResult({ origin, dest, route, stops, start, score, passed, fromLi
         ` você teria ${countAttention(alt.stops)} trecho(s) de atenção em vez de ${countAttention(stops)}.`]),
       el('button', { type: 'button', class: 'btn trip__alt-btn', text: 'Usar este horário', onclick: () => { setDepart(alt.start); run(); } }),
     ]),
+    roadBlock(route, start),
     mapBox,
-    el('ol', { class: 'trip__stops' }, stops.map((s, i) => stopItem(s, i, unit, pauses.has(i)))),
+    el('ol', { class: 'trip__stops' }, stops.map((s, i) => stopItem(s, i, unit, pauses.has(i), cache.pois && pauses.has(i) ? nearestFuel(cache.pois.fuel, s.km) : null))),
     el('div', { class: 'trip__share' }, [
       el('p', { class: 'trip__share-title', text: 'Leve o plano com você — o link sempre abre com a previsão atualizada:' }),
       el('div', { class: 'trip__share-btns' }, [
+        // Menu de compartilhar do próprio celular: mostra WhatsApp E WhatsApp Business, Mensagens, Telegram…
+        navigator.share
+          ? el('button', { type: 'button', class: 'btn trip__share-btn', text: '📤 Compartilhar', onclick: () => navigator.share({ title: `Viagem ${origin.name} → ${dest.name}`, text: `${head}\n${sum.text}\nAtualize a previsão:`, url: link }).catch(() => {}) })
+          : el('a', { class: 'btn trip__share-btn', href: `https://wa.me/?text=${encodeURIComponent(`${head}\n${sum.text}\nAtualize a previsão: ${link}`)}`, target: '_blank', rel: 'noopener', text: '💬 WhatsApp' }),
         el('a', { class: 'btn trip__share-btn', href: `mailto:?subject=${encodeURIComponent(`Viagem ${origin.name} → ${dest.name}`)}&body=${encodeURIComponent(`${head}\n${sum.text}\n\nToque para ATUALIZAR a previsão do caminho:\n${link}`)}`, text: '✉️ E-mail' }),
-        el('a', { class: 'btn trip__share-btn', href: `https://wa.me/?text=${encodeURIComponent(`${head}\n${sum.text}\nAtualize a previsão: ${link}`)}`, target: '_blank', rel: 'noopener', text: '💬 WhatsApp' }),
-        el('a', { class: 'btn trip__share-btn', href: `data:text/calendar;charset=utf-8,${encodeURIComponent(planToIcs(plan, link, sum.text))}`, download: 'viagem.ics', text: '📅 Calendário' }),
-        el('button', { type: 'button', class: 'btn trip__share-btn', text: '🔗 Copiar link', onclick: async (e) => {
+        el('button', { type: 'button', class: 'btn trip__share-btn', 'data-cal': 'ics', text: '📅 iPhone / Outlook', onclick: () => openIcs(planToIcs(plan, link, sum.text)) }),
+        el('a', { class: 'btn trip__share-btn', href: googleCalendarUrl(plan, link, sum.text), target: '_blank', rel: 'noopener', text: '📅 Google Agenda' }),
+        el('button', { type: 'button', class: 'btn trip__share-btn trip__share-btn--wide', text: '🔗 Copiar link', onclick: async (e) => {
           try { await navigator.clipboard.writeText(link); e.target.textContent = '✓ Link copiado'; } catch { e.target.textContent = 'Copie da barra de endereço'; }
         } }),
       ]),
+      el('small', { class: 'trip__share-note', text: 'No iPhone/Outlook o evento já vem com alertas 48 h e 2 h antes da saída. No Google Agenda, os alertas seguem o padrão da sua agenda.' }),
     ]),
-    el('small', { class: 'trip__note', text: 'Tempo de viagem estimado sem trânsito e sem paradas. Rota: OSRM / © OpenStreetMap. Previsão: Open-Meteo. Alertas oficiais: NWS (EUA). Estimativa do site — em alerta oficial, siga as autoridades.' }),
+    el('small', { class: 'trip__note', text: 'Tempo de viagem estimado sem trânsito e sem paradas. Rota, postos e balanças: © OpenStreetMap (mapa colaborativo — pode faltar informação). Previsão: Open-Meteo. Alertas oficiais: NWS (EUA). Estimativa do site — em alerta oficial, siga as autoridades.' }),
   );
   drawMap(mapBox, route, stops).catch(() => { mapBox.hidden = true; });
 }
 
+// Calendário no iPhone/Outlook (4.1): o arquivo abre no próprio app de calendário, pronto para "Adicionar".
+// (No iPhone, link "data:" com download não fazia nada — trocado por arquivo temporário do navegador.)
+function openIcs(ics) {
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios) { window.location.assign(url); } else {
+    const a = document.createElement('a');
+    a.href = url; a.download = 'viagem.ics'; document.body.append(a); a.click(); a.remove();
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+}
+
+// Na estrada (ADR-044): postos e, para caminhão/van, balanças de pesagem — OpenStreetMap
+function roadBlock(route, start) {
+  const pois = cache.pois;
+  const totalKm = route.distance / 1000;
+  const eta = (km) => fmtTime(start + (km / (pois?.totalKm || totalKm)) * route.duration * 1000);
+  if (!pois) return el('p', { class: 'trip__road trip__road--muted', text: '⛽ Não consegui carregar postos e balanças agora (serviço do mapa colaborativo). A previsão do caminho não é afetada.' });
+  const gaps = fuelGaps(pois.fuel, pois.totalKm);
+  const kids = [
+    el('strong', { class: 'trip__road-title', text: 'Na estrada' }),
+    el('p', {}, [`⛽ ${pois.fuel.length} ${pois.fuel.length === 1 ? 'posto' : 'postos'} de combustível no caminho`,
+      vehicle === 'large' ? ` (${pois.fuel.filter((f) => f.diesel || f.truck).length} com diesel ou para caminhão, quando informado)` : '', '.']),
+    ...gaps.map((g) => el('p', { class: 'trip__road-warn', text: `⚠️ ${g.toKm - g.fromKm} km sem posto registrado (do km ${g.fromKm} ao km ${g.toKm}): abasteça antes.` })),
+  ];
+  if (vehicle === 'large') {
+    kids.push(el('p', { class: 'trip__road-sub', text: `⚖️ Balanças de pesagem no caminho: ${pois.weigh.length || 'nenhuma registrada no mapa'}` }));
+    if (pois.weigh.length) kids.push(el('ul', { class: 'trip__weigh' }, pois.weigh.slice(0, 15).map((w) => el('li', { text: `km ${w.km} · ~${eta(w.km)} · ${w.name}` }))));
+    kids.push(el('small', { text: 'O mapa colaborativo pode não ter todas as balanças e não informa se estão abertas agora.' }));
+  }
+  return el('div', { class: 'trip__road' }, kids);
+}
+
 // Trecho com alerta: toque abre os cuidados, no mesmo padrão do "Hoje em detalhe" (ADR-039, 3.4)
-function stopItem(s, i, unit, pause = false) {
+function stopItem(s, i, unit, pause = false, fuel = null) {
   const alerts = s.cond.flags.filter((f) => f.level !== 'info');
   const kids = [
     el('span', { class: 'trip__time', text: fmtTime(s.etaMs) }),
@@ -291,6 +333,7 @@ function stopItem(s, i, unit, pause = false) {
     el('div', { class: 'trip__where' }, [
       el('strong', { text: s.name }),
       pause && el('span', { class: 'trip__pause', text: '☕ Parada sugerida (cerca de 2 h ao volante)' }),
+      pause && fuel && el('span', { class: 'trip__fuel', text: `⛽ Posto perto: ${fuel.name} (km ${fuel.km})` }),
       el('span', { text: `${temp(s.w.temp, unit)} · ${s.cond.label}${s.w.pop != null ? ` · chuva ${percent(s.w.pop)}` : ''}` }),
       alerts.length > 0 && el('span', { class: 'trip__flags' }, [
         el('span', { class: 'tile__flag', 'aria-hidden': 'true', text: '!' }), alerts.map((f) => f.text).join(' · '),
@@ -347,6 +390,7 @@ async function drawMap(box, route, stops) {
   layer = L.layerGroup().addTo(map);
   addExpandControl(L, map, box);
   L.polyline(route.coords, { color: '#1a4c8c', weight: 5, opacity: 0.85 }).addTo(layer);
+  if (vehicle === 'large' && cache?.pois) cache.pois.weigh.forEach((w) => L.circleMarker([w.lat, w.lon], { radius: 6, weight: 2, color: '#fff', fillColor: '#8e44ad', fillOpacity: 1 }).bindTooltip(tipText(`⚖️ km ${w.km} · ${w.name}`)).addTo(layer));
   stops.forEach((s) => L.circleMarker([s.lat, s.lon], {
     radius: 8, weight: 2, color: '#fff', fillColor: LEVEL_COLOR[s.cond.level || 'ok'], fillOpacity: 1,
   }).bindTooltip(tipText(`${fmtTime(s.etaMs)} · ${s.name} · ${s.cond.label}`)).addTo(layer));

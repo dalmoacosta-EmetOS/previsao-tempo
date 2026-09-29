@@ -333,3 +333,13 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 **Decisões:** validação de todo parâmetro de link de viagem; anti-clickjacking por script (o cabeçalho ideal só é possível na AWS); CI com permissão mínima; **CodeQL** (varredura de segurança semanal e a cada envio); **Dependabot**; `SECURITY.md` com canal privado de relato; modelo de ameaças e plano para AWS em [07-seguranca.md](07-seguranca.md). Testes novos: link de plano adulterado e nome malicioso no plano.
 **Ações que dependem do Dalmo:** 2 fatores no GitHub, limitar o app do Claude a este repositório, proteger o ramo `main`, ativar relato privado de vulnerabilidades.
 
+## ADR-044 — Na estrada: postos, balanças, calendário e compartilhar (v4.1)
+**Status:** Aceita · 28/09/2026 · teste do Dalmo no iPhone após a v4.0
+**Problemas relatados:** (1) "Calendário" não fazia nada no iPhone (link `data:` com download é ignorado pelo Safari); (2) WhatsApp abria só o pessoal, não o Business; (3) nenhum posto de combustível aparecia — **não existia ainda** (estava na Fase 2; a IA não deixou isso claro na entrega da 4.0); (4) para caminhão, faltavam balanças de pesagem; (5) às 22:43, "clico no nome da cidade e não seleciona".
+**Decisões:**
+- **Calendário:** dois botões — **iPhone/Outlook** (arquivo .ics aberto direto no app de calendário, com alertas **48 h e 2 h antes**, pedido do Dalmo) e **Google Agenda** (evento pré-preenchido; alertas seguem o padrão da agenda da pessoa). Lançar no calendário **sem nenhum toque** exigiria login na conta de calendário do usuário — fora do escopo.
+- **Compartilhar:** botão que abre o **menu de compartilhar do próprio celular** (mostra WhatsApp **e** WhatsApp Business, Mensagens, Telegram…). No computador, continua o link do WhatsApp.
+- **Postos e balanças** via **OpenStreetMap (Overpass API)**, grátis: total de postos no caminho, posto mais perto de cada parada sugerida, aviso de **trecho longo sem posto** ("abasteça antes"); para **caminhão/van**, lista de **balanças de pesagem** com km e horário estimado, e marcadores no mapa. Limites: mapa colaborativo (pode faltar posto/balança) e não informa se a balança está aberta (só serviços pagos). Se o serviço cair, a viagem continua e o cartão avisa.
+- **Busca por toque:** não reproduzida no navegador de testes; escolha reforçada para os diferentes eventos de toque do iPhone (o primeiro que chegar escolhe, os outros são ignorados) e o fechamento da lista espera o teclado fechar. Testes novos escolhem cidade **por toque** no topo e na viagem, antes e depois de calcular.
+**Segurança:** novo serviço (overpass-api.de) liberado na CSP; nomes vindos do mapa entram como texto (teste com nome contendo HTML).
+

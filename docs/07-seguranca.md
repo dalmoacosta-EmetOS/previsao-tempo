@@ -27,12 +27,12 @@ Isso elimina as categorias de ataque mais comuns (vazamento de banco, roubo de s
 |---|---|---|---|---|
 | A1 | **Injeção de código (XSS)** | Nome de cidade malicioso vindo de um serviço externo ou de um link | Tudo que vem de fora entra como **texto**; CSP bloqueia código de fora; testes com nomes maliciosos | ✅ Coberto (ADR-040) |
 | A2 | **Link de viagem adulterado** | `?viagem=1&de=...` com valores absurdos ou código | Validação de coordenadas, tamanhos e veículo; nomes como texto; teste automático | ✅ Coberto (ADR-042/043) |
-| A3 | **Serviço externo comprometido** | Open-Meteo, BigDataCloud, RainViewer, NWS ou OSRM devolvendo lixo | Respostas tratadas como dados; CSP limita com quem o site conversa; falha de um serviço não derruba os outros | ✅ Mitigado |
+| A3 | **Serviço externo comprometido** | Open-Meteo, BigDataCloud, RainViewer, NWS, OSRM ou Overpass (OpenStreetMap) devolvendo lixo | Respostas tratadas como dados; CSP limita com quem o site conversa; falha de um serviço não derruba os outros | ✅ Mitigado |
 | A4 | **Código de terceiros adulterado (CDN)** | Biblioteca carregada de outro site é trocada | Leaflet hospedado no próprio site; CSP `script-src 'self'` | ✅ Coberto |
 | A5 | **Clickjacking** | Outro site embute o nosso escondido para induzir cliques | Script que impede rodar dentro de outro site | ⚠️ Parcial — o ideal é o cabeçalho `frame-ancestors`, que o GitHub Pages não permite (resolvido na AWS) |
 | A6 | **Conta do GitHub invadida** | Senha vazada, app com acesso demais | Depende de configuração da conta (ver §4) | ⚠️ **Ação do Dalmo** |
 | A7 | **Dependência com falha conhecida** | Biblioteca de testes vulnerável | `npm audit` = 0; Dependabot semanal | ✅ Coberto |
-| A8 | **Falha nova no nosso código** | Erro de programação | CodeQL a cada envio + toda segunda; 158 testes | ✅ Coberto |
+| A8 | **Falha nova no nosso código** | Erro de programação | CodeQL a cada envio + toda segunda; 171 testes | ✅ Coberto |
 | A9 | **Abuso das APIs gratuitas** (DoS indireto) | Muitos acessos esgotam a cota gratuita da Open-Meteo | Cache de 10 min/1 h; limites por usuário são do próprio serviço | ⚠️ Risco de produto — ver §5 |
 | A10 | **Privacidade** | Rastrear usuários | Sem cookies, sem analytics, sem rastreadores; localização só com permissão e não é enviada a nós | ✅ Coberto |
 

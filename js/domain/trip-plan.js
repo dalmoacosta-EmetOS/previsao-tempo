@@ -41,7 +41,7 @@ export function planToUrl(plan, baseHref) {
   return u.toString();
 }
 
-/** Arquivo de calendário (.ics) com lembrete na véspera e o link para atualizar. */
+/** Arquivo de calendário (.ics) com alertas 48 h e 2 h antes e o link para atualizar (pedido do Dalmo, 4.1). */
 export function planToIcs(plan, url, summaryText) {
   const z = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
   const esc = (s) => String(s).replace(/\\/g, '\\\\').replace(/([,;])/g, '\\$1').replace(/\r?\n/g, '\\n');
@@ -54,8 +54,22 @@ export function planToIcs(plan, url, summaryText) {
     `SUMMARY:${esc(`Viagem ${plan.from.name} → ${plan.to.name}`)}`,
     `DESCRIPTION:${esc(`${summaryText}\n\nAtualize a previsão do caminho: ${url}`)}`,
     `URL:${url}`,
-    'BEGIN:VALARM', 'TRIGGER:-P1D', 'ACTION:DISPLAY', `DESCRIPTION:${esc('Confira o tempo no caminho da sua viagem de amanhã')}`, 'END:VALARM',
+    'BEGIN:VALARM', 'TRIGGER:-P2D', 'ACTION:DISPLAY', `DESCRIPTION:${esc('Sua viagem é daqui a 2 dias: confira o tempo no caminho')}`, 'END:VALARM',
     'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', `DESCRIPTION:${esc('Sua viagem sai em 2 horas: atualize a previsão do caminho')}`, 'END:VALARM',
     'END:VEVENT', 'END:VCALENDAR',
   ].join('\r\n');
+}
+
+/** Link do Google Agenda já preenchido (a pessoa só toca em "Salvar"). Alertas seguem o padrão da agenda dela. */
+export function googleCalendarUrl(plan, url, summaryText) {
+  const z = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const end = plan.departMs + (plan.durationS || 3600) * 1000;
+  const q = new URLSearchParams({
+    action: 'TEMPLATE',
+    text: `Viagem ${plan.from.name} → ${plan.to.name}`,
+    dates: `${z(plan.departMs)}/${z(end)}`,
+    details: `${summaryText}\n\nAtualize a previsão do caminho: ${url}`,
+    location: plan.to.name,
+  });
+  return `https://calendar.google.com/calendar/render?${q.toString()}`;
 }

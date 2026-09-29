@@ -62,7 +62,7 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false }) {
+async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false }) {
   // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
   const ctx = await browser.newContext({ bypassCSP, serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
@@ -128,6 +128,13 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
     ? r.fulfill({ status: 400, json: { code: 'NoRoute' } })
     : r.fulfill({ json: { code: 'Ok', routes: [{ duration: 3 * 3600 + 600, distance: 290000,
       geometry: { coordinates: Array.from({ length: 50 }, (_, i) => [-71.06 - i * 0.06, 42.36 - i * 0.034]) } }] } }));
+  await p.route('https://overpass-api.de/**', (r) => overpassFail ? r.fulfill({ status: 504, body: '' }) : r.fulfill({ json: { elements: [
+    { type: 'node', lat: 42.36 - 5 * 0.034, lon: -71.06 - 5 * 0.06, tags: { amenity: 'fuel', name: 'Posto Shell', 'fuel:diesel': 'yes' } },
+    { type: 'node', lat: 42.36 - 20 * 0.034, lon: -71.06 - 20 * 0.06, tags: { amenity: 'fuel', brand: 'Ipiranga' } },
+    { type: 'node', lat: 42.36 - 32 * 0.034, lon: -71.06 - 32 * 0.06, tags: { amenity: 'fuel', name: 'Posto Graal', hgv: 'yes' } },
+    { type: 'way', center: { lat: 42.36 - 30 * 0.034, lon: -71.06 - 30 * 0.06 }, tags: { amenity: 'weighbridge', name: 'Balança DNIT <b>x</b>' } },
+    { type: 'node', lat: 10, lon: 10, tags: { amenity: 'fuel', name: 'Longe da rota' } },
+  ] } }));
   await p.route('https://air-quality-api.open-meteo.com/**', (r) => aqi == null ? r.fulfill({ status: 500, body: '{}' }) : r.fulfill({ json: { current: { us_aqi: aqi, pm2_5: 9.1 } } }));
   await p.route('https://api.weather.gov/**', (r) => { nwsCalls++; const pt = new URL(r.request().url()).searchParams.get('point') || '';
     if (!nwsAll && !/^42\.(3601|3900|4250|4000|4200),/.test(pt) && !/^42\.36\d\d,-71\.05/.test(pt)) return r.fulfill({ json: { features: [] } });
@@ -624,9 +631,19 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   const altTxt = await t.p.textContent('.trip__alt').catch(() => '');
   check('Viagem: sugere melhor horário de saída', altTxt.includes('Melhor horário'), altTxt.slice(0, 100));
   const mail = await t.p.getAttribute('.trip__share-btn:has-text("E-mail")', 'href');
-  const ics = decodeURIComponent((await t.p.getAttribute('.trip__share-btn:has-text("Calendário")', 'href')).split(',')[1]);
+  await t.p.evaluate(() => { window.__ics = null; const o = URL.createObjectURL; URL.createObjectURL = (b) => { b.text().then((x) => { window.__ics = x; }); return o.call(URL, b); }; });
+  await t.p.click('.trip__share-btn[data-cal="ics"]'); await t.p.waitForTimeout(300);
+  const ics = await t.p.evaluate(() => window.__ics || '');
+  const gcal = await t.p.getAttribute('.trip__share-btn:has-text("Google Agenda")', 'href');
+  check('Viagem: botão Google Agenda já preenchido', gcal.startsWith('https://calendar.google.com/calendar/render?action=TEMPLATE') && decodeURIComponent(gcal).includes('viagem=1'));
+  check('Viagem: compartilhar abre o menu do celular (WhatsApp e WhatsApp Business)', (await t.p.locator('.trip__share-btn:has-text("Compartilhar"), .trip__share-btn:has-text("WhatsApp")').count()) === 1);
+  // postos e balanças (ADR-044)
+  check('Na estrada: conta os postos no caminho (ignora os longe da rota)', (await t.p.textContent('.trip__road')).includes('3 postos'), await t.p.textContent('.trip__road').catch(() => ''));
+  check('Na estrada: avisa trecho longo sem posto', (await t.p.textContent('.trip__road')).includes('sem posto registrado'));
+  check('Parada sugerida mostra o posto mais perto', (await t.p.textContent('.trip__stops')).includes('⛽ Posto perto'), (await t.p.textContent('.trip__stops')).slice(0, 200));
+  check('Carro não mostra balanças', !(await t.p.textContent('.trip__road')).includes('Balanças'));
   check('Viagem: e-mail leva o link que atualiza', mail.startsWith('mailto:') && decodeURIComponent(mail).includes('viagem=1'), decodeURIComponent(mail).slice(0, 120));
-  check('Viagem: calendário com lembrete na véspera e 2 h antes', ics.includes('BEGIN:VEVENT') && ics.includes('TRIGGER:-P1D') && ics.includes('TRIGGER:-PT2H') && ics.includes('viagem=1'));
+  check('Viagem: calendário (iPhone/Outlook) com alertas 48 h e 2 h antes', ics.includes('BEGIN:VEVENT') && ics.includes('TRIGGER:-P2D') && ics.includes('TRIGGER:-PT2H') && ics.includes('viagem=1'), ics.slice(0, 60));
   const planLink = decodeURIComponent(mail).match(/http:\/\/localhost:\d+\/\?[^\s]+/)[0];
   await t.p.evaluate(() => document.getElementById('toast').hidden = true);
   await t.p.locator('#trip').screenshot({ path: `${OUT}/viagem.png` });
@@ -636,6 +653,11 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.p.evaluate(() => { const d = new Date(Date.now() + 3600e3); const p = (n) => String(n).padStart(2, '0'); document.getElementById('trip-date').value = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; document.getElementById('trip-time').value = `${p(d.getHours())}:00`; });
   await t.p.click('.trip__go'); await t.p.waitForTimeout(600);
   check('Viagem: moto tem limites próprios', (await t.p.textContent('.trip__stops')).includes('de moto') || (await t.p.textContent('.trip__stops')).includes('escorregadia'), (await t.p.textContent('.trip__stops')).slice(0, 160));
+  await t.p.click('.trip__veh button[data-veh="large"]'); await t.p.click('.trip__go'); await t.p.waitForTimeout(600);
+  const road = await t.p.textContent('.trip__road');
+  check('Caminhão: mostra balanças de pesagem com km e horário', road.includes('Balanças de pesagem') && road.includes('Balança DNIT') && /km \d+ · ~\d\d:\d\d/.test(road), road.slice(0, 200));
+  check('Caminhão: nome da balança entra como texto', (await t.p.locator('.trip__weigh b').count()) === 0);
+  await t.p.locator('#trip').screenshot({ path: `${OUT}/viagem-caminhao.png` });
   await t.p.evaluate(() => { const d = new Date(Date.now() + 9 * 86400e3); const p = (n) => String(n).padStart(2, '0'); document.getElementById('trip-date').value = `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`; });
   await t.p.click('.trip__go'); await t.p.waitForTimeout(300);
   check('Viagem: mais de 7 dias é recusado', (await t.p.textContent('.trip__out')).includes('até 7 dias'));
@@ -672,6 +694,12 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('Segurança: nome no link do plano vira texto; veículo desconhecido vira carro', (await t.p.evaluate(() => window.__xss)) === undefined && (await t.p.locator('img[src="x"]').count()) === 0 && (await t.p.getAttribute('.trip__veh button[data-veh="car"]', 'aria-pressed')) === 'true');
   await t.ctx.close();
 
+  t = await page(browser, { mobile: false, overpassFail: true });
+  await t.p.waitForTimeout(800);
+  await t.p.click('.trip__toggle'); await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  await t.p.click('.trip__go'); await t.p.waitForTimeout(1800);
+  check('Mapa colaborativo fora do ar: viagem funciona e avisa', (await t.p.locator('.trip__stop').count()) >= 3 && (await t.p.textContent('.trip__road')).includes('Não consegui carregar postos'));
+  await t.ctx.close();
   t = await page(browser, { mobile: false, routeFail: true });
   await t.p.waitForTimeout(800);
   await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);
@@ -696,6 +724,22 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   const csp = await t.p.evaluate(() => window.__csp);
   check('Segurança: política (CSP) ativa e sem bloqueios indevidos', (await t.p.locator('meta[http-equiv="Content-Security-Policy"]').count()) === 1 && csp.length === 0, csp.join(' | '));
   check('Segurança: nenhum script de terceiros na página', (await t.p.evaluate(() => [...document.scripts].every((s) => !s.src || s.src.startsWith(location.origin)))));
+  await t.ctx.close();
+
+  // Escolher cidade com TOQUE (o iPhone não usa Enter): topo e viagem, antes e depois de calcular
+  t = await page(browser, { mobile: true });
+  await t.p.waitForTimeout(800);
+  await t.p.fill('#search-input', 'São'); await t.p.waitForTimeout(700);
+  await t.p.tap('#search-list [role=option] >> nth=1'); await t.p.waitForTimeout(700);
+  check('Toque escolhe a cidade na busca do topo', (await t.p.textContent('.hero__city')) === 'São Paulo de Olivença', await t.p.textContent('.hero__city'));
+  await t.p.tap('.trip__toggle'); await t.p.tap('#trip-to'); await t.p.keyboard.type('Hart'); await t.p.waitForTimeout(800);
+  await t.p.tap('#trip-to-list [role=option] >> nth=0'); await t.p.waitForTimeout(400);
+  check('Toque escolhe o destino da viagem', (await t.p.inputValue('#trip-to')).startsWith('Hartford'), await t.p.inputValue('#trip-to'));
+  await t.p.tap('.trip__go'); await t.p.waitForTimeout(1800);
+  await t.p.tap('#trip-from'); await t.p.keyboard.type('São'); await t.p.waitForTimeout(800);
+  await t.p.tap('#trip-from-list [role=option] >> nth=0'); await t.p.waitForTimeout(400);
+  check('Toque escolhe a saída depois de já ter calculado', (await t.p.inputValue('#trip-from')).startsWith('São Paulo'), await t.p.inputValue('#trip-from'));
+  check('Um toque escolhe uma vez só (sem carregar duas vezes)', t.errors.length === 0, t.errors.join(' | '));
   await t.ctx.close();
 
   // T11 lembrar última cidade

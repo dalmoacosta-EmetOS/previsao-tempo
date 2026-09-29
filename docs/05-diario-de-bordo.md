@@ -42,6 +42,7 @@ Registro do processo de construção com IA. **Este é o material da linha de ba
 | 28/09 19:28–19:45 | Dalmo: no iPhone, ⤢ fecha o mapa e não abre de novo | Não reproduz no Chromium; causa provável = mapa flutuante no Safari → troca por "crescer no lugar" | v3.6.1. 143/143 testes | 17 min |
 | 28/09 21:30 | **Trabalho apresentado — nota A+.** Dalmo pergunta o limite de dias da previsão (NOAA: 5 d ≈ 90%, 7 d ≈ 80%, 10+ ≈ 50%) e como fica no Brasil | Número oficial do INMET/CPTEC não encontrado → aviso sem percentual no Brasil | — | — |
 | 28/09 22:08–23:30 | Dalmo: vira candidato a produto (AWS no futuro); congelar a versão; implementar as outras funções; documentar; segurança "nos mais altos padrões" | 3.6.1 congelada (`congelado-v3.6.1`); Fase 1 feita em ramo separado → ADR-042; segurança de produto → ADR-043; CHANGELOG, roadmap, SECURITY.md, modelo de ameaças | **v4.0** | ~80 min |
+| 28/09 22:40–23:50 | Dalmo testou a 4.0 no iPhone: calendário não fazia nada, WhatsApp só pessoal, sem postos; pediu balanças para caminhão e alertas 48 h; às 22:43, busca por toque não selecionava | IA admitiu que postos não existiam (Fase 2) e não avisou; calendário trocado por arquivo que abre no app + Google Agenda; menu de compartilhar do celular; postos/balanças via OpenStreetMap; busca por toque reforçada (não reproduzida fora do iPhone) → ADR-044 | **v4.1**. 171/171 testes | ~70 min |
 | | | | | |
 
 ## Lições (preencher ao final)

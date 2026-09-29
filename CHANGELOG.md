@@ -2,6 +2,13 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 4.1 — 28/09/2026 · Na estrada
+- **Postos de combustível** no caminho, posto mais perto das paradas e aviso de trecho longo sem posto (ADR-044).
+- **Caminhão/van:** balanças de pesagem com km e horário estimado.
+- **Calendário** que funciona no iPhone (alertas 48 h e 2 h antes) + **Google Agenda**.
+- **Compartilhar** pelo menu do celular (WhatsApp e WhatsApp Business).
+- Escolha de cidade por toque reforçada para o iPhone.
+
 ## 4.0 — 28/09/2026 · Fase 1 do produto
 - **Viagem com data e hora** (até 7 dias à frente) e **aviso de confiabilidade**: NOAA para viagens nos EUA, INMET para o Brasil (ADR-042).
 - **Tipo de veículo**: carro/ônibus, moto, caminhão/van — com limites próprios de chuva e vento lateral.

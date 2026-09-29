@@ -6,14 +6,14 @@
 
 Nasceu como Exercício 1 do Treinamento de IA (nota **A+**, versão congelada **3.6.1**) e hoje é **candidato a produto** — ver [roteiro](docs/06-produto-roadmap.md).
 
-**Autor:** Dalmo Costa · **Início:** 27/09/2026 · **Versão atual:** 4.0 · [Histórico de versões](CHANGELOG.md)
+**Autor:** Dalmo Costa · **Início:** 27/09/2026 · **Versão atual:** 4.1 · [Histórico de versões](CHANGELOG.md)
 
 ## O que faz
 - **Agora:** céu animado, temperatura, sensação, chuva da próxima hora, gráfico das próximas 2 horas e resumo automático.
 - **Previsão:** 24 horas (toque numa hora para detalhes), 7 e 15 dias com resumo Dia/Noite, °C/°F, temperatura ou sensação.
 - **Radar:** chuva agora + previsão no mapa por 24 h, com neve, gelo, mistura e névoa; mapa ampliável.
 - **Alertas:** oficiais do NWS (EUA) e avisos com cuidados — vento, UV, chuva, neve, tempestade, qualidade do ar, gelo na pista.
-- **Tempo na viagem:** de A até B, com data e hora (até 7 dias), tipo de veículo, trechos à noite, paradas sugeridas, melhor horário para sair, alertas oficiais na rota e o plano por e-mail, WhatsApp ou calendário — o link sempre abre atualizado.
+- **Tempo na viagem:** de A até B, com data e hora (até 7 dias), tipo de veículo, trechos à noite, paradas sugeridas, postos de combustível, balanças de pesagem (caminhão), melhor horário para sair, alertas oficiais na rota e o plano por e-mail, WhatsApp, iPhone/Outlook ou Google Agenda — o link sempre abre atualizado.
 - **Praticidade:** favoritas, link por cidade, funciona sem internet com a última previsão, acessível (WCAG 2 AA).
 
 ## Documentação
