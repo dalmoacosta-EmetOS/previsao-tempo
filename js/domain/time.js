@@ -1,7 +1,7 @@
 // Os horários chegam da API já no fuso da cidade, sem offset ("2026-09-27T14:00").
 // Para não deixar o fuso do navegador interferir, tratamos esses textos como UTC.
 // Formatos no costume do idioma (14:00 no Brasil, 2:00 PM nos EUA) — ADR-045.
-import { t, locale, getLang } from '../i18n/index.js?v=5.1';
+import { t, locale, getLang } from '../i18n/index.js?v=5.1.1';
 
 // Hora: "07:00" no Brasil; "7:00 AM" nos EUA; "7:00 p. m." no México — cada um no seu costume.
 const HOUR = () => (getLang() === 'pt' ? '2-digit' : 'numeric');

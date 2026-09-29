@@ -334,12 +334,12 @@ export default {
   "radar.youAreHere": "Você está aqui",
 
   // ── Tempo na viagem ──
-  "veh.car": "Carro ou ônibus",
-  "veh.car.short": "Carro/ônibus",
+  "veh.car": "Carro",
+  "veh.car.short": "Carro",
   "veh.moto": "Moto",
   "veh.moto.short": "Moto",
-  "veh.large": "Caminhão, van ou reboque",
-  "veh.large.short": "Caminhão/van",
+  "veh.large": "Caminhão",
+  "veh.large.short": "Caminhão",
   "flag.storm": "Tempestade",
   "flag.ice": "Gelo na pista (chuva congelante)",
   "flag.heavySnow": "Neve forte",

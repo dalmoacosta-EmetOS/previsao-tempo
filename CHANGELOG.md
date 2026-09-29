@@ -2,6 +2,9 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 5.1.1 — 29/09/2026 · Veículos: Carro, Moto, Caminhão
+- Pedido do Dalmo: tirar "ônibus" (e "van/reboque") dos nomes. Ficam **Carro, Moto e Caminhão** (en: Car, Motorcycle, Truck · es: Auto, Moto, Camión). Os limites de chuva e vento de cada tipo não mudaram.
+
 ## 5.1 — 29/09/2026 · Viagem mais rápida, mapa ampliado menor no celular
 - **Resposta da viagem sem esperar postos e balanças.** A previsão aparece assim que rota e tempo chegam. Postos e balanças entram depois, sozinhos (ADR-046). No vídeo do Dalmo (Brasília → Rio), a espera era de cerca de 20 s, porque o site esperava o mapa colaborativo, que acabou falhando.
 - **Mensagens de progresso:** "Calculando a rota…" → "Buscando a previsão de N pontos…".

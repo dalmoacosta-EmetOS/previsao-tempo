@@ -1,11 +1,11 @@
 // Níveis de atenção para o "Hoje em detalhe" + recomendações (ADR-022).
 // Limites baseados em referências públicas (escala Beaufort, OMS para UV, faixas de
 // avisos de chuva do INMET). NÃO são alertas oficiais.
-import { speed, rain, snow } from './units.js?v=5.1';
-import { t } from '../i18n/index.js?v=5.1';
-import { isWetHour } from './summary.js?v=5.1';
-import { roadIceRisk } from './road-ice.js?v=5.1';
-import { aqiLevel } from '../api/air-quality.js?v=5.1';
+import { speed, rain, snow } from './units.js?v=5.1.1';
+import { t } from '../i18n/index.js?v=5.1.1';
+import { isWetHour } from './summary.js?v=5.1.1';
+import { roadIceRisk } from './road-ice.js?v=5.1.1';
+import { aqiLevel } from '../api/air-quality.js?v=5.1.1';
 
 // Textos traduzidos (ADR-045): cada cuidado é uma chave adv.<tipo>.<nível>.<campo> nos dicionários.
 const KINDS = { night: ['warn'], official: ['danger', 'warn'], fog: ['warn', 'danger'], gust: ['warn', 'danger'],

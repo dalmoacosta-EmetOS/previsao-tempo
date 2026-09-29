@@ -1,20 +1,20 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=5.1';
-import { icon } from './icons.js?v=5.1';
-import { setupSearch } from './search.js?v=5.1';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=5.1';
-import { clock, shortDate } from '../domain/time.js?v=5.1';
-import { t } from '../i18n/index.js?v=5.1';
-import { getRoute } from '../api/route.js?v=5.1';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=5.1';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=5.1';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=5.1';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=5.1';
-import { reverseGeocode } from '../api/geocoding.js?v=5.1';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES } from '../domain/route-weather.js?v=5.1';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=5.1';
-import { addExpandControl } from './map-expand.js?v=5.1';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=5.1';
+import { el, fill } from './dom.js?v=5.1.1';
+import { icon } from './icons.js?v=5.1.1';
+import { setupSearch } from './search.js?v=5.1.1';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=5.1.1';
+import { clock, shortDate } from '../domain/time.js?v=5.1.1';
+import { t } from '../i18n/index.js?v=5.1.1';
+import { getRoute } from '../api/route.js?v=5.1.1';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=5.1.1';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=5.1.1';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=5.1.1';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=5.1.1';
+import { reverseGeocode } from '../api/geocoding.js?v=5.1.1';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES } from '../domain/route-weather.js?v=5.1.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=5.1.1';
+import { addExpandControl } from './map-expand.js?v=5.1.1';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=5.1.1';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
@@ -340,7 +340,7 @@ function addWeighMarkers(L) {
   if (vehicle === 'large' && cache?.pois) cache.pois.weigh.forEach((w) => L.circleMarker([w.lat, w.lon], { radius: 6, weight: 2, color: '#fff', fillColor: '#8e44ad', fillOpacity: 1 }).bindTooltip(tipText(`⚖️ ${milestone(w.km)} · ${w.name}`)).addTo(layer));
 }
 
-// Na estrada (ADR-044): postos e, para caminhão/van, balanças de pesagem — OpenStreetMap
+// Na estrada (ADR-044): postos e, para caminhão, balanças de pesagem — OpenStreetMap
 function roadBlock(route, start) {
   const pois = cache.pois;
   if (pois === undefined) return el('p', { class: 'trip__road trip__road--muted', role: 'status', text: `⛽ ${t('road.loading')}` });
