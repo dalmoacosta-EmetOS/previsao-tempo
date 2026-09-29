@@ -2,6 +2,9 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 5.2 — 29/09/2026 · Nuvens animadas
+- Pedido do Dalmo (vídeo do app do Weather Channel): nuvens **visíveis e em movimento** no céu do site, em duas camadas com velocidades diferentes (sensação de profundidade), e o céu "respira" devagar. Desenho próprio (bolhas de gradiente), não é imagem de terceiros. Nublado = mais nuvens; chuva/tempestade = nuvens escuras; noite = nuvens escurecidas. Leve para o celular (só move camadas) e desliga para quem ativou "reduzir movimento".
+
 ## 5.1.1 — 29/09/2026 · Veículos: Carro, Moto, Caminhão
 - Pedido do Dalmo: tirar "ônibus" (e "van/reboque") dos nomes. Ficam **Carro, Moto e Caminhão** (en: Car, Motorcycle, Truck · es: Auto, Moto, Camión). Os limites de chuva e vento de cada tipo não mudaram.
 

@@ -107,25 +107,73 @@ body[data-time="day"][data-scene="partly"] .sky__sun { opacity: 0.7; }
 body[data-time="night"][data-scene="clear"] .sky__stars,
 body[data-time="night"][data-scene="partly"] .sky__stars { opacity: 0.9; }
 
-/* Nuvens */
+/* Nuvens (5.2, pedido do Dalmo: "animar como no Weather"): camadas de nuvens bem visíveis que
+   passam pelo topo da tela, cada uma numa velocidade (profundidade), e o céu "respira" devagar.
+   Desenho próprio: bolhas de gradiente repetidas na horizontal (não é imagem de terceiros).
+   Só anima transform/opacity (leve no celular) e para com "reduzir movimento". */
+.sky__clouds { transform-origin: 50% 0; animation: breathe 14s ease-in-out infinite alternate; }
 .sky__clouds span {
   position: absolute;
-  width: 60vw; height: 22vw;
-  min-width: 380px; min-height: 140px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
-  filter: blur(40px);
-  animation: drift 60s linear infinite;
+  left: 0; top: 0;
+  width: calc(100% + var(--w));   /* uma volta a mais do desenho: anda --w e emenda sem pulo */
+  background-repeat: repeat-x;
+  animation: drift 70s linear infinite;
+  --c: 238, 242, 247;             /* cor da nuvem (muda à noite e na chuva) */
+  --a: 0.8;
 }
-.sky__clouds span:nth-child(1) { top: 6%; left: -20%; }
-.sky__clouds span:nth-child(2) { top: 30%; left: 40%; animation-duration: 90s; animation-delay: -30s; opacity: 0.7; }
-.sky__clouds span:nth-child(3) { top: 60%; left: 5%; animation-duration: 75s; animation-delay: -50s; opacity: 0.5; }
-body[data-scene="partly"] .sky__clouds { opacity: 0.6; }
+/* Cada nuvem = 4–5 bolhas achatadas sobrepostas (mais largas que altas), desenhadas em pixels. */
+.sky__clouds span:nth-child(1) {  /* fundo: nuvens grandes e lentas */
+  --w: 1100px;
+  height: 300px; top: 2vh;
+  background-image:
+    radial-gradient(160px 70px at 140px 150px, rgba(var(--c), var(--a)) 0%, rgba(var(--c), calc(var(--a) * .5)) 55%, rgba(var(--c), 0) 100%),
+    radial-gradient(120px 80px at 250px 120px, rgba(var(--c), var(--a)) 0%, rgba(var(--c), 0) 100%),
+    radial-gradient(150px 60px at 330px 165px, rgba(var(--c), calc(var(--a) * .9)) 0%, rgba(var(--c), 0) 100%),
+    radial-gradient(190px 75px at 700px 110px, rgba(var(--c), var(--a)) 0%, rgba(var(--c), calc(var(--a) * .5)) 55%, rgba(var(--c), 0) 100%),
+    radial-gradient(130px 85px at 820px 80px, rgba(var(--c), var(--a)) 0%, rgba(var(--c), 0) 100%),
+    radial-gradient(160px 60px at 920px 130px, rgba(var(--c), calc(var(--a) * .85)) 0%, rgba(var(--c), 0) 100%);
+  background-size: var(--w) 100%;
+  filter: blur(5px);
+  opacity: 0.8;
+  animation-duration: 110s;
+}
+.sky__clouds span:nth-child(2) {  /* frente: nuvens menores, mais rápidas, com base mais escura */
+  --w: 800px;
+  height: 260px; top: 18vh;
+  background-image:
+    radial-gradient(110px 48px at 120px 130px, rgba(var(--c), var(--a)) 0%, rgba(var(--c), calc(var(--a) * .45)) 60%, rgba(var(--c), 0) 100%),
+    radial-gradient(80px 55px at 190px 105px, rgba(var(--c), var(--a)) 0%, rgba(var(--c), 0) 100%),
+    radial-gradient(100px 40px at 250px 140px, rgba(var(--c), calc(var(--a) * .9)) 0%, rgba(var(--c), 0) 100%),
+    radial-gradient(130px 50px at 540px 160px, rgba(var(--c), var(--a)) 0%, rgba(var(--c), calc(var(--a) * .45)) 60%, rgba(var(--c), 0) 100%),
+    radial-gradient(90px 60px at 610px 130px, rgba(var(--c), var(--a)) 0%, rgba(var(--c), 0) 100%),
+    radial-gradient(120px 38px at 560px 190px, rgba(60, 72, 90, calc(var(--a) * .35)) 0%, rgba(60, 72, 90, 0) 100%);
+  background-size: var(--w) 100%;
+  filter: blur(2px);
+  animation-duration: 55s;
+}
+.sky__clouds span:nth-child(3) {  /* véu baixo, bem suave */
+  --w: 1400px;
+  top: auto; bottom: 0; height: 45vh;
+  background-image:
+    radial-gradient(420px 160px at 300px 60%, rgba(var(--c), .35) 0%, rgba(var(--c), 0) 100%),
+    radial-gradient(380px 140px at 1000px 50%, rgba(var(--c), .3) 0%, rgba(var(--c), 0) 100%);
+  background-size: var(--w) 100%;
+  filter: blur(12px);
+  animation-duration: 150s;
+}
+body[data-scene="partly"] .sky__clouds { opacity: 0.55; }
+body[data-scene="partly"] .sky__clouds span:nth-child(1) { --a: 0.6; }
 body[data-scene="cloudy"] .sky__clouds,
-body[data-scene="snow"] .sky__clouds { opacity: 0.9; }
+body[data-scene="snow"] .sky__clouds { opacity: 1; }
+body[data-scene="fog"] .sky__clouds { opacity: 0.5; }
 body[data-scene="rain"] .sky__clouds,
-body[data-scene="storm"] .sky__clouds { opacity: 0.45; }
-body[data-time="night"] .sky__clouds span { background: rgba(150, 165, 190, 0.35); }
+body[data-scene="storm"] .sky__clouds { opacity: 0.9; }
+body[data-scene="rain"] .sky__clouds span,
+body[data-scene="storm"] .sky__clouds span { --c: 120, 132, 148; --a: 0.8; }
+body[data-scene="cloudy"] .sky__clouds span:nth-child(2) { --c: 205, 212, 222; }
+body[data-time="night"] .sky__clouds span { --c: 95, 108, 130; --a: 0.55; }
+body[data-time="night"][data-scene="storm"] .sky__clouds span,
+body[data-time="night"][data-scene="rain"] .sky__clouds span { --c: 55, 64, 80; --a: 0.7; }
 
 /* Neblina */
 .sky__fog {
@@ -165,7 +213,8 @@ body[data-scene="storm"] .sky__flash { animation: flash 8s infinite; }
 
 @keyframes pulse   { 50% { transform: scale(1.06); } }
 @keyframes twinkle { to { opacity: 0.45; } }
-@keyframes drift   { from { transform: translateX(0); } to { transform: translateX(60vw); } }
+@keyframes drift   { from { transform: translateX(calc(-1 * var(--w, 50%))); } to { transform: translateX(0); } }
+@keyframes breathe { from { transform: scale(1); } to { transform: scale(1.04) translateY(1vh); } }
 @keyframes fog     { to { background-position: 100% 0; } }
 @keyframes fall    { to { transform: translateY(120vh) translateX(-8vh); } }
 @keyframes snow    { to { transform: translateY(110vh) translateX(6vw); } }
