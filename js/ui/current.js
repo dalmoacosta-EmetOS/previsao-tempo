@@ -1,10 +1,11 @@
-import { el, fill } from './dom.js?v=4.1';
-import { icon } from './icons.js?v=4.1';
-import { describe } from '../domain/weather-codes.js?v=4.1';
-import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=4.1';
-import { hourLabel } from '../domain/time.js?v=4.1';
-import { nowSummary } from '../domain/summary.js?v=4.1';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=4.1';
+import { el, fill } from './dom.js?v=5.0';
+import { icon } from './icons.js?v=5.0';
+import { describe } from '../domain/weather-codes.js?v=5.0';
+import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=5.0';
+import { hourLabel } from '../domain/time.js?v=5.0';
+import { nowSummary } from '../domain/summary.js?v=5.0';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=5.0';
+import { t } from '../i18n/index.js?v=5.0';
 
 export function renderCurrent(root, { place, data, unit }, actions = {}) {
   const c = data.current;
@@ -15,11 +16,11 @@ export function renderCurrent(root, { place, data, unit }, actions = {}) {
   if (now.byMeasure) {
     info.label = now.label;
     info.icon = now.scene === 'snow' ? 'snow'
-      : now.intensity === 'heavy' ? 'heavy-rain' : now.label === 'Garoa' ? 'drizzle' : 'rain';
+      : now.intensity === 'heavy' ? 'heavy-rain' : now.kind === 'drizzle' ? 'drizzle' : 'rain';
   }
   const nowcast = nowcastText(data);
   const where = [place.region, place.country].filter(Boolean).join(', ');
-  const sum = nowSummary(data, unit, info.label);
+  const sum = nowSummary(data, unit, info.label, now.wet);
   const next = data.hourly[1] || data.hourly[0];
 
   fill(root,
@@ -28,18 +29,18 @@ export function renderCurrent(root, { place, data, unit }, actions = {}) {
         el('h1', { class: 'hero__city', text: place.name }),
         actions.onFav && el('button', {
           class: 'hero__act', type: 'button', 'aria-pressed': String(!!actions.isFav),
-          'aria-label': actions.isFav ? 'Tirar dos favoritos' : 'Salvar nos favoritos',
-          title: actions.isFav ? 'Tirar dos favoritos' : 'Salvar nos favoritos',
+          'aria-label': t(actions.isFav ? 'fav.remove' : 'fav.add'),
+          title: t(actions.isFav ? 'fav.remove' : 'fav.add'),
           text: actions.isFav ? '★' : '☆', onclick: actions.onFav,
         }),
         actions.onShare && el('button', {
-          class: 'hero__act', type: 'button', 'aria-label': 'Compartilhar link desta cidade', title: 'Compartilhar link desta cidade',
+          class: 'hero__act', type: 'button', 'aria-label': t('hero.share'), title: t('hero.share'),
           html: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 3v12M7 8l5-5 5 5M5 13v6h14v-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
           onclick: actions.onShare,
         }),
       ]),
       where && el('p', { class: 'hero__region', text: where }),
-      el('p', { class: 'hero__updated', text: `Atualizado às ${hourLabel(c.time)} · horário local (${data.timezoneAbbr || data.timezone})` }),
+      el('p', { class: 'hero__updated', text: t('hero.updated', { h: hourLabel(c.time), tz: data.timezoneAbbr || data.timezone }) }),
     ]),
     // Bloco principal no estilo do Weather Channel (ADR-027): temperatura grande à esquerda,
     // ícone e condição à direita; abaixo, sensação/máx/mín e a chuva da próxima hora.
@@ -51,31 +52,31 @@ export function renderCurrent(root, { place, data, unit }, actions = {}) {
       ]),
     ]),
     el('p', { class: 'hero__line' }, [
-      `Sensação ${temp(c.feels, unit)}`, sep(), `Máx ${temp(today.max, unit)}`, sep(), `Mín ${temp(today.min, unit)}`,
+      t('hero.feels', { t: temp(c.feels, unit) }), sep(), t('hero.max', { t: temp(today.max, unit) }), sep(), t('hero.min', { t: temp(today.min, unit) }),
     ]),
     next && el('p', { class: 'hero__line hero__line--rain' }, [
-      `Chuva na próxima hora ${percent(next.pop)}`, sep(), rain(next.precip, unit),
+      t('hero.rainNextHour', { p: percent(next.pop) }), sep(), rain(next.precip),
     ]),
     nowcast && el('div', { class: 'hero__nowcast', text: nowcast }),
     rainChart(data, now),
     // Resumo em tempo real ao lado da cidade (ADR-021)
-    el('aside', { class: 'hero__now', 'aria-label': 'Resumo do tempo agora' }, [
-      el('p', { class: 'hero__now-title', text: 'Agora' }),
+    el('aside', { class: 'hero__now', 'aria-label': t('hero.nowAria') }, [
+      el('p', { class: 'hero__now-title', text: t('time.now') }),
       el('p', { class: 'hero__now-main', text: sum.now }),
       el('p', { class: 'hero__now-outlook', text: sum.outlook }),
-      sum.rest && el('p', { class: 'hero__now-rest' }, [el('strong', { text: 'Restante de hoje: ' }), sum.rest]),
-      el('small', { text: 'Resumo automático · atualiza a cada 10 min' }),
+      sum.rest && el('p', { class: 'hero__now-rest' }, [el('strong', { text: t('hero.restOfToday') + ' ' }), sum.rest]),
+      el('small', { text: t('hero.autoNote') }),
     ]),
     el('dl', { class: 'hero__facts' }, [
-      fact('Umidade', percent(c.humidity)),
-      fact('Vento', `${windDirection(c.windDir)} ${speed(c.wind, unit)}`.trim()),
+      fact(t('w.humidity'), percent(c.humidity)),
+      fact(t('w.wind'), `${windDirection(c.windDir)} ${speed(c.wind)}`.trim()),
     ]),
   );
 }
 
 // Gráfico da chuva nas próximas 2 h, de 15 em 15 min (ADR-033). Só aparece se houver chuva/neve.
 // Cores iguais às do radar: verde-claro → verde → verde-escuro → vermelho; neve em azul.
-const RAIN_STEPS = [[15, '#e1322a', 'Muito forte'], [7.6, '#0f5f23', 'Forte'], [2.5, '#239632', 'Moderada'], [0, '#6ed75a', 'Fraca']];
+const RAIN_STEPS = [[15, '#e1322a', 'veryHeavy'], [7.6, '#0f5f23', 'heavy'], [2.5, '#239632', 'moderate'], [0, '#6ed75a', 'light']];
 function rainChart(data, now) {
   const slots = data.nowcast.slice(0, 8);
   const wetSlot = (s) => s.precip >= 0.1 || s.snow > 0;
@@ -85,17 +86,17 @@ function rainChart(data, now) {
     const [, color, label] = RAIN_STEPS.find(([min]) => rate >= min);
     const snow = s.snow > 0;
     const h = wetSlot(s) ? Math.max(10, Math.min(100, 12 + Math.log2(1 + rate) * 22)) : 3;
-    const when = i === 0 ? 'agora' : `em ${i * 15} min`;
-    const txt = wetSlot(s) ? `${snow ? 'neve' : `chuva ${label.toLowerCase()}`} ${when}` : `sem chuva ${when}`;
+    const when = i === 0 ? t('chart.now') : t('chart.inMin', { min: i * 15 });
+    const txt = wetSlot(s) ? t(snow ? 'chart.snowAt' : 'chart.rainAt', { level: t(`chart.${label}`), when }) : t('chart.dryAt', { when });
     return el('span', { class: 'rainchart__bar', style: `height:${h}%;background:${wetSlot(s) ? (snow ? '#5aa9ec' : color) : 'rgba(255,255,255,.35)'}`, title: txt, 'aria-label': txt, role: 'img' });
   });
-  return el('figure', { class: 'rainchart', 'aria-label': 'Chuva nas próximas 2 horas' }, [
-    el('figcaption', { text: 'Chuva nas próximas 2 horas' }),
+  return el('figure', { class: 'rainchart', 'aria-label': t('chart.title') }, [
+    el('figcaption', { text: t('chart.title') }),
     el('div', { class: 'rainchart__plot' }, [
-      el('div', { class: 'rainchart__y', 'aria-hidden': 'true' }, [el('span', { text: 'Forte' }), el('span', { text: 'Fraca' })]),
+      el('div', { class: 'rainchart__y', 'aria-hidden': 'true' }, [el('span', { text: t('chart.yHeavy') }), el('span', { text: t('chart.yLight') })]),
       el('div', { class: 'rainchart__bars' }, bars),
     ]),
-    el('div', { class: 'rainchart__x', 'aria-hidden': 'true' }, ['Agora', '30 min', '1 h', '1h30', '2 h'].map((t) => el('span', { text: t }))),
+    el('div', { class: 'rainchart__x', 'aria-hidden': 'true' }, [t('time.now'), '30 min', '1 h', '1h30', '2 h'].map((x) => el('span', { text: x }))),
   ]);
 }
 

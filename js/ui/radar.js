@@ -3,13 +3,14 @@
 // PREVISTAS pelo modelo (Open-Meteo, grade de pontos desenhada no mapa).
 // Módulo isolado: se uma fonte falhar, a outra continua; se as duas falharem,
 // só este cartão mostra aviso. A biblioteca de mapa só é baixada quando o cartão aparece.
-import { addExpandControl } from './map-expand.js?v=4.1';
-import { el, fill } from './dom.js?v=4.1';
-import { getRadarFrames } from '../api/radar.js?v=4.1';
-import { getPrecipGrid } from '../api/precip-grid.js?v=4.1';
-import { speed, windDirection } from '../domain/units.js?v=4.1';
-import { showToast } from './status.js?v=4.1';
-import { load, save } from '../storage.js?v=4.1';
+import { addExpandControl } from './map-expand.js?v=5.0';
+import { el, fill } from './dom.js?v=5.0';
+import { getRadarFrames } from '../api/radar.js?v=5.0';
+import { getPrecipGrid } from '../api/precip-grid.js?v=5.0';
+import { speed, windDirection } from '../domain/units.js?v=5.0';
+import { showToast } from './status.js?v=5.0';
+import { load, save } from '../storage.js?v=5.0';
+import { t, locale, getLang } from '../i18n/index.js?v=5.0';
 
 // Leaflet 1.9.4 hospedado no próprio site (ADR-040): sem depender de terceiros para código que roda na página
 const LEAFLET_JS = 'vendor/leaflet/leaflet.js';
@@ -29,10 +30,10 @@ const START_ZOOM = 7;             // casa com o zoom máximo do radar e com a á
 // (que a RainViewer só entrega em azul no plano gratuito) é REPINTADA no aparelho com estas cores.
 // Limites em mm/h: Fraca < 2,5 · Moderada 2,5–7,6 · Forte 7,6–15 · Muito forte > 15.
 export const LEGEND = [
-  { label: 'Fraca', from: 0.1, rgb: [110, 215, 90] },
-  { label: 'Moderada', from: 2.5, rgb: [35, 150, 50] },
-  { label: 'Forte', from: 7.6, rgb: [15, 95, 35] },
-  { label: 'Muito forte', from: 15, rgb: [225, 50, 40] },
+  { label: 'chart.yLight', from: 0.1, rgb: [110, 215, 90] },
+  { label: 'radar.moderate', from: 2.5, rgb: [35, 150, 50] },
+  { label: 'chart.yHeavy', from: 7.6, rgb: [15, 95, 35] },
+  { label: 'radar.veryHeavy', from: 15, rgb: [225, 50, 40] },
 ];
 const SNOW_LIGHT = [120, 195, 245], SNOW_DARK = [25, 95, 185]; // neve: azul-claro → azul (como no Weather Channel)
 const SNOW_RGB = [60, 150, 225];                                 // amostra da legenda
@@ -40,15 +41,15 @@ const ICE_RGB = [125, 85, 215];   // gelo (garoa/chuva congelante): roxo
 const MIX_RGB = [225, 95, 190];   // mistura chuva + neve: rosa
 const FOG_RGB = [235, 222, 125];  // névoa/neblina: amarelo-claro
 export const EXTRA_LEGEND = [
-  { label: 'Neve', rgb: SNOW_RGB }, { label: 'Gelo', rgb: ICE_RGB },
-  { label: 'Mistura', rgb: MIX_RGB }, { label: 'Névoa', rgb: FOG_RGB },
+  { label: 'radar.snow', rgb: SNOW_RGB }, { label: 'radar.ice', rgb: ICE_RGB },
+  { label: 'radar.mix', rgb: MIX_RGB }, { label: 'radar.fog', rgb: FOG_RGB },
 ];
 // Se o aparelho não conseguir repintar o radar, ele aparece nas cores originais (azul) e a legenda avisa.
 export const RADAR_LEGEND = [
-  { label: 'Fraca', rgb: [136, 221, 238] },
-  { label: 'Moderada', rgb: [0, 119, 187] },
-  { label: 'Forte', rgb: [255, 221, 0] },
-  { label: 'Muito forte', rgb: [255, 68, 0] },
+  { label: 'chart.yLight', rgb: [136, 221, 238] },
+  { label: 'radar.moderate', rgb: [0, 119, 187] },
+  { label: 'chart.yHeavy', rgb: [255, 221, 0] },
+  { label: 'radar.veryHeavy', rgb: [255, 68, 0] },
 ];
 let recolorFailed = false;
 let legendRadar, legendModel;
@@ -70,55 +71,55 @@ let pending = null;
 
 export function mountRadar(container) {
   root = container;
-  mapBox = el('div', { class: `radar__map radar__map--${mapStyle}`, role: 'region', 'aria-label': 'Mapa do radar de chuva' });
-  styleBox = el('div', { class: 'segmented segmented--small', role: 'group', 'aria-label': 'Estilo do mapa' },
-    [['light', 'Claro'], ['dark', 'Escuro']].map(([key, text]) => el('button', {
+  mapBox = el('div', { class: `radar__map radar__map--${mapStyle}`, role: 'region', 'aria-label': t('radar.mapAria') });
+  styleBox = el('div', { class: 'segmented segmented--small', role: 'group', 'aria-label': t('radar.style') },
+    [['light', t('radar.light')], ['dark', t('radar.dark')]].map(([key, text]) => el('button', {
       type: 'button', 'aria-pressed': String(mapStyle === key), text,
       onclick: () => setMapStyle(key),
     })));
-  statusEl = el('div', { class: 'radar__status', text: 'Carregando radar…' });
+  statusEl = el('div', { class: 'radar__status', text: t('radar.loading') });
   kindEl = el('span', { class: 'radar__kind' });
-  playBtn = el('button', { class: 'radar__play', type: 'button', 'aria-label': 'Reproduzir animação', text: '▶', onclick: togglePlay });
-  slider = el('input', { class: 'radar__slider', type: 'range', min: '0', max: '0', value: '0', 'aria-label': 'Momento do radar', oninput: () => { stop(); show(Number(slider.value)); } });
+  playBtn = el('button', { class: 'radar__play', type: 'button', 'aria-label': t('radar.play'), text: '▶', onclick: togglePlay });
+  slider = el('input', { class: 'radar__slider', type: 'range', min: '0', max: '0', value: '0', 'aria-label': t('radar.moment'), oninput: () => { stop(); show(Number(slider.value)); } });
   timeEl = el('span', { class: 'radar__time', text: '--' });
   windEl = el('span', { class: 'radar__wind' });
-  modelNote = el('p', { class: 'radar__warn', hidden: true, text: 'Previsão do modelo: áreas aproximadas (cada quadradinho ≈ 30–50 km). Não é radar.' });
+  modelNote = el('p', { class: 'radar__warn', hidden: true, text: t('radar.modelNote') });
 
   fill(root,
     el('header', { class: 'card__head' }, [
-      el('h2', { text: 'Radar de chuva' }),
+      el('h2', { text: t('sec.radar') }),
       styleBox,
     ]),
-    el('p', { class: 'card__hint card__hint--line', text: 'Agora → próximas 24 h' }),
+    el('p', { class: 'card__hint card__hint--line', text: t('radar.hint') }),
     el('div', { class: 'radar__wrap' }, [mapBox, kindEl, statusEl]),
     el('div', { class: 'radar__controls' }, [playBtn, slider, timeEl]),
     el('div', { class: 'radar__marks', 'aria-hidden': 'true' }, [
-      el('span', { class: 'radar__marks-now', text: 'agora (radar)' }), el('span', { text: 'previsão +24 h →' }),
+      el('span', { class: 'radar__marks-now', text: t('radar.markNow') }), el('span', { text: t('radar.markFuture') }),
     ]),
     modelNote,
     el('div', { class: 'radar__foot' }, [
       // Uma legenda para o player inteiro (ADR-024). A outra só aparece se o radar não puder ser repintado.
-      legendRadar = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda do radar (cores originais)', hidden: true }, [
-        el('li', { class: 'radar__legend-title', text: 'Radar · chuva:' }),
+      legendRadar = el('ul', { class: 'radar__legend', 'aria-label': t('radar.legendOrigAria'), hidden: true }, [
+        el('li', { class: 'radar__legend-title', text: t('radar.legendOrig') }),
         ...RADAR_LEGEND.map((l) => el('li', {}, [
-          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
+          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), t(l.label),
         ])),
       ]),
-      legendModel = el('ul', { class: 'radar__legend', 'aria-label': 'Legenda de chuva e neve' }, [
-        el('li', { class: 'radar__legend-title', text: 'Legenda:' }),
+      legendModel = el('ul', { class: 'radar__legend', 'aria-label': t('radar.legendAria') }, [
+        el('li', { class: 'radar__legend-title', text: t('radar.legend') }),
         ...LEGEND.map((l) => el('li', {}, [
-          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
+          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), t(l.label),
         ])),
         ...EXTRA_LEGEND.map((l) => el('li', {}, [
-          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), l.label,
+          el('b', { style: `background: rgb(${l.rgb.join(',')})`, 'aria-hidden': 'true' }), t(l.label),
         ])),
       ]),
       windEl,
     ]),
     el('p', { class: 'radar__note' }, [
-      'Aperte ▶ para ver para onde a chuva deve ir nas próximas 24 h. Neve, gelo, mistura e névoa vêm da previsão do modelo (radar não distingue o tipo nem enxerga névoa). Agora: ',
+      `${t('radar.note')} ${t('radar.nowSrc')} `,
       el('a', { href: 'https://www.rainviewer.com/', target: '_blank', rel: 'noopener', text: 'Weather data by RainViewer' }),
-      ' · Previsão: Open-Meteo · Mapa: ',
+      ` · ${t('radar.fcSrc')} Open-Meteo · ${t('radar.mapSrc')} `,
       el('a', { href: 'https://www.openstreetmap.org/copyright', target: '_blank', rel: 'noopener', text: '© OpenStreetMap' }),
     ]),
   );
@@ -137,7 +138,7 @@ export function updateRadar({ place, data, unit }) {
   const toward = ((c.windDir ?? 0) + 180) % 360;
   windEl.replaceChildren(
     el('span', { class: 'wind-arrow', style: `transform: rotate(${toward}deg)`, 'aria-hidden': 'true', text: '↑' }),
-    ` Vento ${windDirection(c.windDir)} ${speed(c.wind, unit)}`,
+    ` ${t('w.wind')} ${windDirection(c.windDir)} ${speed(c.wind)}`,
   );
   pending = { place, data, unit };
   if (!map) return;
@@ -255,7 +256,7 @@ function show(i) {
   idx = i;
   slider.value = String(i);
   timeEl.textContent = label(f, i);
-  kindEl.textContent = f.kind === 'radar' ? (f.nowcast ? 'RADAR · projeção curta' : 'RADAR') : 'PREVISÃO DO MODELO';
+  kindEl.textContent = t(f.kind === 'radar' ? (f.nowcast ? 'radar.kindNowcast' : 'radar.kindRadar') : 'radar.kindModel');
   kindEl.className = `radar__kind radar__kind--${f.kind}`;
   modelNote.hidden = f.kind !== 'model';
   const original = f.kind === 'radar' && recolorFailed;
@@ -268,10 +269,10 @@ function label(f, i) {
   const tz = pending?.data?.timezone;
   let clock = '';
   try {
-    clock = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: tz }).format(new Date(f.time));
+    clock = new Intl.DateTimeFormat(locale(), { hour: getLang() === 'pt' ? '2-digit' : 'numeric', minute: '2-digit', timeZone: tz }).format(new Date(f.time));
   } catch { /* fuso desconhecido */ }
-  if (i === nowIdx) return `Agora · ${clock}`;
-  if (diffMin < 0) return `há ${Math.abs(diffMin)} min · ${clock}`;
+  if (i === nowIdx) return `${t('time.now')} · ${clock}`;
+  if (diffMin < 0) return `${t('radar.ago', { min: Math.abs(diffMin) })} · ${clock}`;
   const h = Math.round(diffMin / 60);
   return h >= 1 ? `+${h} h · ${clock}` : `+${diffMin} min · ${clock}`;
 }
@@ -449,7 +450,7 @@ function play() {
   if (!timeline.length) return;
   playing = true;
   playBtn.textContent = '❚❚';
-  playBtn.setAttribute('aria-label', 'Pausar animação');
+  playBtn.setAttribute('aria-label', t('radar.pause'));
   if (idx >= timeline.length - 1) show(0); // recomeça do agora
   const tick = () => {
     const next = idx + 1 >= timeline.length ? 0 : idx + 1;
@@ -463,14 +464,14 @@ function stop() {
   playing = false;
   clearTimeout(timer);
   playBtn.textContent = '▶';
-  playBtn.setAttribute('aria-label', 'Reproduzir animação');
+  playBtn.setAttribute('aria-label', t('radar.play'));
 }
 
 function showStatus() {
   const bothFailed = radarFailed && modelFailed;
   statusEl.hidden = !bothFailed && timeline.length > 0;
   if (bothFailed || !timeline.length) {
-    statusEl.textContent = 'Radar indisponível no momento. O restante da previsão segue normal.';
+    statusEl.textContent = t('radar.unavailable');
     playBtn.disabled = true;
     slider.disabled = true;
   } else {
@@ -511,15 +512,15 @@ function addHomeControls() {
       const box = L.DomUtil.create('div', 'leaflet-bar radar-home');
       const cityBtn = L.DomUtil.create('a', 'radar-home__btn', box);
       cityBtn.href = '#';
-      cityBtn.title = 'Voltar para a cidade selecionada';
+      cityBtn.title = t('radar.toCity');
       cityBtn.setAttribute('role', 'button');
-      cityBtn.setAttribute('aria-label', 'Voltar para a cidade selecionada');
+      cityBtn.setAttribute('aria-label', t('radar.toCity'));
       cityBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z" fill="currentColor"/></svg>';
       const meBtn = L.DomUtil.create('a', 'radar-home__btn', box);
       meBtn.href = '#';
-      meBtn.title = 'Ir para a minha localização';
+      meBtn.title = t('radar.toMe');
       meBtn.setAttribute('role', 'button');
-      meBtn.setAttribute('aria-label', 'Ir para a minha localização');
+      meBtn.setAttribute('aria-label', t('radar.toMe'));
       meBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" fill="currentColor"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
       L.DomEvent.disableClickPropagation(box);
       L.DomEvent.on(cityBtn, 'click', (e) => { L.DomEvent.preventDefault(e); goToCity(); });
@@ -536,20 +537,20 @@ function goToCity() {
 }
 
 function goToMe(btn) {
-  if (!('geolocation' in navigator)) { showToast('Seu navegador não oferece localização.'); return; }
+  if (!('geolocation' in navigator)) { showToast(t('geo.unsupported')); return; }
   btn.classList.add('is-busy');
   navigator.geolocation.getCurrentPosition(
     (pos) => {
       btn.classList.remove('is-busy');
       const ll = [pos.coords.latitude, pos.coords.longitude];
-      const icon = L.divIcon({ className: '', html: '<div class="me-pin" title="Você está aqui"></div>', iconSize: [20, 20], iconAnchor: [10, 10] });
+      const icon = L.divIcon({ className: '', html: `<div class="me-pin" title="${t('radar.youAreHere').replace(/[<>"&]/g, '')}"></div>`, iconSize: [20, 20], iconAnchor: [10, 10] });
       if (meMarker) meMarker.setLatLng(ll);
       else meMarker = L.marker(ll, { icon, keyboard: false, interactive: false }).addTo(map);
       map.flyTo(ll, 8, { duration: 0.8 });
     },
     (err) => {
       btn.classList.remove('is-busy');
-      showToast(err.code === err.PERMISSION_DENIED ? 'Localização não permitida.' : 'Não foi possível obter sua localização.');
+      showToast(t(err.code === err.PERMISSION_DENIED ? 'geo.denied' : 'geo.failed'));
     },
     { timeout: 8000, maximumAge: 5 * 60 * 1000 },
   );

@@ -62,15 +62,16 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false }) {
+async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false, locale = 'pt-BR', init = null }) {
   // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
-  const ctx = await browser.newContext({ bypassCSP, serviceWorkers: sw ? 'allow' : 'block', ...(mobile
+  const ctx = await browser.newContext({ locale, bypassCSP, serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
     : { viewport: { width: 1366, height: 900 } }) });
   if (geo === 'allow') { await ctx.grantPermissions(['geolocation']); await ctx.setGeolocation({ latitude: 42.39, longitude: -71.1 }); }
   const p = await ctx.newPage();
   const errors = [];
   await p.addInitScript(() => { window.__csp = []; document.addEventListener('securitypolicyviolation', (e) => window.__csp.push(`${e.violatedDirective} ${e.blockedURI}`)); });
+  if (init) await p.addInitScript(init);
   p.on('pageerror', (e) => errors.push(e.message));
   p.on('console', (m) => m.type() === 'error' && !m.text().includes('Failed to load resource') && errors.push(m.text()));
   await p.route('https://api.open-meteo.com/**', (r) => {
@@ -578,9 +579,11 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
 
   // Acessibilidade (axe-core, regras WCAG 2 A/AA) — ADR-035
   const AXE = fs.readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
-  for (const [label, opts] of [['celular, chuva', { mobile: true, fc: forecast({ code: 3, rainNow: 0.6, rainNext: [0.5, 0.4, 0.2, 0, 0, 0, 0, 0] }) }], ['computador, sol', { mobile: false }]]) {
+  for (const [label, opts] of [['celular, chuva', { mobile: true, fc: forecast({ code: 3, rainNow: 0.6, rainNext: [0.5, 0.4, 0.2, 0, 0, 0, 0, 0] }) }], ['computador, sol', { mobile: false }],
+    ['inglês, painel de idioma aberto', { mobile: true, locale: 'en-US', openSettings: true }]]) {
     t = await page(browser, { ...opts, bypassCSP: true }); // só para injetar o auditor de acessibilidade
     await t.p.waitForTimeout(1200);
+    if (opts.openSettings) { await t.p.click('#lang-btn'); await t.p.selectOption('#set-units', 'custom'); }
     await t.p.evaluate(() => { document.getElementById('toast').hidden = true; });
     await t.p.addScriptTag({ content: AXE });
     const v = await t.p.evaluate(async (dbg) => (await axe.run(document, { runOnly: ['wcag2a', 'wcag2aa'] })).violations
@@ -747,6 +750,86 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.p.fill('#search-input', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(500);
   await t.p.reload(); await t.p.waitForTimeout(1000);
   check('T11 lembra última cidade', (await t.p.textContent('.hero__city')) === 'São Paulo');
+  await t.ctx.close();
+
+  // ---------- Idiomas e unidades (ADR-045) ----------
+  const PT_KEYS = Object.keys((await import(path.join(__dirname, '..', 'js', 'i18n', 'pt.js'))).default);
+  const rawKeys = async (pg) => { const txt = await pg.evaluate(() => document.body.innerText + ' ' + [...document.querySelectorAll('[aria-label],[title],[placeholder]')].map((n) => [n.getAttribute('aria-label'), n.title, n.getAttribute('placeholder')].join(' ')).join(' ')); return PT_KEYS.filter((k) => k.includes('.') && txt.includes(k)); };
+  const runTrip = async (pg) => { await pg.click('.trip__toggle'); await pg.fill('#trip-to', 'Hart'); await pg.waitForTimeout(700); await pg.keyboard.press('Enter'); await pg.waitForTimeout(300); await pg.click('.trip__go'); await pg.waitForSelector('.trip__stats', { timeout: 15000 }); await pg.waitForTimeout(400); };
+
+  // Aparelho em inglês dos EUA → site em inglês, °F, milhas e polegadas
+  t = await page(browser, { mobile: false, locale: 'en-US' });
+  check('Idioma: aparelho en-US abre em inglês', (await t.p.getAttribute('html', 'lang')) === 'en-US' && (await t.p.textContent('#hourly h2')) === 'Next 24 hours' && (await t.p.textContent('.hero__now-title')) === 'Now', await t.p.textContent('#hourly h2'));
+  check('Unidades: EUA → °F', (await t.p.getAttribute('[data-unit="F"]', 'aria-pressed')) === 'true');
+  check('Idioma: nenhuma chave crua na tela (en)', (await rawKeys(t.p)).length === 0, (await rawKeys(t.p)).join(', '));
+  check('Idioma: horário no padrão dos EUA (AM/PM)', /AM|PM/.test(await t.p.textContent('.hero__updated')), await t.p.textContent('.hero__updated'));
+  await runTrip(t.p);
+  const statsUS = await t.p.textContent('.trip__stats');
+  check('Unidades: viagem em milhas (EUA)', / 180 mi /.test(statsUS) && !/ km /.test(statsUS), statsUS);
+  const roadUS = await t.p.textContent('.trip__road');
+  check('Unidades: trechos sem posto em milhas', /mi without|with no gas station/.test(roadUS) && !/\bkm\b/.test(roadUS), roadUS.slice(0, 160));
+  check('Idioma: viagem em inglês', /Trip|Heads up|Easy trip/.test(await t.p.textContent('.trip__out')) && (await rawKeys(t.p)).length === 0, (await rawKeys(t.p)).join(', '));
+  check('Sem erros JS (inglês)', t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+
+  // Reino Unido: inglês, °C e milhas
+  t = await page(browser, { mobile: false, locale: 'en-GB' });
+  check('Unidades: Reino Unido → °C', (await t.p.getAttribute('[data-unit="C"]', 'aria-pressed')) === 'true' && (await t.p.textContent('#hourly h2')) === 'Next 24 hours');
+  await runTrip(t.p);
+  check('Unidades: Reino Unido → milhas na estrada', / 180 mi /.test(await t.p.textContent('.trip__stats')), await t.p.textContent('.trip__stats'));
+  await t.ctx.close();
+
+  // Espanhol
+  t = await page(browser, { mobile: true, locale: 'es-MX' });
+  check('Idioma: aparelho es-MX abre em espanhol', (await t.p.textContent('#hourly h2')) === 'Próximas 24 horas' && (await t.p.textContent('.hero__now-title')) === 'Ahora' && (await t.p.textContent('#daily h2')).startsWith('Próximos 7 días'), await t.p.textContent('#daily h2'));
+  check('Idioma: nenhuma chave crua na tela (es)', (await rawKeys(t.p)).length === 0, (await rawKeys(t.p)).join(', '));
+  check('Unidades: México → métrico (°C)', (await t.p.getAttribute('[data-unit="C"]', 'aria-pressed')) === 'true');
+  await t.ctx.close();
+
+  // Idioma sem dicionário (alemão) → inglês; unidades seguem o país (Alemanha = métrico)
+  t = await page(browser, { mobile: false, locale: 'de-DE' });
+  check('Idioma: não suportado (de-DE) cai para inglês', (await t.p.textContent('#hourly h2')) === 'Next 24 hours' && (await t.p.getAttribute('[data-unit="C"]', 'aria-pressed')) === 'true');
+  await t.ctx.close();
+
+  // Escolha manual (imigrante): aparelho em inglês dos EUA, pessoa escolhe português e mantém milhas
+  t = await page(browser, { mobile: true, locale: 'en-US' });
+  await t.p.click('#lang-btn');
+  check('Seletor: painel abre com idioma e unidades', await t.p.isVisible('#set-lang') && await t.p.isVisible('#set-units') && (await t.p.getAttribute('#lang-btn', 'aria-expanded')) === 'true');
+  await t.p.selectOption('#set-lang', 'pt');
+  await Promise.all([t.p.waitForNavigation(), t.p.click('#set-apply')]); await t.p.waitForTimeout(1200);
+  check('Seletor: escolher português troca o site', (await t.p.textContent('#hourly h2')) === 'Próximas 24 horas' && (await t.p.getAttribute('html', 'lang')) === 'pt-BR');
+  check('Seletor: unidades continuam as do país (°F)', (await t.p.getAttribute('[data-unit="F"]', 'aria-pressed')) === 'true');
+  await t.p.reload(); await t.p.waitForTimeout(1200);
+  check('Seletor: escolha fica salva depois de recarregar', (await t.p.textContent('#hourly h2')) === 'Próximas 24 horas');
+  // Personalizado: °C com milhas e mm
+  await t.p.click('#lang-btn'); await t.p.selectOption('#set-units', 'custom');
+  check('Seletor: "Personalizado" mostra cada medida', await t.p.isVisible('#set-temp') && await t.p.isVisible('#set-dist') && await t.p.isVisible('#set-precip'));
+  await t.p.selectOption('#set-temp', 'C'); await t.p.selectOption('#set-dist', 'mi'); await t.p.selectOption('#set-precip', 'mm');
+  await Promise.all([t.p.waitForNavigation(), t.p.click('#set-apply')]); await t.p.waitForTimeout(1200);
+  check('Seletor: personalizado °C', (await t.p.getAttribute('[data-unit="C"]', 'aria-pressed')) === 'true');
+  await t.p.click('.hour__btn >> nth=1');
+  const tiles = await t.p.textContent('#hour-detail');
+  check('Seletor: personalizado mph e mm juntos', /mph/.test(tiles) && / mm/.test(tiles) && !/km\/h/.test(tiles), tiles.slice(0, 200));
+  // Botão °C/°F do topo troca só a temperatura
+  await t.p.click('[data-unit="F"]'); await t.p.waitForTimeout(300);
+  const tiles2 = await t.p.textContent('#hour-detail');
+  check('°F do topo não mexe nas outras medidas', /mph/.test(tiles2) && / mm/.test(tiles2));
+  // Voltar ao automático
+  await t.p.click('#lang-btn'); await t.p.selectOption('#set-lang', 'auto'); await t.p.selectOption('#set-units', 'auto');
+  await Promise.all([t.p.waitForNavigation(), t.p.click('#set-apply')]); await t.p.waitForTimeout(1200);
+  check('Seletor: "Automático" volta ao idioma do aparelho', (await t.p.textContent('#hourly h2')) === 'Next 24 hours');
+  check('Sem erros JS (seletor)', t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+
+  // Quem já usava °F (chave antiga, antes da 5.0) continua com °F
+  t = await page(browser, { mobile: false, locale: 'pt-BR', init: () => localStorage.setItem('previsao-tempo:unit', '"F"') });
+  check('Migração: °F escolhido antes continua', (await t.p.getAttribute('[data-unit="F"]', 'aria-pressed')) === 'true' && (await t.p.textContent('#hourly h2')) === 'Próximas 24 horas');
+  await t.ctx.close();
+
+  // Link de plano enviado por um brasileiro, aberto por alguém com aparelho em inglês: abre em inglês
+  t = await page(browser, { mobile: false, locale: 'en-US', url: '/?viagem=1&de=42.36,-71.06&den=Boston&para=41.76,-72.68&paran=Hartford&veiculo=car' });
+  await t.p.waitForSelector('.trip__stats', { timeout: 15000 });
+  check('Link de plano respeita o idioma de quem abre', /Plan opened from the link/.test(await t.p.textContent('.trip__out')) && / mi /.test(await t.p.textContent('.trip__stats')));
   await t.ctx.close();
 
   await browser.close();

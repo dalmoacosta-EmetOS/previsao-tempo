@@ -2,6 +2,8 @@
 // vê a mesma viagem recalculada com a previsão MAIS NOVA. O "atualizar" é o próprio link.
 // Tudo o que vem do endereço é validado: números dentro do mundo, nomes curtos, veículo conhecido.
 
+import { t } from '../i18n/index.js?v=5.0';
+
 const VEH = ['car', 'moto', 'large'];
 const cut = (s, n = 80) => String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').slice(0, n);
 const num = (v) => (v === null || v === '' ? NaN : Number(v));
@@ -9,7 +11,7 @@ const num = (v) => (v === null || v === '' ? NaN : Number(v));
 function readPoint(q, key) {
   const [la, lo] = (q.get(key) || '').split(',').map(num);
   if (!Number.isFinite(la) || !Number.isFinite(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180) return null;
-  return { lat: la, lon: lo, name: cut(q.get(`${key}n`)) || 'Local', region: cut(q.get(`${key}r`)), country: cut(q.get(`${key}c`)) };
+  return { lat: la, lon: lo, name: cut(q.get(`${key}n`)) || t('plan.place'), region: cut(q.get(`${key}r`)), country: cut(q.get(`${key}c`)) };
 }
 
 export function planFromUrl(search) {
@@ -17,9 +19,9 @@ export function planFromUrl(search) {
   if (q.get('viagem') !== '1') return null;
   const from = readPoint(q, 'de'), to = readPoint(q, 'para');
   if (!from || !to) return null;
-  const t = num(q.get('saida'));
+  const saida = num(q.get('saida'));
   const vehicle = VEH.includes(q.get('veiculo')) ? q.get('veiculo') : 'car';
-  return { from, to, departMs: Number.isFinite(t) && t > 0 ? t * 60000 : null, vehicle };
+  return { from, to, departMs: Number.isFinite(saida) && saida > 0 ? saida * 60000 : null, vehicle };
 }
 
 export function planToUrl(plan, baseHref) {
@@ -51,11 +53,11 @@ export function planToIcs(plan, url, summaryText) {
     'BEGIN:VEVENT',
     `UID:${Math.round(plan.departMs / 1000)}-${Math.random().toString(36).slice(2)}@weather-forecast`,
     `DTSTAMP:${z(Date.now())}`, `DTSTART:${z(plan.departMs)}`, `DTEND:${z(end)}`,
-    `SUMMARY:${esc(`Viagem ${plan.from.name} → ${plan.to.name}`)}`,
-    `DESCRIPTION:${esc(`${summaryText}\n\nAtualize a previsão do caminho: ${url}`)}`,
+    `SUMMARY:${esc(t('plan.title', { from: plan.from.name, to: plan.to.name }))}`,
+    `DESCRIPTION:${esc(`${summaryText}\n\n${t('plan.update')} ${url}`)}`,
     `URL:${url}`,
-    'BEGIN:VALARM', 'TRIGGER:-P2D', 'ACTION:DISPLAY', `DESCRIPTION:${esc('Sua viagem é daqui a 2 dias: confira o tempo no caminho')}`, 'END:VALARM',
-    'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', `DESCRIPTION:${esc('Sua viagem sai em 2 horas: atualize a previsão do caminho')}`, 'END:VALARM',
+    'BEGIN:VALARM', 'TRIGGER:-P2D', 'ACTION:DISPLAY', `DESCRIPTION:${esc(t('plan.alarm2d'))}`, 'END:VALARM',
+    'BEGIN:VALARM', 'TRIGGER:-PT2H', 'ACTION:DISPLAY', `DESCRIPTION:${esc(t('plan.alarm2h'))}`, 'END:VALARM',
     'END:VEVENT', 'END:VCALENDAR',
   ].join('\r\n');
 }
@@ -66,9 +68,9 @@ export function googleCalendarUrl(plan, url, summaryText) {
   const end = plan.departMs + (plan.durationS || 3600) * 1000;
   const q = new URLSearchParams({
     action: 'TEMPLATE',
-    text: `Viagem ${plan.from.name} → ${plan.to.name}`,
+    text: t('plan.title', { from: plan.from.name, to: plan.to.name }),
     dates: `${z(plan.departMs)}/${z(end)}`,
-    details: `${summaryText}\n\nAtualize a previsão do caminho: ${url}`,
+    details: `${summaryText}\n\n${t('plan.update')} ${url}`,
     location: plan.to.name,
   });
   return `https://calendar.google.com/calendar/render?${q.toString()}`;

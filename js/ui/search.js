@@ -1,6 +1,7 @@
 // Busca com autocompletar (RF-01): espera 300 ms, mínimo 2 letras, teclado acessível.
-import { el } from './dom.js?v=4.1';
-import { searchCities } from '../api/geocoding.js?v=4.1';
+import { el } from './dom.js?v=5.0';
+import { searchCities } from '../api/geocoding.js?v=5.0';
+import { t } from '../i18n/index.js?v=5.0';
 
 export function setupSearch({ input, list, onSelect }) {
   let timer;
@@ -71,16 +72,16 @@ export function setupSearch({ input, list, onSelect }) {
     if (q.length < 2) { close(); return; }
     timer = setTimeout(async () => {
       const mine = ++seq;
-      showMessage('Buscando…');
+      showMessage(t('search.searching'));
       try {
         const found = await searchCities(q);
         if (mine !== seq) return; // resposta antiga, ignora
         results = found;
-        if (!found.length) showMessage('Nenhuma cidade encontrada com esse nome.');
+        if (!found.length) showMessage(t('search.none'));
         else render();
       } catch (err) {
         if (mine !== seq) return;
-        showMessage(err.kind === 'offline' ? 'Sem conexão. Verifique sua internet.' : 'Não foi possível buscar agora. Tente de novo.');
+        showMessage(t(err.kind === 'offline' ? 'search.offline' : 'search.fail'));
       }
     }, 300);
   });

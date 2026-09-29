@@ -1,4 +1,5 @@
-import { getJSON } from './http.js?v=4.1';
+import { getJSON } from './http.js?v=5.0';
+import { t } from '../i18n/index.js?v=5.0';
 
 // Qualidade do ar — índice AQI dos EUA (escala EPA 0–500), grátis e sem chave (ADR-031).
 // Fonte: Open-Meteo Air Quality (modelos CAMS). Pólen fica de fora: só existe para a Europa.
@@ -13,10 +14,10 @@ export async function getAirQuality(lat, lon) {
 
 /** Faixas oficiais da EPA. */
 export function aqiLevel(aqi) {
-  if (aqi <= 50) return 'Boa';
-  if (aqi <= 100) return 'Moderada';
-  if (aqi <= 150) return 'Ruim p/ sensíveis';
-  if (aqi <= 200) return 'Ruim';
-  if (aqi <= 300) return 'Muito ruim';
-  return 'Perigosa';
+  if (aqi <= 50) return t('aqi.good');
+  if (aqi <= 100) return t('aqi.moderate');
+  if (aqi <= 150) return t('aqi.sensitive');
+  if (aqi <= 200) return t('aqi.unhealthy');
+  if (aqi <= 300) return t('aqi.veryUnhealthy');
+  return t('aqi.hazardous');
 }

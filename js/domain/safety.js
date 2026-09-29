@@ -1,190 +1,54 @@
 // Níveis de atenção para o "Hoje em detalhe" + recomendações (ADR-022).
 // Limites baseados em referências públicas (escala Beaufort, OMS para UV, faixas de
 // avisos de chuva do INMET). NÃO são alertas oficiais.
-import { speed } from './units.js?v=4.1';
-import { isWetHour } from './summary.js?v=4.1';
-import { roadIceRisk } from './road-ice.js?v=4.1';
-import { aqiLevel } from '../api/air-quality.js?v=4.1';
+import { speed, rain, snow } from './units.js?v=5.0';
+import { t } from '../i18n/index.js?v=5.0';
+import { isWetHour } from './summary.js?v=5.0';
+import { roadIceRisk } from './road-ice.js?v=5.0';
+import { aqiLevel } from '../api/air-quality.js?v=5.0';
 
-export const SOURCES = 'Limites: escala Beaufort (vento), OMS (índice UV), faixas de aviso do INMET (chuva), EPA (qualidade do ar). Recomendações gerais de segurança — em emergência, siga a Defesa Civil e as autoridades locais.';
+// Textos traduzidos (ADR-045): cada cuidado é uma chave adv.<tipo>.<nível>.<campo> nos dicionários.
+const KINDS = { night: ['warn'], official: ['danger', 'warn'], fog: ['warn', 'danger'], gust: ['warn', 'danger'],
+  wind: ['warn', 'danger'], uv: ['warn', 'danger'], rain: ['warn', 'danger'], snow: ['warn', 'danger'],
+  ice: ['warn', 'danger'], air: ['warn', 'danger'], storm: ['warn', 'danger'] };
 
-export const ADVICE = {
-  night: {
-    warn: {
-      title: 'Trecho à noite',
-      walk: 'Nas paradas, use roupa clara ou refletiva perto da pista.',
-      drive: 'De moto, a visibilidade cai muito à noite: colete refletivo, farol ligado e velocidade menor. Se puder, planeje chegar antes de escurecer.',
-      home: 'Se der, ajuste o horário de saída para fazer este trecho de dia.',
-    },
-  },
-  official: {
-    danger: {
-      title: 'Alerta oficial em vigor neste trecho',
-      walk: 'Siga as orientações do serviço de meteorologia e da Defesa Civil local.',
-      drive: 'Considere adiar ou mudar o horário da viagem; acompanhe o rádio e os painéis da estrada.',
-      home: 'Veja o texto completo do alerta no site oficial antes de sair.',
-    },
-    warn: {
-      title: 'Vigilância oficial neste trecho',
-      walk: 'Fique atento a mudanças rápidas do tempo.',
-      drive: 'Acompanhe atualizações durante a viagem; tenha um plano B de parada.',
-      home: 'Confira o alerta oficial antes de sair.',
-    },
-  },
-  fog: {
-    warn: {
-      title: 'Névoa na estrada',
-      walk: 'Atenção ao atravessar ou andar perto da pista: os motoristas enxergam pouco.',
-      drive: 'Farol baixo e de neblina ligados (nunca o alto); reduza a velocidade e aumente a distância do carro da frente.',
-      home: 'Se puder, espere a névoa dissipar — costuma melhorar depois que o sol esquenta.',
-    },
-    danger: {
-      title: 'Névoa densa — visibilidade muito baixa',
-      walk: 'Evite andar à beira da estrada; use roupa clara ou refletiva.',
-      drive: 'Se não enxergar, saia da pista em local seguro, ligue o pisca-alerta e espere; nunca pare no acostamento sem sinalizar.',
-      home: 'Adie a saída se possível; névoa densa causa engavetamentos.',
-    },
-  },
-  gust: {
-    warn: {
-      title: 'Rajadas fortes',
-      walk: 'Atenção a galhos, placas e objetos que possam voar. Guarda-chuva pode virar.',
-      drive: 'Segure firme o volante, principalmente em pontes e estradas abertas; cuidado ao ultrapassar caminhões.',
-      home: 'Recolha objetos soltos de varandas e quintais; feche janelas nos cômodos expostos ao vento.',
-    },
-    danger: {
-      title: 'Ventania',
-      walk: 'Evite áreas arborizadas, andaimes e fachadas; não se abrigue sob árvores ou placas.',
-      drive: 'Evite dirigir se não for necessário; reduza a velocidade e não estacione sob árvores ou fiação.',
-      home: 'Feche portas e janelas, afaste-se de vidraças e desligue aparelhos se houver oscilação de energia.',
-    },
-  },
-  wind: {
-    warn: {
-      title: 'Vento forte e constante',
-      walk: 'Caminhar pode ficar difícil em áreas abertas; atenção redobrada com crianças e idosos.',
-      drive: 'Veículos altos e motos sentem mais o vento lateral; mantenha distância dos outros carros.',
-      home: 'Prenda toldos, lonas e coberturas; janelas abertas podem bater.',
-    },
-    danger: {
-      title: 'Vento muito forte',
-      walk: 'Fique em local protegido; evite orla, pontes e áreas abertas.',
-      drive: 'Adie viagens se possível; risco de queda de árvores e postes.',
-      home: 'Mantenha tudo fechado e tenha lanterna à mão em caso de falta de energia.',
-    },
-  },
-  uv: {
-    warn: {
-      title: 'Índice UV alto',
-      walk: 'Use protetor solar (FPS 30+), chapéu e óculos; prefira a sombra.',
-      drive: 'O sol atravessa vidros laterais: use protetor nos braços em viagens longas.',
-      home: 'Hidrate-se; crianças e idosos devem evitar o sol forte.',
-    },
-    danger: {
-      title: 'Índice UV muito alto',
-      walk: 'Evite o sol entre 10h e 16h; reaplique o protetor a cada 2 horas.',
-      drive: 'Use óculos de sol com proteção UV; não deixe crianças ou animais no carro.',
-      home: 'Mantenha cortinas fechadas nas horas de sol forte; beba água com frequência.',
-    },
-  },
-  rain: {
-    warn: {
-      title: 'Chuva volumosa',
-      walk: 'Evite atravessar ruas alagadas e passar perto de bueiros e córregos.',
-      drive: 'Reduza a velocidade, acenda o farol baixo e aumente a distância do carro da frente (risco de aquaplanagem).',
-      home: 'Verifique calhas e ralos; mantenha documentos e eletrônicos longe do chão.',
-    },
-    danger: {
-      title: 'Chuva muito volumosa — risco de alagamento',
-      walk: 'Não entre em água de enchente: 15 cm de correnteza já derrubam uma pessoa.',
-      drive: 'Nunca atravesse trechos alagados — 30 cm de água podem arrastar um carro.',
-      home: 'Em área de risco, prepare-se para sair; desligue a energia se a água entrar na casa.',
-    },
-  },
-  snow: {
-    warn: {
-      title: 'Neve prevista',
-      walk: 'Use calçado antiderrapante; cuidado com gelo em escadas e calçadas.',
-      drive: 'Vá devagar, freie com antecedência e limpe todo o gelo dos vidros antes de sair.',
-      home: 'Tenha pá e sal à mão; proteja canos expostos ao frio.',
-    },
-    danger: {
-      title: 'Nevasca',
-      walk: 'Evite sair; o frio e a baixa visibilidade são perigosos.',
-      drive: 'Evite dirigir; se precisar, leve cobertor, água e carregador no carro.',
-      home: 'Prepare-se para falta de energia: lanternas, pilhas, agasalhos e comida.',
-    },
-  },
-  ice: {
-    warn: {
-      title: 'Possível gelo na pista (black ice)',
-      walk: 'Pisos molhados podem congelar: use calçado antiderrapante e cuidado em escadas e rampas.',
-      drive: 'Pontes, viadutos e trechos à sombra congelam primeiro; reduza a velocidade e evite freadas bruscas.',
-      home: 'Jogue sal ou areia na calçada e na escada da entrada antes de a temperatura cair.',
-    },
-    danger: {
-      title: 'Gelo na pista provável',
-      walk: 'Evite sair se não for necessário; o gelo fica quase invisível.',
-      drive: 'Adie a viagem se puder. Se dirigir: velocidade bem baixa, distância maior, sem freio brusco; se derrapar, tire o pé e esterce para onde quer ir.',
-      home: 'Galhos com gelo derrubam fios: tenha lanterna, pilhas e agasalhos à mão.',
-    },
-  },
-  air: {
-    warn: {
-      title: 'Ar ruim para grupos sensíveis',
-      walk: 'Quem tem asma ou doença do coração ou pulmão, crianças e idosos: reduzam o esforço ao ar livre.',
-      drive: 'Mantenha as janelas fechadas e o ar do carro em recirculação.',
-      home: 'Feche as janelas; se tiver purificador de ar, ligue.',
-    },
-    danger: {
-      title: 'Ar ruim para todos',
-      walk: 'Evite exercício ao ar livre; grupos sensíveis devem ficar em ambiente fechado.',
-      drive: 'Janelas fechadas e ar em recirculação durante todo o trajeto.',
-      home: 'Portas e janelas fechadas; evite fumaça dentro de casa (velas, fritura, cigarro).',
-    },
-  },
-  storm: {
-    warn: {
-      title: 'Possibilidade de tempestade',
-      walk: 'Ao ouvir trovões, procure abrigo em prédio fechado.',
-      drive: 'Chuva forte repentina reduz a visibilidade; acenda o farol baixo.',
-      home: 'Tire aparelhos sensíveis da tomada se houver raios.',
-    },
-    danger: {
-      title: 'Tempestade prevista',
-      walk: 'Evite áreas abertas, árvores isoladas, piscinas e praias; não use o celular ao ar livre durante raios.',
-      drive: 'Se possível, espere a tempestade passar; o carro fechado é um bom abrigo contra raios.',
-      home: 'Feche janelas, fique longe delas e desligue aparelhos da tomada.',
-    },
-  },
-};
+export const SOURCES = () => t('adv.sources');
+export const hasAdvice = (key) => !!KINDS[key];
+
+/** Cuidados { title, walk, drive, home } de um tipo e nível ('warn' | 'danger'). */
+export function advice(key, level) {
+  const lv = KINDS[key]?.includes(level) ? level : KINDS[key]?.[0];
+  if (!lv) return null;
+  const f = (x) => t(`adv.${key}.${lv}.${x}`);
+  return { title: f('title'), walk: f('walk'), drive: f('drive'), home: f('home') };
+}
 
 const kmh = (v) => v ?? 0;
 
 /** Avalia o dia de hoje; devolve { chave: { level, title, reason, walk, drive, home } }. */
 export function evaluateToday(data, stormRisk, unit = 'C', air = null) {
-  const sp = (v) => speed(v, unit);
-  const mm = (v) => (unit === 'F' ? `${(v / 25.4).toFixed(1).replace('.', ',')} pol` : `${Math.round(v)} mm`);
+  const sp = (v) => speed(v);
+  const mm = (v) => rain(v, 0);
   const d = data.daily[0];
   const today = data.hours.filter((h) => h.time.startsWith(d.date));
   const rainMm = today.reduce((a, h) => a + (h.precip ?? 0), 0);
   const maxRate = Math.max(0, ...today.filter(isWetHour).map((h) => h.precip ?? 0));
   const out = {};
-  const put = (key, level, reason) => { if (level) out[key] = { level, reason, ...ADVICE[key][level] }; };
+  const put = (key, level, reason) => { if (level) out[key] = { level, reason, ...advice(key, level) }; };
 
   const g = kmh(d.gustMax);
-  put('gust', g >= 62 ? 'danger' : g >= 40 ? 'warn' : null, `Rajadas de até ${sp(g)} (atenção a partir de ${sp(40)}; ventania a partir de ${sp(62)}).`);
+  put('gust', g >= 62 ? 'danger' : g >= 40 ? 'warn' : null, t('why.gust', { v: sp(g), a: sp(40), b: sp(62) }));
   const w = kmh(d.windMax);
-  put('wind', w >= 62 ? 'danger' : w >= 39 ? 'warn' : null, `Vento constante de até ${sp(w)} (forte a partir de ${sp(39)}).`);
+  put('wind', w >= 62 ? 'danger' : w >= 39 ? 'warn' : null, t('why.wind', { v: sp(w), a: sp(39) }));
   const uv = d.uv ?? 0;
-  put('uv', uv >= 8 ? 'danger' : uv >= 6 ? 'warn' : null, `Índice UV ${Math.round(uv)} (alto a partir de 6; muito alto a partir de 8).`);
+  put('uv', uv >= 8 ? 'danger' : uv >= 6 ? 'warn' : null, t('why.uv', { v: Math.round(uv) }));
   put('rain', rainMm >= 50 || maxRate >= 30 ? 'danger' : rainMm >= 30 || maxRate >= 20 ? 'warn' : null,
-    `Cerca de ${mm(rainMm)} previstos hoje (atenção a partir de ${mm(30)}; risco de alagamento a partir de ${mm(50)}).`);
+    t('why.rain', { v: mm(rainMm), a: mm(30), b: mm(50) }));
   const sn = d.snow ?? 0;
-  put('snow', sn >= 10 ? 'danger' : sn > 0 ? 'warn' : null, `Cerca de ${unit === 'F' ? (sn / 2.54).toFixed(1).replace('.', ',') + ' pol' : sn.toFixed(1).replace('.', ',') + ' cm'} de neve previstos.`);
-  put('storm', stormRisk === 'alto' ? 'danger' : stormRisk === 'moderado' ? 'warn' : null, `Risco de tempestade ${stormRisk} (estimativa do site).`);
+  put('snow', sn >= 10 ? 'danger' : sn > 0 ? 'warn' : null, t('why.snow', { v: snow(sn) }));
+  put('storm', stormRisk === 'alto' ? 'danger' : stormRisk === 'moderado' ? 'warn' : null, t('why.storm', { v: t(`risk.${{ alto: 'high', moderado: 'moderate', baixo: 'low' }[stormRisk]}`).toLowerCase() }));
   const ice = roadIceRisk(data.hourly);
   put('ice', ice.level, ice.reason);
-  if (air) put('air', air.aqi > 150 ? 'danger' : air.aqi > 100 ? 'warn' : null, `Índice de qualidade do ar ${air.aqi} (${aqiLevel(air.aqi)}; ruim para sensíveis a partir de 101, ruim para todos a partir de 151).`);
+  if (air) put('air', air.aqi > 150 ? 'danger' : air.aqi > 100 ? 'warn' : null, t('why.air', { v: air.aqi, level: aqiLevel(air.aqi) }));
   return { levels: out, rainMm, ice };
 }

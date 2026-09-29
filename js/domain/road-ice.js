@@ -2,7 +2,9 @@
 // água da chuva congela. Regra do site (estimativa, não alerta oficial), próximas 24 h:
 //  • PROVÁVEL: previsão de garoa/chuva congelante, ou chuva caindo com temperatura ≤ 0 °C;
 //  • POSSÍVEL: choveu/neva e, em até 6 h depois, a temperatura chega a ≤ 0 °C.
-import { hourLabel } from './time.js?v=4.1';
+import { hourLabel } from './time.js?v=5.0';
+import { t } from '../i18n/index.js?v=5.0';
+import { getUnits } from '../units-settings.js?v=5.0';
 
 const FREEZING = [56, 57, 66, 67];
 const wet = (h) => (h.precip ?? 0) >= 0.1 || (h.snow ?? 0) > 0;
@@ -10,11 +12,11 @@ const wet = (h) => (h.precip ?? 0) >= 0.1 || (h.snow ?? 0) > 0;
 export function roadIceRisk(hourly) {
   const next = hourly.slice(0, 24);
   const frz = next.find((h) => FREEZING.includes(h.code) || (wet(h) && (h.snow ?? 0) === 0 && h.temp <= 0));
-  if (frz) return { level: 'danger', label: 'Provável', reason: `Chuva ou garoa congelando por volta das ${hourLabel(frz.time)}: o gelo fica quase invisível no asfalto.` };
+  if (frz) return { level: 'danger', label: t('ice.likely'), reason: t('ice.likelyWhy', { h: hourLabel(frz.time) }) };
   for (let i = 0; i < next.length; i++) {
     if (!wet(next[i])) continue;
     const freeze = next.slice(i, i + 7).find((h) => h.temp <= 0);
-    if (freeze) return { level: 'warn', label: 'Possível', reason: `Pista molhada e temperatura chegando a 0 °C por volta das ${hourLabel(freeze.time)}: a água pode congelar.` };
+    if (freeze) return { level: 'warn', label: t('ice.possible'), reason: t('ice.possibleWhy', { h: hourLabel(freeze.time), z: getUnits().temp === 'F' ? '32 °F' : '0 °C' }) };
   }
-  return { level: null, label: 'Sem risco', reason: '' };
+  return { level: null, label: t('ice.none'), reason: '' };
 }
