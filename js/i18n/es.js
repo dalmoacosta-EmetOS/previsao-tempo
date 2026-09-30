@@ -408,7 +408,7 @@ export default {
   "trip.slider": "Hora de salida",
   "trip.sliderHint": "Arrastra y suelta para ver el viaje saliendo a otra hora.",
   "trip.jump": "Planificar viaje",
-  "trip.trafficNote": "Tiempo estimado con tráfico típico: ~{typ} (sin tráfico: {free}). El sitio todavía no ve el tráfico en vivo ni los accidentes — al salir, revisa Waze o Google Maps.",
+  "trip.trafficNote": "Tiempo estimado con tráfico típico: ~{typ} (sin tráfico: {free}). El sitio todavía no ve el tráfico en vivo ni los accidentes.",
   "trip.calculatingLong": "Calculando la ruta y el pronóstico de cada tramo…",
   "trip.noForecast": "No hay pronóstico para ese horario. Elige una salida más cercana.",
   "trip.noRoute": "No encontré una ruta en auto entre esas ciudades.",

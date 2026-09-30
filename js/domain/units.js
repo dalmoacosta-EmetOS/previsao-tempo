@@ -1,7 +1,7 @@
 // Conversão e formatação de unidades. A API sempre entrega °C, km/h, mm e cm (ADR-004).
 // Qual unidade mostrar vem das preferências (ADR-045): cada medida pode ser escolhida à parte.
-import { getUnits } from '../units-settings.js?v=6.1';
-import { t, locale } from '../i18n/index.js?v=6.1';
+import { getUnits } from '../units-settings.js?v=6.1.1';
+import { t, locale } from '../i18n/index.js?v=6.1.1';
 
 const toF = (c) => (c * 9) / 5 + 32;
 const isNum = (v) => typeof v === 'number' && !Number.isNaN(v);

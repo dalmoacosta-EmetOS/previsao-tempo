@@ -408,7 +408,7 @@ export default {
   "trip.slider": "Departure time",
   "trip.sliderHint": "Drag and release to see the trip leaving at another time.",
   "trip.jump": "Plan a trip",
-  "trip.trafficNote": "Estimated time with typical traffic: ~{typ} (without traffic: {free}). The site does not see live traffic or crashes yet — check Waze or Google Maps when you leave.",
+  "trip.trafficNote": "Estimated time with typical traffic: ~{typ} (without traffic: {free}). The site does not see live traffic or crashes yet.",
   "trip.calculatingLong": "Calculating the route and the forecast for each stretch…",
   "trip.noForecast": "There is no forecast for that time. Choose an earlier departure.",
   "trip.noRoute": "I could not find a driving route between these cities.",

@@ -2,6 +2,10 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.1.1 — 30/09/2026
+- O aviso de tempo de viagem ficou mais curto, sem citar outros aplicativos: "O site ainda não vê o trânsito ao vivo nem acidentes." (pedido do Dalmo).
+- O link compartilhado continua com o endereço completo (decisão do Dalmo: compartilhar é escolha pessoal).
+
 ## 6.1 — 30/09/2026 · Endereço na viagem, tempo com trânsito típico, barra e horário juntos
 - **Barra e horário andam juntos** (pedido do Dalmo). A data/hora é a informação principal:
   - arrastar a barra muda a hora na mesma hora;

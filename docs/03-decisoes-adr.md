@@ -465,4 +465,4 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 
 As três exigem chave. A chave deve ficar num intermediário no servidor, nunca no site (ADR-043).
 
-**Privacidade:** o link de viagem compartilhado passa a poder conter um endereço, por exemplo o de casa. Decisão pendente do Dalmo: avisar ao compartilhar ou arredondar o ponto de saída.
+**Privacidade:** o link de viagem compartilhado pode conter um endereço completo, por exemplo o de casa. Decisão do Dalmo (30/09): fica assim. Quem compartilha escolhe com quem, normalmente pessoas de confiança. Só será revisto se algum usuário pedir.
