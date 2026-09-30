@@ -1,24 +1,24 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=6.1.1';
-import { icon } from './icons.js?v=6.1.1';
-import { setupSearch } from './search.js?v=6.1.1';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=6.1.1';
-import { clock, shortDate } from '../domain/time.js?v=6.1.1';
-import { t, getLang } from '../i18n/index.js?v=6.1.1';
-import { load, save } from '../storage.js?v=6.1.1';
-import { getRoute } from '../api/route.js?v=6.1.1';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.1.1';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=6.1.1';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.1.1';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.1.1';
-import { reverseGeocode } from '../api/geocoding.js?v=6.1.1';
-import { searchPlaces } from '../api/places.js?v=6.1.1';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.1.1';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=6.1.1';
-import { addExpandControl } from './map-expand.js?v=6.1.1';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.1.1';
+import { el, fill } from './dom.js?v=6.2';
+import { icon } from './icons.js?v=6.2';
+import { setupSearch } from './search.js?v=6.2';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=6.2';
+import { clock, shortDate } from '../domain/time.js?v=6.2';
+import { t, getLang } from '../i18n/index.js?v=6.2';
+import { load, save } from '../storage.js?v=6.2';
+import { getRoute } from '../api/route.js?v=6.2';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.2';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=6.2';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.2';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.2';
+import { reverseGeocode } from '../api/geocoding.js?v=6.2';
+import { searchPlaces } from '../api/places.js?v=6.2';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.2';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=6.2';
+import { addExpandControl } from './map-expand.js?v=6.2';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.2';
 
-let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick;
+let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick, homeBox, lastField = null;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
 const MAX_DAYS = 7;
 let map = null, layer = null, lastResult = null;
@@ -61,8 +61,8 @@ function searchBox(id, label, placeholder, onPick) {
 
 export function mountTrip(container, { currentPlace, unit }) {
   root = container; getCurrent = currentPlace; getUnit = unit;
-  const f = searchBox('trip-from', t('trip.fromAria'), t('trip.fromPh'), (p) => { from = p; syncLabels(); });
-  const d = searchBox('trip-to', t('trip.toAria'), t('trip.toPh'), (p) => { to = p; syncLabels(); });
+  const f = searchBox('trip-from', t('trip.fromAria'), t('trip.fromPh'), (p) => { from = p; lastField = null; syncLabels(); });
+  const d = searchBox('trip-to', t('trip.toAria'), t('trip.toPh'), (p) => { to = p; lastField = null; syncLabels(); });
   fromInput = f.input; toInput = d.input;
   // "Minha localização" dentro do campo de saída (3.5)
   const locBtn = el('button', {
@@ -109,11 +109,13 @@ export function mountTrip(container, { currentPlace, unit }) {
       el('label', { class: 'trip__label', for: 'trip-from' }, [el('span', { text: t('trip.from') }), el('small', { class: 'trip__limit', text: t('trip.originHint') })]), f.box,
       el('label', { class: 'trip__label', for: 'trip-to' }, [el('span', { text: t('trip.to') })]), d.box,
     ]),
+    homeBox = el('div', { class: 'trip__home' }),
     quick,
     body,
     out,
   );
-  [fromInput, toInput].forEach((i) => i.addEventListener('focus', () => openBody(true)));
+  [fromInput, toInput].forEach((i) => i.addEventListener('focus', () => { openBody(true); lastField = i === toInput ? 'to' : 'from'; }));
+  renderHome();
   renderQuick();
   syncLabels();
   // Link de plano recebido (e-mail, WhatsApp, calendário): abre e recalcula com a previsão mais nova
@@ -158,6 +160,48 @@ function startTrip(a, b, veh) {
   openBody(true);
   run();
 }
+// 🏠 Casa (6.2, pedido do Dalmo — como no Waze): endereço de casa salvo SÓ neste aparelho.
+// Um toque preenche o campo em uso; sem campo em uso: vira a saída, ou o destino se a saída já foi escolhida (a volta).
+const HOME_KEY = 'home';
+function getHome() {
+  const h = load(HOME_KEY);
+  return h && Number.isFinite(h.lat) && Number.isFinite(h.lon) && h.name ? h : null;
+}
+function useHome(home) {
+  const isHome = (p) => p && Math.abs(p.lat - home.lat) < 1e-6 && Math.abs(p.lon - home.lon) < 1e-6;
+  const target = lastField || (from && (isHome(from) || !isHome(to)) ? 'to' : 'from');
+  if (target === 'to') to = home; else from = home;
+  lastField = null;
+  syncLabels();
+  openBody(true);
+}
+function renderHome(editing = false) {
+  if (!homeBox) return;
+  const home = getHome();
+  if (!home || editing) {
+    const box = searchBox('trip-home', t('trip.homePh'), t('trip.homePh'), (p) => { save(HOME_KEY, cleanPlace(p)); renderHome(); });
+    fill(homeBox,
+      !editing && el('button', { type: 'button', class: 'trip__chip trip__chip--home', id: 'trip-home-add', text: `🏠 ${t('trip.homeSet')}`, onclick: () => renderHome(true) }),
+      editing && el('div', { class: 'trip__home-edit' }, [
+        el('label', { class: 'trip__label', for: 'trip-home' }, [el('span', { text: `🏠 ${t('trip.homeEdit')}` }), el('small', { class: 'trip__limit', text: t('trip.homeSaved') })]),
+        box.box,
+        el('div', { class: 'trip__home-actions' }, [
+          home && el('button', { type: 'button', class: 'trip__chip', text: t('trip.homeRemove'), onclick: () => { save(HOME_KEY, null); renderHome(); } }),
+          el('button', { type: 'button', class: 'trip__chip', text: t('common.close'), onclick: () => renderHome() }),
+        ]),
+      ]),
+    );
+    if (editing) setTimeout(() => box.input.focus(), 50);
+    return;
+  }
+  fill(homeBox,
+    el('button', { type: 'button', class: 'trip__chip trip__chip--home', id: 'trip-home-use', title: [home.name, home.region].filter(Boolean).join(', '),
+      // mousedown sem foco: o campo que a pessoa estava usando continua sendo o alvo
+      onmousedown: (e) => e.preventDefault(), onclick: () => useHome(home) }, [el('strong', { text: `🏠 ${t('trip.home')}` }), el('span', { text: home.name })]),
+    el('button', { type: 'button', class: 'trip__chip trip__chip--icon', id: 'trip-home-edit', 'aria-label': t('trip.homeEdit'), title: t('trip.homeEdit'), text: '✎', onclick: () => renderHome(true) }),
+  );
+}
+
 function renderQuick() {
   if (!quick) return;
   const recents = recentTrips();

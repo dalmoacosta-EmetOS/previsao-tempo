@@ -1334,3 +1334,11 @@ body.show-citybar .citybar__trip { display: grid; }
 }
 .hero__trip-chev { margin-left: auto; font-size: 1.3rem; line-height: 1; }
 .trip__traffic { margin: -4px 0 10px; font-size: 0.85rem; color: var(--text-soft); }
+/* 6.2 — Casa */
+.trip__home { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.trip__chip--home { display: inline-flex; align-items: center; gap: 8px; border-color: rgba(255, 200, 61, 0.55); }
+.trip__chip--home span { color: var(--text-soft); max-width: 48vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trip__chip--icon { min-width: 36px; padding: 7px 10px; }
+.trip__home-edit { width: 100%; display: grid; gap: 6px; }
+.trip__home-edit .search { position: relative; z-index: 6; }
+.trip__home-actions { display: flex; gap: 6px; }

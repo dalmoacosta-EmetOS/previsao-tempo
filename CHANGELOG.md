@@ -2,6 +2,9 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.2 — 30/09/2026 · 🏠 Casa
+- Pedido do Dalmo (referência: Waze): o endereço de casa é cadastrado uma vez e fica **salvo só neste aparelho**. Um toque em "🏠 Casa" preenche o campo que a pessoa está usando. Se nenhum campo estiver em uso, preenche a saída; se a saída já é a casa, preenche o destino (a volta). O ✎ troca ou apaga o endereço.
+
 ## 6.1.1 — 30/09/2026
 - O aviso de tempo de viagem ficou mais curto, sem citar outros aplicativos: "O site ainda não vê o trânsito ao vivo nem acidentes." (pedido do Dalmo).
 - O link compartilhado continua com o endereço completo (decisão do Dalmo: compartilhar é escolha pessoal).

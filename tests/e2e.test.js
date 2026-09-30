@@ -881,6 +881,23 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('Segurança: serviço de endereços liberado na política (CSP)', (await t.p.evaluate(() => window.__csp)).length === 0);
   await t.ctx.close();
 
+  // 6.2 — 🏠 Casa salva no aparelho
+  t = await page(browser, { mobile: false, photon: PHOTON });
+  await t.p.waitForTimeout(800);
+  await t.p.click('#trip-home-add'); await t.p.waitForTimeout(200);
+  await t.p.fill('#trip-home', '200 Pleasant'); await t.p.waitForTimeout(800); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  check('Casa: cadastra o endereço e mostra o botão 🏠', (await t.p.textContent('#trip-home-use')).includes('200 Pleasant Street'));
+  await t.p.click('#trip-home-use'); await t.p.waitForTimeout(200);
+  check('Casa: 1º toque vira a saída', (await t.p.inputValue('#trip-from')).startsWith('200 Pleasant Street'));
+  await t.p.click('#trip-home-use'); await t.p.waitForTimeout(200);
+  check('Casa: com a saída em casa, o toque vira o destino (a volta)', (await t.p.inputValue('#trip-to')).startsWith('200 Pleasant Street'));
+  await t.p.reload(); await t.p.waitForTimeout(1200);
+  check('Casa: continua salva depois de recarregar', await t.p.isVisible('#trip-home-use'));
+  await t.p.click('#trip-home-edit'); await t.p.click('text=Apagar'); await t.p.waitForTimeout(200);
+  check('Casa: pode apagar', await t.p.isVisible('#trip-home-add'));
+  check('Sem erros JS (casa)', t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+
   // Céu estrelado à noite
   t = await page(browser, { mobile: true, url: '/?demo=noite' });
   check('Noite limpa: céu estrelado (3 camadas, ~150 estrelas)', await t.p.evaluate(() => { const l = document.querySelectorAll('.sky__stars i'); return l.length === 3 && [...l].reduce((a, i) => a + i.style.boxShadow.split('rgba').length - 1, 0) >= 140; }));
