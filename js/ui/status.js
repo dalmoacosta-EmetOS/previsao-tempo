@@ -1,5 +1,5 @@
-import { el, fill } from './dom.js?v=5.3';
-import { t } from '../i18n/index.js?v=5.3';
+import { el, fill } from './dom.js?v=5.3.1';
+import { t } from '../i18n/index.js?v=5.3.1';
 
 const KINDS = ['offline', 'timeout', 'server', 'network'];
 

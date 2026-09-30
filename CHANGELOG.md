@@ -2,6 +2,9 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 5.3.1 — 29/09/2026 · Moldura retirada
+- Dalmo testou no iPhone e não gostou ("ficou horrível"): a moldura com as cores das bandeiras saiu (tela, barra do topo e mapas). Ficam a barra azul-noite e as estrelas piscando em tempos diferentes.
+
 ## 5.3 — 29/09/2026 · Identidade Brasil + EUA (teste)
 - Pedido do Dalmo: identidade própria de um brasileiro vivendo nos EUA. Moldura fina em volta da tela, embaixo da barra do topo e em volta dos mapas, com as cores das duas bandeiras (verde, amarelo, azul, branco, vermelho) em tons suaves e correndo bem devagar.
 - Barra do topo num azul-noite neutro (`#0f1e30`), longe do azul da Weather Channel.

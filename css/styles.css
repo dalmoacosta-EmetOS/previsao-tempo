@@ -6,17 +6,10 @@
    ========================================================= */
 
 :root {
-  /* Identidade 6.0 (pedido do Dalmo): brasileiro vivendo nos EUA. Barra num azul-noite neutro (sai do
-     azul da Weather Channel) e uma moldura suave com as cores das duas bandeiras. */
+  /* 5.3: barra num azul-noite neutro (sai do azul da Weather Channel). A moldura com as cores das
+     bandeiras foi testada e retirada em 5.3.1 a pedido do Dalmo. */
   --bar: #0f1e30;
   --bar-2: #16293f;
-  --br-green: #3fae7a;   /* verde Brasil, suavizado */
-  --br-yellow: #f4d35e;  /* amarelo Brasil, suavizado */
-  --flag-blue: #5b8fd6;  /* azul — das duas bandeiras */
-  --flag-white: #f4f1ea;
-  --us-red: #e0625a;     /* vermelho EUA, suavizado */
-  --ribbon: linear-gradient(115deg, var(--br-green) 0%, var(--br-yellow) 22%, var(--br-green) 38%, var(--flag-blue) 52%,
-    var(--flag-white) 64%, var(--us-red) 78%, var(--flag-white) 88%, var(--br-green) 100%);
   --text: #ffffff;
   --text-soft: rgba(255, 255, 255, 0.78);
   --text-faint: rgba(255, 255, 255, 0.6);
@@ -1255,56 +1248,6 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
 }
 
 
-/* ---------------- Identidade Brasil + EUA (6.0) ----------------
-   Moldura fina e calma em volta da tela e dos mapas, com as cores das duas bandeiras correndo devagar.
-   Não é bandeira desenhada: é uma fita de cor. Fica atrás de tudo que se toca (pointer-events: none). */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  pointer-events: none;
-  padding: 4px;
-  padding-top: calc(4px + env(safe-area-inset-top));
-  background: var(--ribbon);
-  background-size: 180% 180%;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  opacity: 0.75;
-  animation: ribbon 40s ease-in-out infinite alternate;
-}
-.topbar::after {
-  content: "";
-  position: absolute;
-  left: 0; right: 0; bottom: 0;
-  height: 2px;
-  background: var(--ribbon);
-  background-size: 300% 100%;
-  opacity: 0.85;
-  animation: ribbon 40s ease-in-out infinite alternate;
-}
-.topbar { position: sticky; }
-.radar__map, .trip__map { position: relative; }
-.radar__map::after, .trip__map::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 800;              /* acima das camadas do mapa, abaixo de nada que se toca */
-  pointer-events: none;
-  border-radius: inherit;
-  padding: 3px;
-  background: var(--ribbon);
-  background-size: 180% 180%;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-  opacity: 0.9;
-  animation: ribbon 40s ease-in-out infinite alternate;
-}
-.welcome__brand { background: linear-gradient(90deg, var(--br-yellow), #d9f2e3 60%, #ffffff); -webkit-background-clip: text; background-clip: text; color: transparent; }
-@keyframes ribbon { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
-
 /* Estrelas: cada grupo pisca no seu tempo (antes piscavam todas juntas) */
 .sky__stars::before, .sky__stars::after {
   content: ""; position: absolute; inset: 0;
@@ -1318,7 +1261,3 @@ body::after {
   animation: twinkle 3s ease-in-out infinite alternate;
 }
 .sky__stars::after { background-size: 270px 270px; background-position: 90px 40px; animation-duration: 5.5s; animation-delay: -2s; }
-
-@media (prefers-reduced-motion: reduce) {
-  body::after, .topbar::after, .radar__map::after, .trip__map::after { animation: none; }
-}

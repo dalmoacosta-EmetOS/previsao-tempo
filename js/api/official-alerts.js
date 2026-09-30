@@ -1,5 +1,5 @@
-import { getJSON } from './http.js?v=5.3';
-import { tMaybe } from '../i18n/index.js?v=5.3';
+import { getJSON } from './http.js?v=5.3.1';
+import { tMaybe } from '../i18n/index.js?v=5.3.1';
 
 // Alertas OFICIAIS do Serviço Nacional de Meteorologia dos EUA (NWS) — ADR-020.
 // Grátis, sem chave. Só cobre os EUA; fora deles, nem chamamos.

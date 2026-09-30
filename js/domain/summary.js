@@ -1,10 +1,10 @@
 // Resumo escrito do período (Dia 06–18 h / Noite 18–06 h), no estilo dos apps de clima (ADR-019).
 // Gerado AUTOMATICAMENTE a partir dos números da previsão — não é texto de meteorologista.
-import { describe, STORM_CODES } from './weather-codes.js?v=5.3';
-import { temp, windDirection, rain, snow, speedUnit, KM_PER_MI } from './units.js?v=5.3';
-import { hourLabel } from './time.js?v=5.3';
-import { t } from '../i18n/index.js?v=5.3';
-import { getUnits } from '../units-settings.js?v=5.3';
+import { describe, STORM_CODES } from './weather-codes.js?v=5.3.1';
+import { temp, windDirection, rain, snow, speedUnit, KM_PER_MI } from './units.js?v=5.3.1';
+import { hourLabel } from './time.js?v=5.3.1';
+import { t } from '../i18n/index.js?v=5.3.1';
+import { getUnits } from '../units-settings.js?v=5.3.1';
 
 // Do mais severo para o mais brando: o período é descrito pelo fenômeno mais importante.
 const RANK = ['storm', 'snow', 'sleet', 'heavy-rain', 'rain', 'showers', 'drizzle', 'fog', 'cloudy', 'partly', 'mostly-clear', 'clear'];
