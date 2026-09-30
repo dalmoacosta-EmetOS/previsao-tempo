@@ -6,7 +6,7 @@
 
 Nasceu como Exercício 1 do Treinamento de IA (nota **A+**, versão congelada **3.6.1**) e hoje é **candidato a produto** — ver [roteiro](docs/06-produto-roadmap.md).
 
-**Autor:** Dalmo Costa · **Início:** 27/09/2026 · **Versão atual:** 5.3.1 · [Histórico de versões](CHANGELOG.md)
+**Autor:** Dalmo Costa · **Início:** 27/09/2026 · **Versão atual:** 5.4 · [Histórico de versões](CHANGELOG.md)
 
 ## O que faz
 - **Agora:** céu animado, temperatura, sensação, chuva da próxima hora, gráfico das próximas 2 horas e resumo automático.

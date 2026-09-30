@@ -15,7 +15,27 @@ export const DEMO_SCENES = {
 
 let lastKey = '';
 
+// Céu estrelado (5.4): três camadas de estrelas (pequenas, médias, grandes) espalhadas ao acaso.
+// Cada camada é um único ponto com várias "sombras" — leve para o celular.
+function drawStars() {
+  const box = document.querySelector('.sky__stars');
+  if (!box || box.childElementCount) return;
+  const layer = (n, alpha) => {
+    const i = document.createElement('i');
+    const pts = [];
+    for (let k = 0; k < n; k++) {
+      const a = (alpha * (0.55 + Math.random() * 0.45)).toFixed(2);
+      pts.push(`${(Math.random() * 100).toFixed(1)}vw ${(Math.random() * 65).toFixed(1)}vh rgba(255,255,255,${a})`);
+    }
+    i.style.boxShadow = pts.join(',');
+    return i;
+  };
+  box.append(layer(90, 0.8), layer(45, 0.9), layer(14, 1));
+}
+
+
 export function applyScene({ scene, time, intensity = 'normal' }) {
+  drawStars();
   const key = scene + time + intensity;
   if (key === lastKey) return;
   lastKey = key;

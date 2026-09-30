@@ -396,3 +396,26 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - mapa ampliado no celular ocupa no máximo 62% da tela.
 
 **Limite que continua:** os serviços gratuitos (OSRM de demonstração e Overpass) não têm garantia de velocidade. Um servidor próprio de rotas ou um cache fica para a fase AWS.
+
+## ADR-047 — Escolha de cidade por toque: correção de causa (v5.4)
+**Status:** Aceita · 29/09/2026 · 3ª ocorrência relatada pelo Dalmo (28/09 22:43, 29/09 20:44)
+
+**Causa comprovada no vídeo:**
+- O iPhone mostrou a sugestão do corretor "Brasília ×" sobre a lista.
+- Ao tocar, o corretor aplicou a troca: evento `input` → nova busca → lista refeita.
+- A escolha usava o índice do item (`results[i]`), que já apontava para outra cidade. Por isso o toque em Brasília abriu Porecatu.
+- A correção da 4.1 (vários eventos de toque) tratava o sintoma, não a causa.
+
+**Decisões:**
+1. `autocorrect="off"` e `autocapitalize="off"` nos campos de cidade.
+2. Cada item guarda o próprio objeto da cidade; a escolha usa o item tocado, nunca o índice.
+3. O toque só conta se o dedo descer e subir no mesmo item, andando menos de 12 px (`pointerdown` → `pointerup`). Com mais que isso, é rolagem.
+4. Com o dedo na lista, respostas novas e "Buscando…" esperam o dedo sair.
+5. O mesmo texto (ignorando acento e maiúscula) com a lista aberta não refaz a busca.
+6. O clique comum continua valendo para teclado e leitor de tela, sem duplicar: a mesma cidade em até 700 ms é ignorada.
+
+**Testes:**
+- corrida simulada: dedo desce, chega uma lista nova, dedo sobe → abre a cidade tocada;
+- troca de acento não refaz a lista;
+- arrastar não escolhe;
+- corretor desligado nos campos.

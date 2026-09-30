@@ -92,22 +92,21 @@ body[data-scene="storm"][data-time="night"] { --sky-top: #07090f; --sky-bottom: 
 body[data-time="day"][data-scene="clear"] .sky__sun { opacity: 1; }
 body[data-time="day"][data-scene="partly"] .sky__sun { opacity: 0.7; }
 
-/* Estrelas */
-.sky__stars {
-  background-image:
-    radial-gradient(1.5px 1.5px at 10% 20%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 30% 70%, #fff 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 55% 15%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 75% 45%, #fff 50%, transparent 51%),
-    radial-gradient(2px 2px at 90% 10%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 20% 50%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 65% 85%, #fff 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 85% 65%, #fff 50%, transparent 51%);
-  background-size: 400px 400px;
-  animation: twinkle 4s ease-in-out infinite alternate;
+/* Estrelas (5.4): céu estrelado de verdade — ~150 estrelas de tamanhos e brilhos diferentes em três
+   camadas que piscam em ritmos diferentes (desenhadas pelo site em background.js, sem imagem). */
+.sky__stars { inset: 0 0 35% 0; }
+.sky__stars i {
+  position: absolute; top: 0; left: 0;
+  width: 1px; height: 1px;
+  border-radius: 50%;
+  background: transparent;
+  animation: twinkle 3.2s ease-in-out infinite alternate;
 }
+.sky__stars i:nth-child(2) { width: 1.6px; height: 1.6px; animation-duration: 4.6s; animation-delay: -1.5s; }
+.sky__stars i:nth-child(3) { width: 2.3px; height: 2.3px; animation-duration: 6.5s; animation-delay: -3s; }
 body[data-time="night"][data-scene="clear"] .sky__stars,
 body[data-time="night"][data-scene="partly"] .sky__stars { opacity: 0.9; }
+body[data-time="night"][data-scene="partly"] .sky__stars { opacity: 0.55; }
 
 /* Nuvens (5.2, pedido do Dalmo: "animar como no Weather"): camadas de nuvens bem visíveis que
    passam pelo topo da tela, cada uma numa velocidade (profundidade), e o céu "respira" devagar.
@@ -214,7 +213,7 @@ body[data-intensity="heavy"] .drop { width: 2px; height: 90px; }
 body[data-scene="storm"] .sky__flash { animation: flash 8s infinite; }
 
 @keyframes pulse   { 50% { transform: scale(1.06); } }
-@keyframes twinkle { to { opacity: 0.45; } }
+@keyframes twinkle { to { opacity: 0.35; } }
 @keyframes drift   { from { transform: translateX(calc(-1 * var(--w, 50%))); } to { transform: translateX(0); } }
 @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.04) translateY(1vh); } }
 @keyframes fog     { to { background-position: 100% 0; } }
@@ -1246,18 +1245,3 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
   .lang-btn { padding: 0; width: 40px; }
   .lang-btn__code { display: none; }
 }
-
-
-/* Estrelas: cada grupo pisca no seu tempo (antes piscavam todas juntas) */
-.sky__stars::before, .sky__stars::after {
-  content: ""; position: absolute; inset: 0;
-  background-image:
-    radial-gradient(1.5px 1.5px at 15% 35%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 42% 8%, #fff 50%, transparent 51%),
-    radial-gradient(2px 2px at 68% 28%, #fff 50%, transparent 51%),
-    radial-gradient(1px 1px at 88% 80%, #fff 50%, transparent 51%),
-    radial-gradient(1.5px 1.5px at 5% 90%, #fff 50%, transparent 51%);
-  background-size: 330px 330px;
-  animation: twinkle 3s ease-in-out infinite alternate;
-}
-.sky__stars::after { background-size: 270px 270px; background-position: 90px 40px; animation-duration: 5.5s; animation-delay: -2s; }

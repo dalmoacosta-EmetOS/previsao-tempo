@@ -2,6 +2,19 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 5.4 — 29/09/2026 · Escolha da cidade por toque (correção definitiva) e céu estrelado
+- **Causa encontrada no vídeo do Dalmo:**
+  - O corretor do iPhone trocava "Brasilia" por "Brasília" durante o toque. Isso disparava uma busca nova e redesenhava a lista.
+  - O site escolhia pela POSIÇÃO na lista, então o toque em Brasília abriu Porecatu.
+- **Correção:**
+  - Corretor e maiúscula automática desligados nos campos de cidade.
+  - A escolha guarda a cidade que estava debaixo do dedo, não a posição.
+  - Enquanto o dedo está na lista, nenhuma resposta nova redesenha a lista.
+  - Mesma busca com acento diferente não refaz a lista.
+  - Arrastar para rolar não escolhe.
+  - Testes simulam exatamente essa corrida.
+- **Céu estrelado nas noites limpas:** cerca de 150 estrelas de tamanhos e brilhos diferentes, em 3 camadas piscando em ritmos diferentes (referência: vídeo do app da Weather Channel em Brasília; desenho próprio).
+
 ## 5.3.1 — 29/09/2026 · Moldura retirada
 - Dalmo testou no iPhone e não gostou ("ficou horrível"): a moldura com as cores das bandeiras saiu (tela, barra do topo e mapas). Ficam a barra azul-noite e as estrelas piscando em tempos diferentes.
 

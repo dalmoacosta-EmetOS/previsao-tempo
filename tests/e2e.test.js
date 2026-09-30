@@ -760,6 +760,41 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('Um toque escolhe uma vez só (sem carregar duas vezes)', t.errors.length === 0, t.errors.join(' | '));
   await t.ctx.close();
 
+  // 5.4 — correção definitiva da escolha por toque (vídeo de 29/09 20:44: tocou Brasília, abriu Porecatu)
+  t = await page(browser, { mobile: true });
+  await t.p.waitForTimeout(800);
+  await t.p.fill('#search-input', 'São'); await t.p.waitForTimeout(700);
+  // dedo desce em "São Paulo de Olivença"; ANTES de soltar, chega uma resposta nova (outra lista)
+  await t.p.evaluate(() => { const li = document.querySelectorAll('#search-list [role=option]')[1]; const r = li.getBoundingClientRect();
+    li.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.x + 10, clientY: r.y + 10, pointerType: 'touch' })); });
+  await t.p.evaluate(() => { const i = document.getElementById('search-input'); i.value = 'Hart'; i.dispatchEvent(new Event('input', { bubbles: true })); });
+  await t.p.waitForTimeout(800);
+  check('Toque: lista não muda debaixo do dedo', (await t.p.textContent('#search-list')).includes('Olivença'));
+  await t.p.evaluate(() => { const li = [...document.querySelectorAll('#search-list [role=option]')].find((n) => n.textContent.includes('Olivença')); const r = li.getBoundingClientRect();
+    li.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: r.x + 10, clientY: r.y + 10, pointerType: 'touch' })); });
+  await t.p.waitForTimeout(800);
+  check('Toque: abre a cidade que estava debaixo do dedo, mesmo com resposta nova no meio', (await t.p.textContent('.hero__city')) === 'São Paulo de Olivença', await t.p.textContent('.hero__city'));
+  // corretor do iPhone trocando só o acento não refaz a lista
+  await t.p.fill('#search-input', 'Sao Paulo'); await t.p.waitForTimeout(700);
+  await t.p.evaluate(() => { window.__li = document.querySelector('#search-list [role=option]'); const i = document.getElementById('search-input'); i.value = 'São Paulo'; i.dispatchEvent(new Event('input', { bubbles: true })); });
+  await t.p.waitForTimeout(700);
+  check('Toque: corretor trocando acento não refaz a lista', await t.p.evaluate(() => document.querySelector('#search-list [role=option]') === window.__li));
+  // arrastar para rolar a lista não escolhe cidade
+  await t.p.evaluate(() => { const li = document.querySelectorAll('#search-list [role=option]')[0]; const r = li.getBoundingClientRect();
+    li.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: r.x + 10, clientY: r.y + 10, pointerType: 'touch' }));
+    li.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, clientX: r.x + 10, clientY: r.y + 40, pointerType: 'touch' }));
+    li.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, clientX: r.x + 10, clientY: r.y + 40, pointerType: 'touch' })); });
+  await t.p.waitForTimeout(500);
+  check('Toque: arrastar para rolar não escolhe', !(await t.p.isHidden('#search-list')) && (await t.p.textContent('.hero__city')) === 'São Paulo de Olivença');
+  check('Busca: corretor automático desligado nos campos', (await t.p.getAttribute('#search-input', 'autocorrect')) === 'off');
+  check('Sem erros JS (toque 5.4)', t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+
+  // Céu estrelado à noite
+  t = await page(browser, { mobile: true, url: '/?demo=noite' });
+  check('Noite limpa: céu estrelado (3 camadas, ~150 estrelas)', await t.p.evaluate(() => { const l = document.querySelectorAll('.sky__stars i'); return l.length === 3 && [...l].reduce((a, i) => a + i.style.boxShadow.split('rgba').length - 1, 0) >= 140; }));
+  await t.ctx.close();
+
   // T11 lembrar última cidade
   t = await page(browser, { mobile: false });
   await t.p.fill('#search-input', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(500);
