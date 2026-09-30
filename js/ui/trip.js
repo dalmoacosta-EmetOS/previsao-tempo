@@ -1,20 +1,20 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=5.4';
-import { icon } from './icons.js?v=5.4';
-import { setupSearch } from './search.js?v=5.4';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=5.4';
-import { clock, shortDate } from '../domain/time.js?v=5.4';
-import { t } from '../i18n/index.js?v=5.4';
-import { getRoute } from '../api/route.js?v=5.4';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=5.4';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=5.4';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=5.4';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=5.4';
-import { reverseGeocode } from '../api/geocoding.js?v=5.4';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES } from '../domain/route-weather.js?v=5.4';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=5.4';
-import { addExpandControl } from './map-expand.js?v=5.4';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=5.4';
+import { el, fill } from './dom.js?v=5.4.1';
+import { icon } from './icons.js?v=5.4.1';
+import { setupSearch } from './search.js?v=5.4.1';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=5.4.1';
+import { clock, shortDate } from '../domain/time.js?v=5.4.1';
+import { t } from '../i18n/index.js?v=5.4.1';
+import { getRoute } from '../api/route.js?v=5.4.1';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=5.4.1';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=5.4.1';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=5.4.1';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=5.4.1';
+import { reverseGeocode } from '../api/geocoding.js?v=5.4.1';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES } from '../domain/route-weather.js?v=5.4.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=5.4.1';
+import { addExpandControl } from './map-expand.js?v=5.4.1';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=5.4.1';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)

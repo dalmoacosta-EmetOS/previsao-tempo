@@ -1,13 +1,14 @@
-import { el, fill } from './dom.js?v=5.4';
-import { icon } from './icons.js?v=5.4';
-import { describe } from '../domain/weather-codes.js?v=5.4';
-import { temp, percent, speed, windDirection, uvLevel, rain as rainTxt, shortDist } from '../domain/units.js?v=5.4';
-import { hourLabel } from '../domain/time.js?v=5.4';
-import { resolveWeatherNow } from '../domain/scene.js?v=5.4';
-import { tempTabs, pick } from './temp-tabs.js?v=5.4';
-import { t } from '../i18n/index.js?v=5.4';
+import { el, fill } from './dom.js?v=5.4.1';
+import { icon } from './icons.js?v=5.4.1';
+import { describe } from '../domain/weather-codes.js?v=5.4.1';
+import { temp, percent, speed, windDirection, uvLevel, rain as rainTxt, shortDist } from '../domain/units.js?v=5.4.1';
+import { hourLabel } from '../domain/time.js?v=5.4.1';
+import { resolveWeatherNow } from '../domain/scene.js?v=5.4.1';
+import { tempTabs, pick } from './temp-tabs.js?v=5.4.1';
+import { t } from '../i18n/index.js?v=5.4.1';
 
-export function renderHourly(root, { data, unit, tempMode, hourSel }, onTempMode, onSelect) {
+export function renderHourly(root, { data, unit, tempMode, hourSel, place }, onTempMode, onSelect) {
+  const placeKey = place ? `${place.lat},${place.lon}` : '';
   const now = resolveWeatherNow(data);
   const iconFor = (h, i) => {
     // "Agora" segue o céu atual quando há chuva medida (ADR-011)
@@ -30,6 +31,12 @@ export function renderHourly(root, { data, unit, tempMode, hourSel }, onTempMode
     ])]),
   );
 
+  // 5.4.1 (pedido do Dalmo): trocar Temperatura ↔ Sensação, abrir uma hora ou a atualização automática
+  // NÃO podem jogar a lista de volta para "Agora". A posição onde a pessoa parou é mantida;
+  // voltar ao início é escolha dela. Só volta ao início quando a CIDADE muda.
+  const old = root.querySelector('.hours');
+  const keep = old && root.dataset.place === placeKey ? old.scrollLeft : 0;
+  root.dataset.place = placeKey;
   fill(root,
     el('header', { class: 'card__head' }, [
       el('h2', { text: t('hour.title') }),
@@ -40,6 +47,8 @@ export function renderHourly(root, { data, unit, tempMode, hourSel }, onTempMode
     hourSel != null && data.hourly[hourSel] && hourDetail(data.hourly[hourSel], hourSel, unit, iconFor(data.hourly[hourSel], hourSel), () => onSelect(null)),
     hourSel == null && el('p', { class: 'card__hint card__hint--tip', text: t('hour.tip') }),
   );
+  const list = root.querySelector('.hours');
+  if (list && keep) list.scrollLeft = keep;
 }
 
 // Detalhe da hora escolhida (ADR-019)

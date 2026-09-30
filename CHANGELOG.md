@@ -2,6 +2,9 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 5.4.1 — 29/09/2026 · 24 horas não volta sozinha para "Agora"
+- Pedido do Dalmo: trocar Temperatura ↔ Sensação (ou abrir uma hora, ou a atualização automática de 10 min) jogava a lista das 24 h de volta para "Agora". Agora a lista fica exatamente onde a pessoa parou; só volta ao início quando ela troca de cidade.
+
 ## 5.4 — 29/09/2026 · Escolha da cidade por toque (correção definitiva) e céu estrelado
 - **Causa encontrada no vídeo do Dalmo:**
   - O corretor do iPhone trocava "Brasilia" por "Brasília" durante o toque. Isso disparava uma busca nova e redesenhava a lista.

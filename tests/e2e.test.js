@@ -790,6 +790,21 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('Sem erros JS (toque 5.4)', t.errors.length === 0, t.errors.join(' | '));
   await t.ctx.close();
 
+  // 5.4.1 — trocar Temperatura/Sensação mantém a hora onde a pessoa parou
+  t = await page(browser, { mobile: true });
+  await t.p.waitForTimeout(800);
+  await t.p.evaluate(() => { document.querySelector('#hourly .hours').scrollLeft = 700; });
+  await t.p.waitForTimeout(200);
+  const sl0 = await t.p.evaluate(() => document.querySelector('#hourly .hours').scrollLeft);
+  await t.p.tap('#hourly [role=tab] >> nth=1'); await t.p.waitForTimeout(300);
+  const sl1 = await t.p.evaluate(() => document.querySelector('#hourly .hours').scrollLeft);
+  await t.p.tap('#hourly [role=tab] >> nth=0'); await t.p.waitForTimeout(300);
+  const sl2 = await t.p.evaluate(() => document.querySelector('#hourly .hours').scrollLeft);
+  check('24 h: trocar Temperatura ↔ Sensação não volta para "Agora"', sl0 > 300 && Math.abs(sl1 - sl0) < 5 && Math.abs(sl2 - sl0) < 5, `${sl0} → ${sl1} → ${sl2}`);
+  await t.p.tap('#hourly .hour__btn >> nth=12'); await t.p.waitForTimeout(300);
+  check('24 h: abrir uma hora também mantém a posição', (await t.p.evaluate(() => document.querySelector('#hourly .hours').scrollLeft)) > 300);
+  await t.ctx.close();
+
   // Céu estrelado à noite
   t = await page(browser, { mobile: true, url: '/?demo=noite' });
   check('Noite limpa: céu estrelado (3 camadas, ~150 estrelas)', await t.p.evaluate(() => { const l = document.querySelectorAll('.sky__stars i'); return l.length === 3 && [...l].reduce((a, i) => a + i.style.boxShadow.split('rgba').length - 1, 0) >= 140; }));
