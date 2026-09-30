@@ -1,7 +1,7 @@
 // Link por cidade (ADR-030): ?cidade=Malden&lat=42.43&lon=-71.07&regiao=...&pais=...
 // Quem abre o link vê a MESMA cidade, e não a própria localização.
 
-import { t } from '../i18n/index.js?v=5.5';
+import { t } from '../i18n/index.js?v=6.0';
 
 const round = (v) => Number(v).toFixed(3);
 

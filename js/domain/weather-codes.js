@@ -1,5 +1,5 @@
 // Códigos WMO (Open-Meteo) → descrição (traduzida — ADR-045), ícone e cenário de fundo.
-import { t } from '../i18n/index.js?v=5.5';
+import { t } from '../i18n/index.js?v=6.0';
 
 const TABLE = {
   0: 'clear',

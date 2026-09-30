@@ -419,3 +419,24 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - troca de acento não refaz a lista;
 - arrastar não escolhe;
 - corretor desligado nos campos.
+
+## ADR-048 — Planejador de viagem como destaque do produto (v6.0)
+**Status:** Aceita · 29/09/2026 · pedido do Dalmo ("o diferencial está apagado, escondido"). O plano foi feito por design, marketing e tecnologia ([docs/11](11-plano-destaque-viagem.md)). O Dalmo aprovou "tudo de uma vez".
+
+**Decisões:**
+- **Chamada fixa na primeira tela.** Uma medição no iPhone (390×844) mostrou que o bloco da temperatura ocupa cerca de 600 px, então o planejador não cabe inteiro acima da dobra. Por isso: saudação em 1 linha e botão de chamada logo abaixo da temperatura.
+- **Planejador sempre aberto** logo depois da temperatura e dos avisos. Os avisos oficiais continuam acima, por segurança.
+- **Origem sugerida, nunca obrigatória.** Tem campo próprio e dica visível ("sugerimos onde você está — pode trocar").
+- **Exemplo por idioma e viagens recentes** guardadas no aparelho (até 4, só locais e veículo).
+- **Resultado mais claro:**
+  - faixa de risco por trecho, com símbolo além da cor, para daltônicos;
+  - contagem por nível;
+  - controle deslizante de saída (recalcula só com os dados já baixados);
+  - rota colorida por trecho.
+- **Espera máxima de 1,5 s** para os nomes das cidades e **de 2,5 s** para os alertas oficiais. Alerta que chega depois refaz a tela (segurança primeiro).
+- **Toque na lista cancela o "clique fantasma"** que o celular dispara depois.
+
+**Pendentes (decisões do Dalmo):**
+- nome do produto (sugestão do marketing: "Hora de Sair");
+- contador de visitas sem cookies, para medir se o destaque funcionou;
+- divulgação.

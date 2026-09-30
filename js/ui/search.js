@@ -1,7 +1,7 @@
 // Busca com autocompletar (RF-01): espera 300 ms, mínimo 2 letras, teclado acessível.
-import { el } from './dom.js?v=5.5';
-import { searchCities } from '../api/geocoding.js?v=5.5';
-import { t } from '../i18n/index.js?v=5.5';
+import { el } from './dom.js?v=6.0';
+import { searchCities } from '../api/geocoding.js?v=6.0';
+import { t } from '../i18n/index.js?v=6.0';
 
 export function setupSearch({ input, list, onSelect }) {
   let timer;
@@ -64,6 +64,10 @@ export function setupSearch({ input, list, onSelect }) {
     if (p) choosePlace(p.place);
     else flushRender();
   });
+  // "Clique fantasma" (6.0): depois do toque, o celular ainda manda um clique no mesmo ponto — mas a lista
+  // já fechou, e o clique caía no que estava EMBAIXO dela (ex.: o botão de exemplo da viagem).
+  // Cancelar o fim do toque na lista impede esse clique extra.
+  list.addEventListener('touchend', (e) => { if (Date.now() - lastPick.at < 700) e.preventDefault(); }, { passive: false });
   // Teclado, leitor de tela e navegadores sem "pointer": o clique comum também escolhe
   list.addEventListener('click', (e) => {
     const li = e.target.closest('[role="option"]');

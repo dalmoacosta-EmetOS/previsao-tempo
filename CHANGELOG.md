@@ -2,6 +2,26 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.0 — 29/09/2026 · Planejador de viagem em destaque
+Plano em [docs/11-plano-destaque-viagem.md](docs/11-plano-destaque-viagem.md) (ADR-048). Versão anterior guardada em `congelado-v5.5`.
+- **Primeira tela:** botão amarelo "Vai viajar? Veja o tempo em cada trecho da rota", logo abaixo da temperatura. A saudação ficou em 1 linha.
+- **Planejador aberto** logo depois da temperatura e dos avisos, com o título "Vai pegar a estrada?".
+  - **De** e **Para** ficam sempre visíveis.
+  - A saída vem **sugerida** com a cidade atual, mas pode ser trocada (pedido do Dalmo: quem vai de avião e aluga carro lá).
+  - Data, hora e veículo aparecem quando a pessoa começa a preencher.
+- **"Ver um exemplo"** monta uma rota pronta: São Paulo → Rio, Boston → Nova York ou Cidade do México → Puebla, conforme o idioma.
+- **Viagens recentes** ficam salvas no aparelho: um toque refaz a viagem.
+- **Resultado:**
+  - faixa colorida com um bloco por trecho;
+  - resumo contado ("1 com perigo · 1 de atenção · 1 à noite");
+  - **controle deslizante do horário de saída**, que refaz a viagem sem nova busca;
+  - **rota pintada por trecho no mapa**.
+- **Mais rápido:**
+  - os nomes das cidades do caminho esperam no máximo 1,5 s (sem nome, aparece "km 120");
+  - os alertas oficiais esperam no máximo 2,5 s e entram depois, se chegarem atrasados.
+- **Atalho na barra da cidade** (ícone de rota amarelo) quando a página está rolada.
+- **Clique fantasma corrigido:** depois do toque numa cidade, o celular mandava um clique extra no que ficava embaixo da lista.
+
 ## 5.5 — 29/09/2026 · Noite sempre animada; postos em viagens longas
 - Pedido do Dalmo: o céu estrelado estava "sem animação". Agora, nas noites limpas:
   - 16 estrelas maiores cintilam (acendem, crescem e apagam), cada uma no seu ritmo;

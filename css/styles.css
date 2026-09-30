@@ -1274,3 +1274,62 @@ body.show-citybar .citybar { max-height: 60px; opacity: 1; padding-top: 8px; pad
   .lang-btn { padding: 0; width: 40px; }
   .lang-btn__code { display: none; }
 }
+
+/* ---------------- 6.0: Planejador de viagem em destaque ---------------- */
+.trip--hero {
+  border: 1px solid rgba(255, 200, 61, 0.45);
+  background: linear-gradient(160deg, rgba(255, 200, 61, 0.16), rgba(8, 20, 42, 0.62) 45%);
+  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.28);
+}
+.trip__head { display: flex; align-items: center; gap: 12px; }
+.trip__head-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: var(--accent); color: var(--bar); flex: none; }
+.trip__title { margin: 0; font-size: 1.3rem; line-height: 1.2; }
+.trip__sub { margin: 2px 0 0; color: var(--text-soft); font-size: 0.9rem; }
+.trip__route { margin-top: 12px; }
+.trip__route .trip__label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.trip__quick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 10px; }
+.trip__quick:empty { display: none; }
+.trip__quick-label { font-size: 0.8rem; color: var(--text-soft); }
+.trip__chip {
+  border: 1px solid rgba(255, 255, 255, 0.28); background: rgba(255, 255, 255, 0.1);
+  border-radius: 999px; padding: 7px 12px; font-size: 0.85rem; min-height: 36px;
+}
+.trip__chip--example { border-color: rgba(255, 200, 61, 0.6); color: var(--accent); font-weight: 700; }
+.trip__go { background: var(--accent) !important; color: var(--bar) !important; font-size: 1.05rem; }
+/* faixa de risco por trecho */
+.trip__strip { display: flex; gap: 3px; margin: 10px 0 4px; }
+.trip__strip-seg { flex: 1; height: 16px; border-radius: 4px; display: grid; place-items: center; font-size: 0.7rem; font-weight: 900; color: #10233c; }
+.trip__strip-seg--ok { background: #7cc4ff; }
+.trip__strip-seg--info { background: #6ed75a; }
+.trip__strip-seg--warn { background: #ffb238; }
+.trip__strip-seg--danger { background: #e1322a; color: #fff; }
+.trip__counts { margin: 4px 0 10px; font-weight: 600; font-size: 0.92rem; }
+.trip__slider-box { margin: 6px 0 12px; padding: 10px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.08); }
+.trip__slider-label { display: flex; justify-content: space-between; gap: 8px; font-weight: 600; font-size: 0.9rem; }
+.trip__slider-val { color: var(--accent); }
+.trip__slider { width: 100%; margin: 10px 0 2px; accent-color: var(--accent); min-height: 32px; }
+.trip__slider-box small { color: var(--text-soft); font-size: 0.78rem; }
+/* atalho do planejador na barra fixa da cidade */
+.citybar__trip {
+  position: absolute; top: 100%; z-index: 2;
+  right: calc(max(16px, calc((100% - 1120px) / 2 + 16px)) + 34px);
+  margin-top: 8px;
+  display: none; place-items: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 0; background: var(--accent); color: var(--bar);
+}
+body.show-citybar .citybar__trip { display: grid; }
+.citybar__label { max-width: 32vw; }
+/* a lista de sugestões fica por cima dos atalhos (exemplo/recentes) — senão o toque caía no atalho */
+.trip__route { position: relative; z-index: 6; }
+.trip__route .search { position: relative; }
+.trip__route .search:focus-within { z-index: 7; }
+.hero__trip {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  margin: 10px 0 4px; padding: 11px 14px; min-height: 46px;
+  border: 0; border-radius: 14px;
+  background: var(--accent); color: var(--bar);
+  font-weight: 800; font-size: 0.98rem; text-align: left;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+}
+.hero__trip-chev { margin-left: auto; font-size: 1.3rem; line-height: 1; }

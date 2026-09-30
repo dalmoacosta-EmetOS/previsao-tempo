@@ -1,11 +1,11 @@
-import { el, fill } from './dom.js?v=5.5';
-import { icon } from './icons.js?v=5.5';
-import { describe } from '../domain/weather-codes.js?v=5.5';
-import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=5.5';
-import { hourLabel } from '../domain/time.js?v=5.5';
-import { nowSummary } from '../domain/summary.js?v=5.5';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=5.5';
-import { t } from '../i18n/index.js?v=5.5';
+import { el, fill } from './dom.js?v=6.0';
+import { icon } from './icons.js?v=6.0';
+import { describe } from '../domain/weather-codes.js?v=6.0';
+import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=6.0';
+import { hourLabel } from '../domain/time.js?v=6.0';
+import { nowSummary } from '../domain/summary.js?v=6.0';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=6.0';
+import { t } from '../i18n/index.js?v=6.0';
 
 export function renderCurrent(root, { place, data, unit }, actions = {}) {
   const c = data.current;
@@ -56,6 +56,10 @@ export function renderCurrent(root, { place, data, unit }, actions = {}) {
     ]),
     next && el('p', { class: 'hero__line hero__line--rain' }, [
       t('hero.rainNextHour', { p: percent(next.pop) }), sep(), rain(next.precip),
+    ]),
+    // 6.0: chamada para o planejador de viagem já na primeira tela (o diferencial do site)
+    actions.onTrip && el('button', { type: 'button', class: 'hero__trip', id: 'hero-trip', onclick: actions.onTrip }, [
+      el('span', { 'aria-hidden': 'true', text: '🛣️' }), el('span', { text: t('hero.tripCta') }), el('span', { class: 'hero__trip-chev', 'aria-hidden': 'true', text: '›' }),
     ]),
     nowcast && el('div', { class: 'hero__nowcast', text: nowcast }),
     rainChart(data, now),

@@ -5,6 +5,8 @@
 > tecnologia/IA. Este é o plano consolidado.
 >
 > **Versão de segurança:** `congelado-v5.5` (commit 0b812d7).
+>
+> **Situação:** as fases 1 e 2 foram feitas na **v6.0** (ADR-048). A fase 3 depende das decisões do Dalmo: nome, contador de visitas e divulgação.
 
 ## Diagnóstico
 - [Certo] No iPhone, o planejador fica a 3 ou 4 telas do topo, **fechado**, depois de boas-vindas, cidade, 24 h e radar.

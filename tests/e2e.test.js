@@ -62,7 +62,7 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false, overpassDelay = 0, locale = 'pt-BR', init = null }) {
+async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false, overpassDelay = 0, nwsDelay = 0, locale = 'pt-BR', init = null }) {
   // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
   const ctx = await browser.newContext({ locale, bypassCSP, serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
@@ -137,7 +137,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
     { type: 'node', lat: 10, lon: 10, tags: { amenity: 'fuel', name: 'Longe da rota' } },
   ] } }); });
   await p.route('https://air-quality-api.open-meteo.com/**', (r) => aqi == null ? r.fulfill({ status: 500, body: '{}' }) : r.fulfill({ json: { current: { us_aqi: aqi, pm2_5: 9.1 } } }));
-  await p.route('https://api.weather.gov/**', (r) => { nwsCalls++; const pt = new URL(r.request().url()).searchParams.get('point') || '';
+  await p.route('https://api.weather.gov/**', async (r) => { if (nwsDelay) await new Promise((ok) => setTimeout(ok, nwsDelay)); nwsCalls++; const pt = new URL(r.request().url()).searchParams.get('point') || '';
     if (!nwsAll && !/^42\.(3601|3900|4250|4000|4200),/.test(pt) && !/^42\.36\d\d,-71\.05/.test(pt)) return r.fulfill({ json: { features: [] } });
     r.fulfill({ json: { features: [
     { properties: { event: 'Flood Warning', severity: 'Severe', onset: new Date().toISOString(), ends: new Date(Date.now() + 3 * 3600e3).toISOString(), headline: 'Flood Warning issued by NWS Boston MA', description: 'The Flood Warning continues for the Mystic River at Malden.', instruction: 'Turn around, don\'t drown.', areaDesc: 'Middlesex, MA', senderName: 'NWS Boston/Norton MA' } },
@@ -597,9 +597,13 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   t = await page(browser, { mobile: true });
   await t.p.waitForTimeout(800);
   await t.p.locator('#trip').scrollIntoViewIfNeeded();
-  check('Viagem: fechada por padrão', await t.p.isHidden('#trip-body') && (await t.p.textContent('.trip__toggle')).includes('Planeje seu passeio ou viagem'));
-  await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);
-  check('Viagem: toque abre o formulário', await t.p.isVisible('#trip-to') && (await t.p.getAttribute('.trip__toggle', 'aria-expanded')) === 'true');
+  check('Viagem em destaque: aberta, com De e Para visíveis', await t.p.isVisible('#trip-from') && await t.p.isVisible('#trip-to') && (await t.p.textContent('.trip__title')) === 'Vai pegar a estrada?');
+  check('Viagem em destaque: data/hora/veículo só depois de começar', await t.p.isHidden('#trip-body'));
+  check('Viagem em destaque: chamada na primeira tela do celular', await t.p.evaluate(() => { scrollTo(0, 0); const r = document.getElementById('hero-trip').getBoundingClientRect(); return r.bottom < innerHeight && r.height > 30; }));
+  await t.p.tap('#hero-trip'); await t.p.waitForTimeout(900);
+  check('Viagem em destaque: a chamada leva ao planejador', await t.p.evaluate(() => { const r = document.getElementById('trip').getBoundingClientRect(); return r.top > -5 && r.top < innerHeight / 2; }));
+  await t.p.click('#trip-to'); await t.p.waitForTimeout(150);
+  check('Viagem: tocar no destino abre data, hora e veículo', await t.p.isVisible('#trip-date') && await t.p.isVisible('.trip__go'));
   check('Viagem: saída padrão = cidade atual, dentro do campo', (await t.p.inputValue('#trip-from')).startsWith('Boston'), await t.p.inputValue('#trip-from'));
   await t.p.click('.trip__go'); await t.p.waitForTimeout(200);
   check('Viagem: sem destino pede o destino', (await t.p.textContent('.trip__out')).includes('Escolha o destino'));
@@ -676,7 +680,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.ctx.close();
   t = await page(browser, { mobile: true, geo: 'allow', url: '/?cidade=Malden&lat=42.425&lon=-71.066' });
   await t.p.waitForTimeout(900);
-  await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);
+  await t.p.click('#trip-to'); await t.p.waitForTimeout(150);
   await t.p.fill('#trip-from', 'xyz');
   await t.p.click('.trip__locate'); await t.p.waitForTimeout(700);
   check('Viagem: botão "minha localização" preenche a saída', (await t.p.inputValue('#trip-from')).startsWith('Somerville'), await t.p.inputValue('#trip-from'));
@@ -684,7 +688,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   // Viagem só nos EUA: aviso da NOAA + alertas oficiais no caminho
   t = await page(browser, { mobile: false, nwsAll: true });
   await t.p.waitForTimeout(800);
-  await t.p.click('.trip__toggle'); await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
   await t.p.click('.trip__go'); await t.p.waitForTimeout(1800);
   check('Viagem EUA: aviso da NOAA com fonte', (await t.p.textContent('.trip__horizon')).includes('NOAA') && (await t.p.getAttribute('.trip__horizon a', 'href')).includes('scijinks'), await t.p.textContent('.trip__horizon').catch(() => ''));
   check('Viagem EUA: alerta oficial no caminho', (await t.p.textContent('.trip__official')).includes('Alerta de enchente'), await t.p.textContent('.trip__official').catch(() => ''));
@@ -692,7 +696,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   // Link de plano adulterado: ignorado com segurança
   t = await page(browser, { mobile: false, url: '/?viagem=1&de=999,1&para=1,1&den=%3Cimg%20src=x%20onerror=window.__xss=3%3E' });
   await t.p.waitForTimeout(900);
-  check('Segurança: link de plano inválido é ignorado', (await t.p.isHidden('#trip-body')) && (await t.p.evaluate(() => window.__xss)) === undefined);
+  check('Segurança: link de plano inválido é ignorado', (await t.p.locator('.trip__stop').count()) === 0 && (await t.p.evaluate(() => window.__xss)) === undefined);
   await t.ctx.close();
   t = await page(browser, { mobile: false, url: '/?viagem=1&de=42.36,-71.06&den=%3Cimg%20src=x%20onerror=window.__xss=4%3E&para=41.76,-72.68&paran=Hartford&saida=1&veiculo=tanque' });
   await t.p.waitForTimeout(1800);
@@ -702,7 +706,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   // 5.1: postos e balanças não seguram a resposta — mapa colaborativo lento (8 s)
   t = await page(browser, { mobile: false, overpassDelay: 8000 });
   await t.p.waitForTimeout(800);
-  await t.p.click('.trip__toggle'); await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
   const tGo = Date.now();
   await t.p.click('.trip__go'); await t.p.waitForSelector('.trip__stop', { timeout: 15000 });
   const tShown = Date.now() - tGo;
@@ -714,13 +718,13 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
 
   t = await page(browser, { mobile: false, overpassFail: true });
   await t.p.waitForTimeout(800);
-  await t.p.click('.trip__toggle'); await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
   await t.p.click('.trip__go'); await t.p.waitForTimeout(1800);
   check('Mapa colaborativo fora do ar: viagem funciona e avisa', (await t.p.locator('.trip__stop').count()) >= 3 && (await t.p.textContent('.trip__road')).includes('Não consegui carregar postos'));
   await t.ctx.close();
   t = await page(browser, { mobile: false, routeFail: true });
   await t.p.waitForTimeout(800);
-  await t.p.click('.trip__toggle'); await t.p.waitForTimeout(150);
+  await t.p.click('#trip-to'); await t.p.waitForTimeout(150);
   await t.p.fill('#trip-to', 'São'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
   await t.p.click('.trip__go'); await t.p.waitForTimeout(800);
   check('Viagem: sem rota → mensagem clara', (await t.p.textContent('.trip__out')).includes('Não encontrei rota'), await t.p.textContent('.trip__out'));
@@ -733,7 +737,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.p.fill('#search-input', 'hack'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(700);
   check('Segurança: nome vindo da API entra como texto', (await t.p.evaluate(() => window.__xss)) === undefined && (await t.p.locator('img[src="x"]').count()) === 0);
   await t.p.locator('#radar').scrollIntoViewIfNeeded(); await t.p.waitForTimeout(1500);
-  await t.p.click('.trip__toggle'); await t.p.fill('#trip-to', 'hack'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  await t.p.fill('#trip-to', 'hack'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
   await t.p.click('.trip__go'); await t.p.waitForTimeout(1800);
   const nPaths = await t.p.locator('.trip__map path.leaflet-interactive').count();
   for (let k = 1; k < nPaths; k++) await t.p.locator('.trip__map path.leaflet-interactive').nth(k).hover({ force: true }).catch(() => {});
@@ -750,7 +754,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.p.fill('#search-input', 'São'); await t.p.waitForTimeout(700);
   await t.p.tap('#search-list [role=option] >> nth=1'); await t.p.waitForTimeout(700);
   check('Toque escolhe a cidade na busca do topo', (await t.p.textContent('.hero__city')) === 'São Paulo de Olivença', await t.p.textContent('.hero__city'));
-  await t.p.tap('.trip__toggle'); await t.p.tap('#trip-to'); await t.p.keyboard.type('Hart'); await t.p.waitForTimeout(800);
+  await t.p.tap('#trip-to'); await t.p.keyboard.type('Hart'); await t.p.waitForTimeout(800);
   await t.p.tap('#trip-to-list [role=option] >> nth=0'); await t.p.waitForTimeout(400);
   check('Toque escolhe o destino da viagem', (await t.p.inputValue('#trip-to')).startsWith('Hartford'), await t.p.inputValue('#trip-to'));
   await t.p.tap('.trip__go'); await t.p.waitForTimeout(1800);
@@ -813,6 +817,46 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
       && getComputedStyle(document.querySelector('.sky__stars')).opacity > 0.5; }));
   await t.ctx.close();
 
+  // 6.0 — planejador em destaque
+  t = await page(browser, { mobile: true });
+  await t.p.waitForTimeout(800);
+  // origem sugerida, mas editável (ex.: vai de avião e aluga carro lá)
+  await t.p.tap('#trip-from'); await t.p.keyboard.type('São'); await t.p.waitForTimeout(800);
+  await t.p.tap('#trip-from-list [role=option] >> nth=0'); await t.p.waitForTimeout(300);
+  await t.p.tap('#trip-to'); await t.p.keyboard.type('Hart'); await t.p.waitForTimeout(800);
+  await t.p.tap('#trip-to-list [role=option] >> nth=0'); await t.p.waitForTimeout(300);
+  check('Planejador: saída digitada pelo usuário vale (não fica presa à cidade atual)', (await t.p.inputValue('#trip-from')).startsWith('São Paulo') && (await t.p.textContent('.hero__city')) === 'Boston');
+  await t.p.tap('.trip__go'); await t.p.waitForSelector('.trip__stop', { timeout: 15000 }); await t.p.waitForTimeout(600);
+  check('Planejador: faixa colorida com um bloco por trecho', (await t.p.locator('.trip__strip-seg').count()) === (await t.p.locator('.trip__stop').count()) && (await t.p.locator('.trip__strip-seg--danger').count()) >= 1);
+  check('Planejador: resumo contado (perigo · atenção · noite)', /com perigo|de atenção/.test(await t.p.textContent('.trip__counts')), await t.p.textContent('.trip__counts'));
+  check('Planejador: rota pintada por trecho no mapa', (await t.p.locator('.trip__map path.leaflet-interactive').count()) >= 5);
+  const before = await t.p.inputValue('#trip-time');
+  await t.p.evaluate(() => { const s = document.getElementById('trip-slider'); s.value = String(Number(s.value) + 2 * 3600e3); s.dispatchEvent(new Event('input')); s.dispatchEvent(new Event('change')); });
+  await t.p.waitForTimeout(900);
+  check('Planejador: deslizar o horário refaz a viagem', (await t.p.inputValue('#trip-time')) !== before && (await t.p.locator('.trip__stop').count()) >= 3, `${before} → ${await t.p.inputValue('#trip-time')}`);
+  check('Planejador: viagem fica nos recentes', (await t.p.textContent('.trip__quick')).includes('São Paulo → Hartford'));
+  await t.p.evaluate(() => scrollTo(0, document.getElementById('daily').offsetTop)); await t.p.waitForTimeout(500);
+  check('Planejador: atalho na barra da cidade aparece ao rolar', await t.p.isVisible('#trip-jump'));
+  check('Sem erros JS (planejador 6.0)', t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+
+  t = await page(browser, { mobile: true, locale: 'en-US' });
+  await t.p.waitForTimeout(800);
+  await t.p.tap('.trip__chip--example'); await t.p.waitForSelector('.trip__stop', { timeout: 15000 });
+  check('Planejador: "Ver um exemplo" monta uma viagem pronta', (await t.p.inputValue('#trip-to')).startsWith('New York'));
+  await t.ctx.close();
+
+  // alertas oficiais lentos não seguram a previsão — e entram depois
+  t = await page(browser, { mobile: false, nwsAll: true, nwsDelay: 5000 });
+  await t.p.waitForTimeout(800);
+  await t.p.fill('#trip-to', 'Hart'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  const tNws = Date.now(); await t.p.click('.trip__go'); await t.p.waitForSelector('.trip__stop', { timeout: 15000 });
+  const tShow = Date.now() - tNws;
+  check('Rapidez: alerta oficial lento não segura a previsão', tShow < 4000, `${tShow} ms`);
+  await t.p.waitForTimeout(6000);
+  check('Segurança: alerta oficial que chega depois aparece na viagem', (await t.p.textContent('.trip__out')).includes('Alerta oficial'));
+  await t.ctx.close();
+
   // Céu estrelado à noite
   t = await page(browser, { mobile: true, url: '/?demo=noite' });
   check('Noite limpa: céu estrelado (3 camadas, ~150 estrelas)', await t.p.evaluate(() => { const l = document.querySelectorAll('.sky__stars i'); return l.length === 3 && [...l].reduce((a, i) => a + i.style.boxShadow.split('rgba').length - 1, 0) >= 140; }));
@@ -828,7 +872,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   // ---------- Idiomas e unidades (ADR-045) ----------
   const PT_KEYS = Object.keys((await import(path.join(__dirname, '..', 'js', 'i18n', 'pt.js'))).default);
   const rawKeys = async (pg) => { const txt = await pg.evaluate(() => document.body.innerText + ' ' + [...document.querySelectorAll('[aria-label],[title],[placeholder]')].map((n) => [n.getAttribute('aria-label'), n.title, n.getAttribute('placeholder')].join(' ')).join(' ')); return PT_KEYS.filter((k) => k.includes('.') && txt.includes(k)); };
-  const runTrip = async (pg) => { await pg.click('.trip__toggle'); await pg.fill('#trip-to', 'Hart'); await pg.waitForTimeout(700); await pg.keyboard.press('Enter'); await pg.waitForTimeout(300); await pg.click('.trip__go'); await pg.waitForSelector('.trip__stats', { timeout: 15000 }); await pg.waitForTimeout(400); };
+  const runTrip = async (pg) => { await pg.fill('#trip-to', 'Hart'); await pg.waitForTimeout(700); await pg.keyboard.press('Enter'); await pg.waitForTimeout(300); await pg.click('.trip__go'); await pg.waitForSelector('.trip__stats', { timeout: 15000 }); await pg.waitForTimeout(400); };
 
   // Aparelho em inglês dos EUA → site em inglês, °F, milhas e polegadas
   t = await page(browser, { mobile: false, locale: 'en-US' });

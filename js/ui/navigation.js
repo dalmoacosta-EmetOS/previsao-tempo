@@ -1,9 +1,9 @@
 // Boas-vindas, barra fixa da cidade e "voltar ao topo" (ADR-017).
-import { icon } from './icons.js?v=5.5';
-import { describe } from '../domain/weather-codes.js?v=5.5';
-import { temp } from '../domain/units.js?v=5.5';
-import { resolveWeatherNow } from '../domain/scene.js?v=5.5';
-import { t } from '../i18n/index.js?v=5.5';
+import { icon } from './icons.js?v=6.0';
+import { describe } from '../domain/weather-codes.js?v=6.0';
+import { temp } from '../domain/units.js?v=6.0';
+import { resolveWeatherNow } from '../domain/scene.js?v=6.0';
+import { t } from '../i18n/index.js?v=6.0';
 
 const $ = (id) => document.getElementById(id);
 const toTop = () => window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
@@ -19,12 +19,18 @@ export function setupScrollHelpers() {
   $('greeting').textContent = greeting();
   $('to-top').addEventListener('click', toTop);
   $('citybar').addEventListener('click', toTop);
+  // 6.0: atalho para o planejador de viagem quando a pessoa já rolou a página
+  $('trip-jump').addEventListener('click', () => {
+    $('trip').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => document.getElementById('trip-to')?.focus({ preventScroll: true }), 450);
+  });
 
   // A barra da cidade aparece quando o bloco principal (cidade + temperatura) sai da tela.
   const io = new IntersectionObserver(([entry]) => {
     const show = !entry.isIntersecting && document.body.classList.contains('has-data');
     document.body.classList.toggle('show-citybar', show);
     $('citybar').tabIndex = show ? 0 : -1;
+    $('trip-jump').tabIndex = show ? 0 : -1;
   }, { rootMargin: '-60px 0px 0px 0px' });
   io.observe($('current'));
 }
