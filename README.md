@@ -28,6 +28,7 @@ Nasceu como Exercício 1 do Treinamento de IA (nota **A+**, versão congelada **
 8. [Idiomas e unidades](docs/08-idiomas-e-unidades.md) — padrão reutilizável EMET OS
 9. [Concorrentes](docs/09-concorrentes.md)
 10. [Identidade visual — pesquisa de cores](docs/10-identidade-visual.md)
+11. [Plano: destaque do Planejador de viagem](docs/11-plano-destaque-viagem.md)
 
 ## Modo demonstração
 Acrescente `?demo=` ao endereço para forçar o céu: `sol`, `parcial`, `nublado`, `neblina`, `garoa`, `chuva`, `temporal`, `neve`, `tempestade`, `noite`.
