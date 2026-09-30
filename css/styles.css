@@ -1333,3 +1333,4 @@ body.show-citybar .citybar__trip { display: grid; }
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
 }
 .hero__trip-chev { margin-left: auto; font-size: 1.3rem; line-height: 1; }
+.trip__traffic { margin: -4px 0 10px; font-size: 0.85rem; color: var(--text-soft); }

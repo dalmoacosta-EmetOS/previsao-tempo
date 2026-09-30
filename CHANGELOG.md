@@ -2,6 +2,17 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.1 — 30/09/2026 · Endereço na viagem, tempo com trânsito típico, barra e horário juntos
+- **Barra e horário andam juntos** (pedido do Dalmo). A data/hora é a informação principal:
+  - arrastar a barra muda a hora na mesma hora;
+  - mudar a hora à mão refaz a viagem e move a barra.
+- **Endereço, lugar ou cidade** nos campos De e Para, via Photon (dados do OpenStreetMap, grátis, sem chave). No teste do Dalmo, a viagem Malden → Worcester era de 46 mi de centro a centro, mas de casa até o destino o Waze deu 55–69 mi. Se o serviço de endereços cair, a busca volta a ser por cidade.
+- **Tempo de viagem com trânsito típico.** O serviço de rotas grátis calcula sem trânsito. Agora o site soma +20% sempre e até +20% a mais no horário de pico de dia útil, e mostra os dois valores: "~1 h 19 (sem trânsito: 1 h 06)".
+  - Com essa margem, o caso real do Dalmo (1 h 06 → 1 h 23) daria ~1 h 19, igual ao Waze (1 h 19–1 h 20).
+  - Os horários de passagem em cada trecho, e portanto a previsão do tempo em cada ponto, usam esse tempo mais realista.
+  - A tela avisa que o site não vê trânsito ao vivo nem acidentes.
+- "Posto perto" da parada sugerida olha até 40 km à frente (antes 25).
+
 ## 6.0 — 29/09/2026 · Planejador de viagem em destaque
 Plano em [docs/11-plano-destaque-viagem.md](docs/11-plano-destaque-viagem.md) (ADR-048). Versão anterior guardada em `congelado-v5.5`.
 - **Primeira tela:** botão amarelo "Vai viajar? Veja o tempo em cada trecho da rota", logo abaixo da temperatura. A saudação ficou em 1 linha.

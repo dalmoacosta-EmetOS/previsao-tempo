@@ -1,8 +1,8 @@
 // Tempo ao longo da viagem (ADR-039): pontos a cada X minutos de estrada e, para cada um,
 // a previsão NA HORA EM QUE VOCÊ PASSA por ali (não a de agora).
-import { describe } from './weather-codes.js?v=6.0';
-import { shortDist } from './units.js?v=6.0';
-import { t } from '../i18n/index.js?v=6.0';
+import { describe } from './weather-codes.js?v=6.1';
+import { shortDist } from './units.js?v=6.1';
+import { t } from '../i18n/index.js?v=6.1';
 
 const R = 6371;
 const rad = (d) => (d * Math.PI) / 180;
@@ -77,6 +77,24 @@ export function classify(h, vehicle = 'car') {
   const order = { danger: 3, warn: 2, info: 1 };
   const level = flags.reduce((best, f) => (order[f.level] > (order[best] || 0) ? f.level : best), null);
   return { label: info.label, icon: info.icon, level, flags };
+}
+
+/**
+ * Tempo com trânsito típico (6.1). O serviço de rotas gratuito (OSRM) calcula SEM trânsito, pela
+ * velocidade da via — no teste do Dalmo (Malden → Worcester) deu 1 h 06; na prática foram 1 h 23.
+ * Sem trânsito ao vivo (serviço pago), usamos uma margem honesta: +20% sempre (semáforos, entrada e
+ * saída de cidade, velocidade real abaixo do limite) e até +20% a mais na parte da viagem que cai no
+ * horário de pico de dia útil (6h30–9h30 e 15h30–19h, hora do aparelho). É estimativa, e a tela diz isso.
+ */
+export function trafficFactor(departMs, durationS) {
+  const step = 10 * 60e3, end = departMs + durationS * 1000;
+  let peak = 0, n = 0;
+  for (let t = departMs; t < end; t += step) {
+    const d = new Date(t), wd = d.getDay(), m = d.getHours() * 60 + d.getMinutes();
+    n++;
+    if (wd >= 1 && wd <= 5 && ((m >= 390 && m < 570) || (m >= 930 && m < 1140))) peak++;
+  }
+  return 1.2 + 0.2 * (n ? peak / n : 0);
 }
 
 /** Pontuação de risco de uma viagem (menor = melhor). Usada para sugerir o melhor horário. */

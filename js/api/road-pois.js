@@ -2,7 +2,7 @@
 // Fonte: OpenStreetMap via Overpass API (grátis, sem chave, dados colaborativos).
 // Limites honestos: o mapa é feito por voluntários — pode faltar posto ou balança, e não
 // sabemos se a balança está aberta agora (isso só serviços pagos, como PrePass/Drivewyze nos EUA).
-import { t } from '../i18n/index.js?v=6.0';
+import { t } from '../i18n/index.js?v=6.1';
 
 const OVERPASS = 'https://overpass-api.de/api/interpreter';
 const R = 6371;
@@ -103,7 +103,7 @@ export async function getRoadPois(route, { trucks = false } = {}) {
 }
 
 /** Posto mais próximo (à frente ou até 5 km atrás) de um ponto da viagem. */
-export function nearestFuel(fuel, km, ahead = 25) {
+export function nearestFuel(fuel, km, ahead = 40) {
   return fuel.filter((f) => f.km >= km - 5 && f.km <= km + ahead).sort((a, b) => Math.abs(a.km - km) - Math.abs(b.km - km))[0] || null;
 }
 

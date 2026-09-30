@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <!-- Política de segurança (ADR-040): só carrega código do próprio site e só conversa com os serviços listados -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://tilecache.rainviewer.com; connect-src 'self' https://api.open-meteo.com https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://api-bdc.io https://api.bigdatacloud.net https://api.rainviewer.com https://api.weather.gov https://router.project-osrm.org https://overpass-api.de; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://tilecache.rainviewer.com; connect-src 'self' https://api.open-meteo.com https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://api-bdc.io https://api.bigdatacloud.net https://api.rainviewer.com https://api.weather.gov https://router.project-osrm.org https://overpass-api.de https://photon.komoot.io; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Weather Forecast</title>
@@ -27,7 +27,7 @@
   <meta property="og:locale" content="pt_BR">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='26' cy='24' r='12' fill='%23FFC83D'/%3E%3Cpath d='M20 50h26a10 10 0 0 0 0-20 14 14 0 0 0-27-3A11 11 0 0 0 20 50z' fill='%23fff'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="css/styles.css?v=6.0">
+  <link rel="stylesheet" href="css/styles.css?v=6.1">
 </head>
 <body data-scene="cloudy" data-time="day" class="is-booting">
 
@@ -104,6 +104,6 @@
   <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
   <div class="demo-badge" id="demo-badge" hidden>DEMO</div>
 
-  <script type="module" src="js/app.js?v=6.0"></script>
+  <script type="module" src="js/app.js?v=6.1"></script>
 </body>
 </html>

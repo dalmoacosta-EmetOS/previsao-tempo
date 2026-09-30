@@ -62,7 +62,7 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false, overpassDelay = 0, nwsDelay = 0, locale = 'pt-BR', init = null }) {
+async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false, overpassDelay = 0, nwsDelay = 0, photon = null, locale = 'pt-BR', init = null }) {
   // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
   const ctx = await browser.newContext({ locale, bypassCSP, serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
@@ -136,6 +136,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
     { type: 'way', center: { lat: 42.36 - 30 * 0.034, lon: -71.06 - 30 * 0.06 }, tags: { amenity: 'weighbridge', name: 'Balança DNIT <b>x</b>' } },
     { type: 'node', lat: 10, lon: 10, tags: { amenity: 'fuel', name: 'Longe da rota' } },
   ] } }); });
+  await p.route('https://photon.komoot.io/**', (r) => (photon ? r.fulfill({ json: photon }) : r.fulfill({ status: 503, body: '' })));
   await p.route('https://air-quality-api.open-meteo.com/**', (r) => aqi == null ? r.fulfill({ status: 500, body: '{}' }) : r.fulfill({ json: { current: { us_aqi: aqi, pm2_5: 9.1 } } }));
   await p.route('https://api.weather.gov/**', async (r) => { if (nwsDelay) await new Promise((ok) => setTimeout(ok, nwsDelay)); nwsCalls++; const pt = new URL(r.request().url()).searchParams.get('point') || '';
     if (!nwsAll && !/^42\.(3601|3900|4250|4000|4200),/.test(pt) && !/^42\.36\d\d,-71\.05/.test(pt)) return r.fulfill({ json: { features: [] } });
@@ -614,7 +615,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('Viagem: resumo aponta o pior trecho', trip.startsWith('Atenção: chuva forte'), trip);
   check('Viagem: 3h10 → pontos de hora em hora (5)', (await t.p.locator('.trip__stop').count()) === 5, String(await t.p.locator('.trip__stop').count()));
   check('Viagem: trecho com névoa sinalizado', (await t.p.locator('.trip__stop--danger').count()) >= 1 && (await t.p.locator('.trip__stop--warn').count()) >= 1 && (await t.p.textContent('.trip__stops')).includes('Névoa (visibilidade'));
-  check('Viagem: chegada calculada', (await t.p.textContent('.trip__stats')).includes('3 h 10 min · 290 km'), await t.p.textContent('.trip__stats'));
+  check('Viagem: tempo com trânsito típico e sem trânsito, lado a lado', /~\d h \d+ min · 290 km/.test(await t.p.textContent('.trip__stats')) && (await t.p.textContent('.trip__traffic')).includes('sem trânsito: 3 h 10 min'), (await t.p.textContent('.trip__stats')) + ' | ' + (await t.p.textContent('.trip__traffic')));
   check('Viagem: mapa com a rota', (await t.p.locator('.trip__map path.leaflet-interactive').count()) >= 1);
   const th = async () => t.p.evaluate(() => Math.round(document.querySelector('.trip__map').getBoundingClientRect().height));
   const tz0 = await th();
@@ -834,6 +835,14 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.p.evaluate(() => { const s = document.getElementById('trip-slider'); s.value = String(Number(s.value) + 2 * 3600e3); s.dispatchEvent(new Event('input')); s.dispatchEvent(new Event('change')); });
   await t.p.waitForTimeout(900);
   check('Planejador: deslizar o horário refaz a viagem', (await t.p.inputValue('#trip-time')) !== before && (await t.p.locator('.trip__stop').count()) >= 3, `${before} → ${await t.p.inputValue('#trip-time')}`);
+  // 6.1 — data/hora e barra andam juntas
+  await t.p.evaluate(() => { const s = document.getElementById('trip-slider'); s.value = String(Number(s.min)); s.dispatchEvent(new Event('input')); });
+  const liveTime = await t.p.inputValue('#trip-time');
+  check('Planejador: arrastar a barra muda a hora na mesma hora', liveTime === await t.p.evaluate(() => { const d = new Date(Number(document.getElementById('trip-slider').value)); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; }), liveTime);
+  await t.p.evaluate(() => { const i = document.getElementById('trip-time'); const [h] = i.value.split(':').map(Number); i.value = `${String((h + 3) % 24).padStart(2, '0')}:00`; i.dispatchEvent(new Event('change')); });
+  await t.p.waitForTimeout(900);
+  const synced = await t.p.evaluate(() => { const d = new Date(Number(document.getElementById('trip-slider').value)); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` === document.getElementById('trip-time').value; });
+  check('Planejador: mudar a hora à mão move a barra e refaz a viagem', synced, await t.p.inputValue('#trip-time'));
   check('Planejador: viagem fica nos recentes', (await t.p.textContent('.trip__quick')).includes('São Paulo → Hartford'));
   await t.p.evaluate(() => scrollTo(0, document.getElementById('daily').offsetTop)); await t.p.waitForTimeout(500);
   check('Planejador: atalho na barra da cidade aparece ao rolar', await t.p.isVisible('#trip-jump'));
@@ -855,6 +864,21 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('Rapidez: alerta oficial lento não segura a previsão', tShow < 4000, `${tShow} ms`);
   await t.p.waitForTimeout(6000);
   check('Segurança: alerta oficial que chega depois aparece na viagem', (await t.p.textContent('.trip__out')).includes('Alerta oficial'));
+  await t.ctx.close();
+
+  // 6.1 — viagem aceita ENDEREÇO (Photon/OpenStreetMap); cidade continua funcionando se o serviço cair
+  const PHOTON = { features: [
+    { geometry: { coordinates: [-71.0662, 42.4251] }, properties: { type: 'house', housenumber: '200', street: 'Pleasant Street', city: 'Malden', state: 'Massachusetts', country: 'United States' } },
+    { geometry: { coordinates: [-71.8023, 42.2626] }, properties: { type: 'city', name: 'Worcester', state: 'Massachusetts', country: 'United States' } },
+  ] };
+  t = await page(browser, { mobile: false, photon: PHOTON });
+  await t.p.waitForTimeout(800);
+  await t.p.fill('#trip-from', '200 Pleasant'); await t.p.waitForTimeout(800);
+  check('Endereço: sugestão mostra rua e número', (await t.p.textContent('#trip-from-list')).includes('200 Pleasant Street'), await t.p.textContent('#trip-from-list'));
+  await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
+  check('Endereço: saída vira o endereço escolhido', (await t.p.inputValue('#trip-from')).startsWith('200 Pleasant Street'), await t.p.inputValue('#trip-from'));
+  check('Endereço: campo avisa que aceita endereço', (await t.p.getAttribute('#trip-to', 'placeholder')).includes('Endereço'));
+  check('Segurança: serviço de endereços liberado na política (CSP)', (await t.p.evaluate(() => window.__csp)).length === 0);
   await t.ctx.close();
 
   // Céu estrelado à noite

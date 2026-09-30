@@ -1,9 +1,9 @@
 // Busca com autocompletar (RF-01): espera 300 ms, mínimo 2 letras, teclado acessível.
-import { el } from './dom.js?v=6.0';
-import { searchCities } from '../api/geocoding.js?v=6.0';
-import { t } from '../i18n/index.js?v=6.0';
+import { el } from './dom.js?v=6.1';
+import { searchCities } from '../api/geocoding.js?v=6.1';
+import { t } from '../i18n/index.js?v=6.1';
 
-export function setupSearch({ input, list, onSelect }) {
+export function setupSearch({ input, list, onSelect, search = searchCities }) {
   let timer;
   let seq = 0;
   let results = [];
@@ -110,7 +110,7 @@ export function setupSearch({ input, list, onSelect }) {
       const mine = ++seq;
       showMessage(t('search.searching'));
       try {
-        const found = await searchCities(q);
+        const found = await search(q);
         if (mine !== seq) return; // resposta antiga, ignora
         results = found;
         if (!found.length) showMessage(t('search.none'));

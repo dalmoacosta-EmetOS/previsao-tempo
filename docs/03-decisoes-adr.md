@@ -440,3 +440,29 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 - nome do produto (sugestão do marketing: "Hora de Sair");
 - contador de visitas sem cookies, para medir se o destaque funcionou;
 - divulgação.
+
+## ADR-049 — Tempo de viagem realista e endereço na viagem (v6.1)
+**Status:** Aceita · 30/09/2026 · teste real do Dalmo: Malden → Worcester.
+
+**Evidência:**
+- O site mostrou 1 h 06 e 46 mi, de centro de cidade a centro de cidade.
+- Na prática, a viagem levou 1 h 23.
+- O Waze, de endereço a endereço, dá 1 h 19–1 h 20 e 55–69 mi.
+
+**Causas:**
+- O OSRM calcula sem trânsito [Certo].
+- Cidade não é endereço: no começo e no fim da viagem sobram quilômetros que o site não conta [Certo].
+
+**Decisões:**
+1. **Endereço, lugar ou cidade na viagem.** A busca usa o Photon (komoot/OSM), feito para busca enquanto se digita, grátis e sem chave. Se ele falhar, volta a busca de cidades da Open-Meteo. O Photon foi liberado na CSP.
+2. **Trânsito típico por estimativa.** O tempo mostrado é `sem trânsito × (1,2 + 0,2 × fração da viagem no pico de dia útil)`. Os horários de passagem, e com eles a previsão do tempo em cada ponto, são esticados pelo mesmo fator. A tela mostra os dois tempos e diz que não há trânsito ao vivo.
+3. **Data e hora são a informação principal.** A barra deslizante e os campos de data e hora sempre mostram o mesmo valor.
+
+**Trânsito de verdade (ao vivo e típico por horário) fica para a fase AWS.** Opções:
+- **Mapbox**, perfil `driving-traffic` com `depart_at`: 100 mil pedidos por mês grátis [Provável]. Os termos podem exigir exibir a rota no mapa da Mapbox [Chutando, conferir].
+- **TomTom**: 2.500 pedidos por dia grátis [Provável].
+- **HERE** [Provável].
+
+As três exigem chave. A chave deve ficar num intermediário no servidor, nunca no site (ADR-043).
+
+**Privacidade:** o link de viagem compartilhado passa a poder conter um endereço, por exemplo o de casa. Decisão pendente do Dalmo: avisar ao compartilhar ou arredondar o ponto de saída.

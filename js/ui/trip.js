@@ -1,21 +1,22 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=6.0';
-import { icon } from './icons.js?v=6.0';
-import { setupSearch } from './search.js?v=6.0';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=6.0';
-import { clock, shortDate } from '../domain/time.js?v=6.0';
-import { t, getLang } from '../i18n/index.js?v=6.0';
-import { load, save } from '../storage.js?v=6.0';
-import { getRoute } from '../api/route.js?v=6.0';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.0';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=6.0';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.0';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.0';
-import { reverseGeocode } from '../api/geocoding.js?v=6.0';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES } from '../domain/route-weather.js?v=6.0';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=6.0';
-import { addExpandControl } from './map-expand.js?v=6.0';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.0';
+import { el, fill } from './dom.js?v=6.1';
+import { icon } from './icons.js?v=6.1';
+import { setupSearch } from './search.js?v=6.1';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=6.1';
+import { clock, shortDate } from '../domain/time.js?v=6.1';
+import { t, getLang } from '../i18n/index.js?v=6.1';
+import { load, save } from '../storage.js?v=6.1';
+import { getRoute } from '../api/route.js?v=6.1';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.1';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=6.1';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.1';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.1';
+import { reverseGeocode } from '../api/geocoding.js?v=6.1';
+import { searchPlaces } from '../api/places.js?v=6.1';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=6.1';
+import { addExpandControl } from './map-expand.js?v=6.1';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.1';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
@@ -53,7 +54,8 @@ function searchBox(id, label, placeholder, onPick) {
   const input = el('input', { onfocus: (e) => e.target.select(), id, type: 'search', autocomplete: 'off', spellcheck: 'false', autocorrect: 'off', autocapitalize: 'off', placeholder, 'aria-label': label,
     role: 'combobox', 'aria-expanded': 'false', 'aria-controls': `${id}-list`, 'aria-autocomplete': 'list' });
   const list = el('ul', { class: 'search__list', id: `${id}-list`, role: 'listbox', hidden: true });
-  setupSearch({ input, list, onSelect: onPick });
+  // Viagem aceita endereço, lugar ou cidade (6.1); a busca prefere resultados perto de onde a pessoa está
+  setupSearch({ input, list, onSelect: onPick, search: (q) => searchPlaces(q, getCurrent?.()) });
   return { input, box: el('div', { class: 'search trip__search' }, [input, list]) };
 }
 
@@ -73,6 +75,8 @@ export function mountTrip(container, { currentPlace, unit }) {
   dateInput = el('input', { id: 'trip-date', type: 'date', class: 'trip__select trip__date', 'aria-label': t('trip.date') });
   timeInput = el('input', { id: 'trip-time', type: 'time', class: 'trip__select trip__date', 'aria-label': t('trip.time'), step: '900' });
   setDateLimits();
+  // 6.1 — data/hora é a informação-mãe: mudou à mão com uma viagem na tela, a viagem e a barra acompanham na hora
+  [dateInput, timeInput].forEach((i) => i.addEventListener('change', () => { if (lastRender.route && out.querySelector('.trip__stop')) run(); }));
   { const next = new Date(); next.setMinutes(0, 0, 0); next.setHours(next.getHours() + 1); setDepart(next.getTime()); }
   // Veículo (ADR-042): moto e veículos altos têm limites mais rígidos de chuva e vento
   vehBox = el('div', { class: 'segmented segmented--small trip__veh', role: 'group', 'aria-label': t('trip.vehicle') },
@@ -207,7 +211,7 @@ async function run(opts = {}) {
   try {
     const key = `${origin.lat},${origin.lon}>${to.lat},${to.lon}`;
     const stale = !cache || cache.key !== key || cache.fetchedAt < Date.now() - 15 * 60e3;
-    if (stale || start - cache.baseStart > 12 * 3600e3 || start + cache.route.duration * 1000 + 7 * 3600e3 > cache.seriesEnd) {
+    if (stale || start - cache.baseStart > 12 * 3600e3 || start + cache.route.duration * 1500 + 7 * 3600e3 > cache.seriesEnd) {
       const route = stale ? await getRoute(origin, to) : cache.route;
       const probe = samplePoints(route, start);
       step('trip.stepForecast', { n: probe.length });
@@ -223,7 +227,7 @@ async function run(opts = {}) {
           refreshRoad();
         });
       }
-      const days = (start + route.duration * 1000 + 8 * 3600e3 - Date.now()) / 86400e3 + 1;
+      const days = (start + route.duration * 1500 + 8 * 3600e3 - Date.now()) / 86400e3 + 1;
       // 6.0 — previsão primeiro: nomes das cidades esperam no máximo 1,5 s (sem nome = "km 120") e
       // alertas oficiais no máximo 2,5 s; se chegarem depois, a tela é refeita com eles (segurança primeiro).
       const officialP = officialAlongRoute(probe);
@@ -280,7 +284,9 @@ const activeAt = (a, ms) => (!a.starts || Date.parse(a.starts) <= ms + 3600e3) &
 /** Calcula a viagem para um horário de saída usando a rota e a série já baixadas. */
 function evaluate(start) {
   const { route, series, names, official } = cache;
-  const points = samplePoints(route, start);
+  // Mesmos pontos da rota; horários de passagem esticados pelo trânsito típico (6.1)
+  const f = trafficFactor(start, route.duration);
+  const points = samplePoints(route, start).map((p) => ({ ...p, etaMs: start + (p.etaMs - start) * f }));
   if (points.length !== series.length) return null;
   const stops = [];
   for (let i = 0; i < points.length; i++) {
@@ -294,7 +300,7 @@ function evaluate(start) {
     });
     stops.push({ ...points[i], w, cond, name: names[i] });
   }
-  return { route, stops, start, score: tripScore(stops.map((s) => s.cond)) };
+  return { route, stops, start, typS: route.duration * f, score: tripScore(stops.map((s) => s.cond)) };
 }
 
 /** Procura um horário de saída melhor: de 3 h antes a 6 h depois, de hora em hora. */
@@ -313,16 +319,16 @@ function bestAlternative(current) {
 const countAttention = (stops) => stops.filter((s) => s.cond.flags.some((f) => f.key !== 'night' && (f.level === 'danger' || f.level === 'warn'))).length;
 const fmtDay = shortDate;
 
-function renderResult({ origin, dest, route, stops, start, score, passed, fromLink }) {
+function renderResult({ origin, dest, route, stops, start, typS, score, passed, fromLink }) {
   const unit = getUnit();
   const sum = tripSummary(stops, fmtTime);
   const note = horizonNote(start, origin, dest);
   const night = stops.filter((s) => s.w.isDay === false).length;
   const officialTitles = [...new Set(stops.flatMap((s) => s.cond.flags.filter((f) => f.key === 'official').map((f) => f.title)))];
   const pauses = suggestedStops(stops, start);
-  lastRender = { route, stops, start, unit, pauses, origin, dest };
+  lastRender = { route, stops, start, unit, pauses, origin, dest, typS };
   const alt = bestAlternative({ start, score });
-  const plan = { from: origin, to: dest, departMs: start, vehicle, durationS: route.duration };
+  const plan = { from: origin, to: dest, departMs: start, vehicle, durationS: typS };
   const link = planToUrl(plan, location.href);
   const head = t('trip.head', { from: origin.name, to: dest.name, day: fmtDay(start), h: fmtTime(start) });
   const title = t('plan.title', { from: origin.name, to: dest.name });
@@ -334,7 +340,8 @@ function renderResult({ origin, dest, route, stops, start, score, passed, fromLi
     riskCounts(stops, night),
     departSlider(start, route),
     officialTitles.length > 0 && el('p', { class: 'trip__official' }, [el('strong', { text: `⚠️ ${t('trip.officialOnRoute')} ` }), officialTitles.join(' · ')]),
-    el('p', { class: 'trip__stats', text: `${origin.name} → ${dest.name} · ${fmtDur(route.duration)} · ${dist(route.distance / 1000)} · ${t('trip.depart', { when: `${fmtDay(start)} ${fmtTime(start)}` })} · ${t('trip.arrive', { when: `${fmtDay(start + route.duration * 1000)} ${fmtTime(start + route.duration * 1000)}` })} · ${VEHICLES[vehicle].label}` }),
+    el('p', { class: 'trip__stats', text: `${origin.name} → ${dest.name} · ~${fmtDur(typS)} · ${dist(route.distance / 1000)} · ${t('trip.depart', { when: `${fmtDay(start)} ${fmtTime(start)}` })} · ${t('trip.arrive', { when: `${fmtDay(start + typS * 1000)} ${fmtTime(start + typS * 1000)}` })} · ${VEHICLES[vehicle].label}` }),
+    el('p', { class: 'trip__traffic', text: `⏱️ ${t('trip.trafficNote', { typ: fmtDur(typS), free: fmtDur(route.duration) })}` }),
     el('div', { class: `trip__horizon trip__horizon--${note.level}` }, [
       el('strong', { text: note.head }), ' ', note.text, ' ',
       note.href && el('a', { href: note.href, target: '_blank', rel: 'noopener', text: t('trip.source', { s: note.source }) }),
@@ -407,13 +414,13 @@ function departSlider(start, route) {
   const H = 3600e3;
   const now = Math.ceil(Date.now() / H) * H;
   const min = Math.max(now, start - 6 * H);
-  const max = Math.min(Date.now() + MAX_DAYS * 86400e3, start + 12 * H, (cache?.seriesEnd || Infinity) - route.duration * 1000 - H);
+  const max = Math.min(Date.now() + MAX_DAYS * 86400e3, start + 12 * H, (cache?.seriesEnd || Infinity) - route.duration * 1500 - H);
   if (!(max > min)) return null;
   const label = el('output', { class: 'trip__slider-val', text: `${fmtDay(start)} ${fmtTime(start)}` });
   const input = el('input', {
     type: 'range', class: 'trip__slider', id: 'trip-slider', min: String(min), max: String(max), step: String(H),
     value: String(Math.min(max, Math.max(min, start))), 'aria-label': t('trip.slider'),
-    oninput: (e) => { const v = Number(e.target.value); label.textContent = `${fmtDay(v)} ${fmtTime(v)}`; },
+    oninput: (e) => { const v = Number(e.target.value); label.textContent = `${fmtDay(v)} ${fmtTime(v)}`; setDepart(v); }, // campos de data/hora acompanham na hora
     onchange: (e) => { setDepart(Number(e.target.value)); run(); },
   });
   return el('div', { class: 'trip__slider-box' }, [
@@ -446,7 +453,7 @@ function roadBlock(route, start) {
   const pois = cache.pois;
   if (pois === undefined) return el('p', { class: 'trip__road trip__road--muted', role: 'status', text: `⛽ ${t('road.loading')}` });
   const totalKm = route.distance / 1000;
-  const eta = (km) => fmtTime(start + (km / (pois?.totalKm || totalKm)) * route.duration * 1000);
+  const eta = (km) => fmtTime(start + (km / (pois?.totalKm || totalKm)) * (lastRender.typS || route.duration) * 1000);
   if (!pois) return el('p', { class: 'trip__road trip__road--muted', text: `⛽ ${t('road.fail')}` });
   const gaps = fuelGaps(pois.fuel, pois.totalKm);
   const kids = [

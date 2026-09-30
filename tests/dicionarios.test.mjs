@@ -24,7 +24,7 @@ const ALLOW = {
   all: ['Weather', 'Forecast', 'Open-Meteo', 'OpenStreetMap', 'BigDataCloud', 'RainViewer', 'NOAA', 'NWS', 'INMET', 'EPA', 'OMS',
     'WHO', 'Beaufort', 'Google', 'Outlook', 'iPhone', 'UV', 'FPS', 'SPF', 'RADAR', 'km', 'mi', 'mm', 'cm', 'in', 'ft', 'mph', 'h', 'min',
     'Boston', 'IA', 'AI', 'EUA', 'EE', 'UU', 'NE', 'SE', 'SO', 'NO', 'SW', 'NW', 'N', 'S', 'L', 'O', 'E', 'W', 'e-mail', 'Email', 'E-mail',
-    'C', 'F', 'B', 'º', 'Calendar'],
+    'C', 'F', 'B', 'º', 'Calendar', 'Waze', 'Maps'],
   // pt: abreviações de máxima/mínima usadas nos apps de clima do Brasil; "black ice" é o termo em inglês entre parênteses
   pt: ['Máx', 'Mín', 'máx', 'black', 'ice'],
   en: [],
