@@ -1,10 +1,10 @@
 // Idiomas (ADR-045). O site abre no idioma do aparelho; se não tivermos esse idioma, em INGLÊS.
 // A pessoa pode trocar à mão (🌐) — pensado para o imigrante: um brasileiro nos EUA escolhe português.
 // A escolha manual fica salva no aparelho e vale mais que a detecção automática.
-import { load, save } from '../storage.js?v=5.4.1';
-import pt from './pt.js?v=5.4.1';
-import en from './en.js?v=5.4.1';
-import es from './es.js?v=5.4.1';
+import { load, save } from '../storage.js?v=5.5';
+import pt from './pt.js?v=5.5';
+import en from './en.js?v=5.5';
+import es from './es.js?v=5.5';
 
 export const DICTS = { pt, en, es };
 export const LANGS = [

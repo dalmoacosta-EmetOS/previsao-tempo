@@ -2,7 +2,7 @@
 // Fonte: OpenStreetMap via Overpass API (grátis, sem chave, dados colaborativos).
 // Limites honestos: o mapa é feito por voluntários — pode faltar posto ou balança, e não
 // sabemos se a balança está aberta agora (isso só serviços pagos, como PrePass/Drivewyze nos EUA).
-import { t } from '../i18n/index.js?v=5.4.1';
+import { t } from '../i18n/index.js?v=5.5';
 
 const OVERPASS = 'https://overpass-api.de/api/interpreter';
 const R = 6371;
@@ -31,17 +31,32 @@ function kmAlong(coords, cum, p) {
 
 const clean = (s) => String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').slice(0, 60);
 
-export async function getRoadPois(route, { trucks = false } = {}) {
-  const line = simplify(route.coords);
-  const ll = line.map(([la, lo]) => `${la.toFixed(4)},${lo.toFixed(4)}`).join(',');
+// Rotas longas (5.5): uma consulta única sobre 1.000+ km passava do limite do serviço e falhava
+// (vídeo do Dalmo: Sobradinho → Florianópolis). Agora a rota vira trechos de até ~350 km,
+// consultados 2 de cada vez (o serviço permite 2 consultas simultâneas); trecho que falha tenta de novo 1 vez.
+const CHUNK_KM = 350;
+
+function chunks(coords) {
+  const out = [];
+  let cur = [coords[0]], km = 0;
+  for (let i = 1; i < coords.length; i++) {
+    km += dist(coords[i - 1], coords[i]);
+    cur.push(coords[i]);
+    if (km >= CHUNK_KM) { out.push(cur); cur = [coords[i]]; km = 0; }
+  }
+  if (cur.length > 1 || !out.length) out.push(cur);
+  return out;
+}
+
+async function query(line, trucks) {
+  const ll = simplify(line, 60).map(([la, lo]) => `${la.toFixed(4)},${lo.toFixed(4)}`).join(',');
   const q = `[out:json][timeout:25];(`
     + `node(around:1500,${ll})[amenity=fuel];way(around:1500,${ll})[amenity=fuel];`
     + (trucks ? `node(around:1500,${ll})[amenity=weighbridge];way(around:1500,${ll})[amenity=weighbridge];`
       + `node(around:1500,${ll})[highway=weigh_station];` : '')
-    + ');out center 600;';
+    + ');out center 400;';
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 20000);
-  let data;
   try {
     const res = await fetch(OVERPASS, {
       method: 'POST', signal: controller.signal,
@@ -49,10 +64,24 @@ export async function getRoadPois(route, { trucks = false } = {}) {
       body: `data=${encodeURIComponent(q)}`,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    data = await res.json();
+    return (await res.json()).elements || [];
   } finally {
     clearTimeout(timer);
   }
+}
+
+export async function getRoadPois(route, { trucks = false } = {}) {
+  const parts = chunks(route.coords);
+  const results = new Array(parts.length);
+  let next = 0;
+  const worker = async () => {
+    while (next < parts.length) {
+      const k = next++;
+      try { results[k] = await query(parts[k], trucks); } catch { results[k] = await query(parts[k], trucks); } // 1 nova tentativa
+    }
+  };
+  await Promise.all([worker(), worker()]);
+  const data = { elements: results.flat() };
   // distância acumulada da rota completa
   const cum = [0];
   for (let i = 1; i < route.coords.length; i++) cum.push(cum[i - 1] + dist(route.coords[i - 1], route.coords[i]));

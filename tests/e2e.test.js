@@ -805,6 +805,14 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('24 h: abrir uma hora também mantém a posição', (await t.p.evaluate(() => document.querySelector('#hourly .hours').scrollLeft)) > 300);
   await t.ctx.close();
 
+  // 5.5 — noite limpa sempre animada: estrelas que cintilam + estrela cadente
+  t = await page(browser, { mobile: true, url: '/?demo=noite' });
+  check('Noite limpa: estrelas cintilando e estrela cadente animadas', await t.p.evaluate(() => {
+    const b = document.querySelectorAll('.sky__stars b'); const u = document.querySelector('.sky__stars u');
+    return b.length >= 12 && getComputedStyle(b[0]).animationName === 'sparkle' && u && getComputedStyle(u).animationName === 'meteor'
+      && getComputedStyle(document.querySelector('.sky__stars')).opacity > 0.5; }));
+  await t.ctx.close();
+
   // Céu estrelado à noite
   t = await page(browser, { mobile: true, url: '/?demo=noite' });
   check('Noite limpa: céu estrelado (3 camadas, ~150 estrelas)', await t.p.evaluate(() => { const l = document.querySelectorAll('.sky__stars i'); return l.length === 3 && [...l].reduce((a, i) => a + i.style.boxShadow.split('rgba').length - 1, 0) >= 140; }));

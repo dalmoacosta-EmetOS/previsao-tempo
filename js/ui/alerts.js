@@ -1,6 +1,6 @@
-import { el, fill } from './dom.js?v=5.4.1';
-import { computeAlerts } from '../domain/alerts.js?v=5.4.1';
-import { t, locale, getLang } from '../i18n/index.js?v=5.4.1';
+import { el, fill } from './dom.js?v=5.5';
+import { computeAlerts } from '../domain/alerts.js?v=5.5';
+import { t, locale, getLang } from '../i18n/index.js?v=5.5';
 
 export function renderAlerts(root, { data, unit, official = [] }) {
   const alerts = computeAlerts(data, unit);

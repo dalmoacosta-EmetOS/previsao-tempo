@@ -1,7 +1,7 @@
 // Unidades por medida (ADR-045). Automático = costume do PAÍS configurado no aparelho
 // (EUA: °F, milhas, polegadas · Reino Unido: °C, milhas, mm · resto do mundo: °C, km, mm).
 // Independente do idioma: um brasileiro nos EUA pode ler em português com milhas na estrada.
-import { load, save } from './storage.js?v=5.4.1';
+import { load, save } from './storage.js?v=5.5';
 
 export const SYSTEMS = {
   metric: { temp: 'C', dist: 'km', precip: 'mm' },

@@ -31,6 +31,24 @@ function drawStars() {
     return i;
   };
   box.append(layer(90, 0.8), layer(45, 0.9), layer(14, 1));
+  // 5.5: estrelas que cintilam (cada uma no seu ritmo) + uma estrela cadente de vez em quando
+  for (let k = 0; k < 16; k++) {
+    const b = document.createElement('b');
+    b.style.left = `${(Math.random() * 96).toFixed(1)}%`;
+    b.style.top = `${(Math.random() * 60).toFixed(1)}%`;
+    b.style.animationDuration = `${(2.5 + Math.random() * 3.5).toFixed(1)}s`;
+    b.style.animationDelay = `${(-Math.random() * 6).toFixed(1)}s`;
+    box.append(b);
+  }
+  const meteor = document.createElement('u');
+  const place = () => {
+    meteor.style.left = `${(45 + Math.random() * 50).toFixed(0)}%`;
+    meteor.style.top = `${(4 + Math.random() * 30).toFixed(0)}%`;
+    meteor.style.animationDuration = `${(10 + Math.random() * 9).toFixed(1)}s`;
+  };
+  place();
+  meteor.addEventListener('animationiteration', place); // cada passagem num lugar diferente
+  box.append(meteor);
 }
 
 

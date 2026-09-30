@@ -2,6 +2,14 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 5.5 — 29/09/2026 · Noite sempre animada; postos em viagens longas
+- Pedido do Dalmo: o céu estrelado estava "sem animação". Agora, nas noites limpas:
+  - 16 estrelas maiores cintilam (acendem, crescem e apagam), cada uma no seu ritmo;
+  - uma estrela cadente cruza o céu a cada 10–19 s, cada vez num lugar;
+  - o céu inteiro deriva bem devagar.
+  Dia de sol continua com o brilho do sol; nuvens, chuva, neve e névoa já eram animadas.
+- **Postos em viagens longas:** no vídeo (Sobradinho → Florianópolis, 1.700 km), a busca de postos falhou de novo. A rota agora é consultada em trechos de até 350 km, 2 de cada vez, e um trecho que falha tenta mais uma vez.
+
 ## 5.4.1 — 29/09/2026 · 24 horas não volta sozinha para "Agora"
 - Pedido do Dalmo: trocar Temperatura ↔ Sensação (ou abrir uma hora, ou a atualização automática de 10 min) jogava a lista das 24 h de volta para "Agora". Agora a lista fica exatamente onde a pessoa parou; só volta ao início quando ela troca de cidade.
 

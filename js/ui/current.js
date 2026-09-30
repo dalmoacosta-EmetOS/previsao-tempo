@@ -1,11 +1,11 @@
-import { el, fill } from './dom.js?v=5.4.1';
-import { icon } from './icons.js?v=5.4.1';
-import { describe } from '../domain/weather-codes.js?v=5.4.1';
-import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=5.4.1';
-import { hourLabel } from '../domain/time.js?v=5.4.1';
-import { nowSummary } from '../domain/summary.js?v=5.4.1';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=5.4.1';
-import { t } from '../i18n/index.js?v=5.4.1';
+import { el, fill } from './dom.js?v=5.5';
+import { icon } from './icons.js?v=5.5';
+import { describe } from '../domain/weather-codes.js?v=5.5';
+import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=5.5';
+import { hourLabel } from '../domain/time.js?v=5.5';
+import { nowSummary } from '../domain/summary.js?v=5.5';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=5.5';
+import { t } from '../i18n/index.js?v=5.5';
 
 export function renderCurrent(root, { place, data, unit }, actions = {}) {
   const c = data.current;
