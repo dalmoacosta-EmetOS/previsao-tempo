@@ -3,9 +3,9 @@
 // o Waze deu 55–69 mi). Agora a viagem aceita rua e número, lugar (aeroporto, hotel) ou cidade.
 // Fonte: Photon (komoot, dados do OpenStreetMap) — grátis, sem chave, feito para "busca enquanto digita".
 // Se falhar, cai para a busca de cidades de sempre.
-import { getJSON } from './http.js?v=6.2';
-import { searchCities } from './geocoding.js?v=6.2';
-import { getLang } from '../i18n/index.js?v=6.2';
+import { getJSON } from './http.js?v=6.2.1';
+import { searchCities } from './geocoding.js?v=6.2.1';
+import { getLang } from '../i18n/index.js?v=6.2.1';
 
 const URL = 'https://photon.komoot.io/api/';
 const clean = (s) => String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').slice(0, 80);

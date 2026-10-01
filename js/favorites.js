@@ -1,6 +1,6 @@
 // Cidades favoritas (ADR-030): guardadas só neste aparelho, no máximo 8.
-import { load, save } from './storage.js?v=6.2';
-import { placeKey } from './domain/place-url.js?v=6.2';
+import { load, save } from './storage.js?v=6.2.1';
+import { placeKey } from './domain/place-url.js?v=6.2.1';
 
 const MAX = 8;
 const clean = ({ name, region, country, lat, lon }) => ({ name, region: region || '', country: country || '', lat, lon });

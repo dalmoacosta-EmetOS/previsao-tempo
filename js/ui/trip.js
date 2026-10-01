@@ -1,24 +1,24 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=6.2';
-import { icon } from './icons.js?v=6.2';
-import { setupSearch } from './search.js?v=6.2';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=6.2';
-import { clock, shortDate } from '../domain/time.js?v=6.2';
-import { t, getLang } from '../i18n/index.js?v=6.2';
-import { load, save } from '../storage.js?v=6.2';
-import { getRoute } from '../api/route.js?v=6.2';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.2';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=6.2';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.2';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.2';
-import { reverseGeocode } from '../api/geocoding.js?v=6.2';
-import { searchPlaces } from '../api/places.js?v=6.2';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.2';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=6.2';
-import { addExpandControl } from './map-expand.js?v=6.2';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.2';
+import { el, fill } from './dom.js?v=6.2.1';
+import { icon } from './icons.js?v=6.2.1';
+import { setupSearch } from './search.js?v=6.2.1';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=6.2.1';
+import { clock, shortDate } from '../domain/time.js?v=6.2.1';
+import { t, getLang } from '../i18n/index.js?v=6.2.1';
+import { load, save } from '../storage.js?v=6.2.1';
+import { getRoute } from '../api/route.js?v=6.2.1';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.2.1';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=6.2.1';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.2.1';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.2.1';
+import { reverseGeocode } from '../api/geocoding.js?v=6.2.1';
+import { searchPlaces } from '../api/places.js?v=6.2.1';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.2.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=6.2.1';
+import { addExpandControl } from './map-expand.js?v=6.2.1';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.2.1';
 
-let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick, homeBox, lastField = null;
+let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick, homeBox;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
 const MAX_DAYS = 7;
 let map = null, layer = null, lastResult = null;
@@ -61,8 +61,8 @@ function searchBox(id, label, placeholder, onPick) {
 
 export function mountTrip(container, { currentPlace, unit }) {
   root = container; getCurrent = currentPlace; getUnit = unit;
-  const f = searchBox('trip-from', t('trip.fromAria'), t('trip.fromPh'), (p) => { from = p; lastField = null; syncLabels(); });
-  const d = searchBox('trip-to', t('trip.toAria'), t('trip.toPh'), (p) => { to = p; lastField = null; syncLabels(); });
+  const f = searchBox('trip-from', t('trip.fromAria'), t('trip.fromPh'), (p) => { from = p; syncLabels(); });
+  const d = searchBox('trip-to', t('trip.toAria'), t('trip.toPh'), (p) => { to = p; syncLabels(); });
   fromInput = f.input; toInput = d.input;
   // "Minha localização" dentro do campo de saída (3.5)
   const locBtn = el('button', {
@@ -114,7 +114,7 @@ export function mountTrip(container, { currentPlace, unit }) {
     body,
     out,
   );
-  [fromInput, toInput].forEach((i) => i.addEventListener('focus', () => { openBody(true); lastField = i === toInput ? 'to' : 'from'; }));
+  [fromInput, toInput].forEach((i) => i.addEventListener('focus', () => { openBody(true);  }));
   renderHome();
   renderQuick();
   syncLabels();
@@ -167,11 +167,22 @@ function getHome() {
   const h = load(HOME_KEY);
   return h && Number.isFinite(h.lat) && Number.isFinite(h.lon) && h.name ? h : null;
 }
+// Regra simples e previsível (6.2.1, teste do Dalmo no Mac e no iPhone):
+//  1º toque → Casa vira a SAÍDA ("saindo de casa");
+//  se a saída já é a Casa, o toque seguinte → Casa vira o DESTINO e a saída volta a ser onde você está ("voltando para casa").
+let fromBeforeHome = null;
 function useHome(home) {
   const isHome = (p) => p && Math.abs(p.lat - home.lat) < 1e-6 && Math.abs(p.lon - home.lon) < 1e-6;
-  const target = lastField || (from && (isHome(from) || !isHome(to)) ? 'to' : 'from');
-  if (target === 'to') to = home; else from = home;
-  lastField = null;
+  if (isHome(from)) {
+    to = home;
+    from = fromBeforeHome && !isHome(fromBeforeHome) ? fromBeforeHome : null; // null = cidade/local atual
+  } else {
+    fromBeforeHome = from;
+    from = home;
+    if (isHome(to)) to = null;
+  }
+  // o campo que estava com o cursor também precisa mostrar o novo valor
+  if (document.activeElement === fromInput || document.activeElement === toInput) document.activeElement.blur();
   syncLabels();
   openBody(true);
 }
@@ -245,6 +256,7 @@ async function run(opts = {}) {
   const origin = from || getCurrent();
   if (!origin || !to) { fill(out, el('p', { class: 'trip__msg', text: t('trip.needDest') })); toInput.focus(); return; }
   const start = Math.max(readDepart(), Date.now() - 5 * 60e3);
+  if (start !== readDepart()) setDepart(start); // horário no passado vira "agora" — campos, barra e viagem mostram o mesmo
   if (start > Date.now() + MAX_DAYS * 86400e3 + 60e3) {
     fill(out, el('p', { class: 'trip__msg trip__msg--error', text: t('trip.tooFar') }));
     return;
@@ -456,9 +468,11 @@ function riskCounts(stops, night) {
 // Horário de saída no dedo: arrastar mostra o horário; ao soltar, a viagem é refeita SEM nova busca
 function departSlider(start, route) {
   const H = 3600e3;
-  const now = Math.ceil(Date.now() / H) * H;
-  const min = Math.max(now, start - 6 * H);
-  const max = Math.min(Date.now() + MAX_DAYS * 86400e3, start + 12 * H, (cache?.seriesEnd || Infinity) - route.duration * 1500 - H);
+  // passos de 1 h alinhados ao horário escolhido (assim a barra sempre mostra exatamente o horário dos campos)
+  const back = Math.max(0, Math.min(6, Math.floor((start - (Date.now() - 5 * 60e3)) / H)));
+  const min = start - back * H;
+  const limit = Math.min(Date.now() + MAX_DAYS * 86400e3, start + 12 * H, (cache?.seriesEnd || Infinity) - route.duration * 1500 - H);
+  const max = start + Math.max(0, Math.floor((limit - start) / H)) * H;
   if (!(max > min)) return null;
   const label = el('output', { class: 'trip__slider-val', text: `${fmtDay(start)} ${fmtTime(start)}` });
   const input = el('input', {

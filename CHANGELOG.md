@@ -2,6 +2,13 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.2.1 — 30/09/2026 · Casa sempre como saída primeiro
+- Correção (teste do Dalmo no Mac e no iPhone): tocar em "🏠 Casa" jogava o endereço para o **destino**.
+  - Agora o 1º toque coloca a Casa sempre na **saída**.
+  - Se a saída já é a Casa, o toque seguinte coloca a Casa no destino (a volta), e a saída volta a ser onde você está.
+  - O campo que estava com o cursor também passa a mostrar o novo valor (antes ficava em branco).
+- Horário de saída no passado vira "agora" nos campos também. A barra deslizante anda em passos de 1 h alinhados ao horário escolhido, e por isso os dois mostram sempre o mesmo valor.
+
 ## 6.2 — 30/09/2026 · 🏠 Casa
 - Pedido do Dalmo (referência: Waze): o endereço de casa é cadastrado uma vez e fica **salvo só neste aparelho**. Um toque em "🏠 Casa" preenche o campo que a pessoa está usando. Se nenhum campo estiver em uso, preenche a saída; se a saída já é a casa, preenche o destino (a volta). O ✎ troca ou apaga o endereço.
 
