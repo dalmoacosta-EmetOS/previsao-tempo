@@ -887,13 +887,14 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.p.click('#trip-home-add'); await t.p.waitForTimeout(200);
   await t.p.fill('#trip-home', '200 Pleasant'); await t.p.waitForTimeout(800); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
   check('Casa: cadastra o endereço e mostra o botão 🏠', (await t.p.textContent('#trip-home-use')).includes('200 Pleasant Street'));
-  // cenário do Dalmo: com o cursor no campo Para (e depois no De), tocar em Casa
+  // regra do Dalmo: "De" em branco (ou só a sugestão) → Casa no De; "De" com dado → Casa no Para
   await t.p.click('#trip-to'); await t.p.click('#trip-home-use'); await t.p.waitForTimeout(200);
-  check('Casa: 1º toque vira a SAÍDA (mesmo com o cursor no Para)', (await t.p.inputValue('#trip-from')).startsWith('200 Pleasant Street') && !(await t.p.inputValue('#trip-to')).startsWith('200'), `${await t.p.inputValue('#trip-from')} | ${await t.p.inputValue('#trip-to')}`);
-  await t.p.click('#trip-from'); await t.p.click('#trip-home-use'); await t.p.waitForTimeout(200);
-  check('Casa: 2º toque vira o destino (a volta) e a saída volta a ser onde você está', (await t.p.inputValue('#trip-to')).startsWith('200 Pleasant Street') && (await t.p.inputValue('#trip-from')).startsWith('Boston'), `${await t.p.inputValue('#trip-from')} | ${await t.p.inputValue('#trip-to')}`);
+  check('Casa: De só com a sugestão → Casa vai para o De', (await t.p.inputValue('#trip-from')).startsWith('200 Pleasant Street') && !(await t.p.inputValue('#trip-to')).startsWith('200'), `${await t.p.inputValue('#trip-from')} | ${await t.p.inputValue('#trip-to')}`);
+  await t.p.fill('#trip-from', 'Worc'); await t.p.waitForTimeout(800); await t.p.keyboard.press('ArrowDown'); await t.p.keyboard.press('ArrowDown'); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(300);
   await t.p.click('#trip-home-use'); await t.p.waitForTimeout(200);
-  check('Casa: 3º toque volta a ser a saída', (await t.p.inputValue('#trip-from')).startsWith('200 Pleasant Street') && !(await t.p.inputValue('#trip-to')).startsWith('200'));
+  check('Casa: De preenchido → Casa vai para o Para', (await t.p.inputValue('#trip-to')).startsWith('200 Pleasant Street') && (await t.p.inputValue('#trip-from')).startsWith('Worcester'), `${await t.p.inputValue('#trip-from')} | ${await t.p.inputValue('#trip-to')}`);
+  await t.p.fill('#trip-from', ''); await t.p.click('#trip-home-use'); await t.p.waitForTimeout(200);
+  check('Casa: De apagado à mão → Casa vai para o De', (await t.p.inputValue('#trip-from')).startsWith('200 Pleasant Street'), `${await t.p.inputValue('#trip-from')} | ${await t.p.inputValue('#trip-to')}`);
   await t.p.reload(); await t.p.waitForTimeout(1200);
   check('Casa: continua salva depois de recarregar', await t.p.isVisible('#trip-home-use'));
   await t.p.click('#trip-home-edit'); await t.p.click('text=Apagar'); await t.p.waitForTimeout(200);

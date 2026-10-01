@@ -1,22 +1,22 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=6.2.1';
-import { icon } from './icons.js?v=6.2.1';
-import { setupSearch } from './search.js?v=6.2.1';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=6.2.1';
-import { clock, shortDate } from '../domain/time.js?v=6.2.1';
-import { t, getLang } from '../i18n/index.js?v=6.2.1';
-import { load, save } from '../storage.js?v=6.2.1';
-import { getRoute } from '../api/route.js?v=6.2.1';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.2.1';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=6.2.1';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.2.1';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.2.1';
-import { reverseGeocode } from '../api/geocoding.js?v=6.2.1';
-import { searchPlaces } from '../api/places.js?v=6.2.1';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.2.1';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=6.2.1';
-import { addExpandControl } from './map-expand.js?v=6.2.1';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.2.1';
+import { el, fill } from './dom.js?v=6.2.2';
+import { icon } from './icons.js?v=6.2.2';
+import { setupSearch } from './search.js?v=6.2.2';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=6.2.2';
+import { clock, shortDate } from '../domain/time.js?v=6.2.2';
+import { t, getLang } from '../i18n/index.js?v=6.2.2';
+import { load, save } from '../storage.js?v=6.2.2';
+import { getRoute } from '../api/route.js?v=6.2.2';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.2.2';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=6.2.2';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.2.2';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.2.2';
+import { reverseGeocode } from '../api/geocoding.js?v=6.2.2';
+import { searchPlaces } from '../api/places.js?v=6.2.2';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.2.2';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=6.2.2';
+import { addExpandControl } from './map-expand.js?v=6.2.2';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.2.2';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick, homeBox;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
@@ -167,19 +167,20 @@ function getHome() {
   const h = load(HOME_KEY);
   return h && Number.isFinite(h.lat) && Number.isFinite(h.lon) && h.name ? h : null;
 }
-// Regra simples e previsível (6.2.1, teste do Dalmo no Mac e no iPhone):
-//  1º toque → Casa vira a SAÍDA ("saindo de casa");
-//  se a saída já é a Casa, o toque seguinte → Casa vira o DESTINO e a saída volta a ser onde você está ("voltando para casa").
-let fromBeforeHome = null;
+// Regra do Dalmo (6.2.2): tocar em Casa →
+//  • "De" em branco → Casa vai para o "De";
+//  • "De" com algum dado → Casa vai para o "Para".
+// "Em branco" = campo vazio OU só com a SUGESTÃO automática (a cidade atual, que a pessoa não escolheu).
+// Se o "De" já é a própria Casa, ela vai para o "Para" e o "De" volta à sugestão (senão seria casa → casa).
 function useHome(home) {
   const isHome = (p) => p && Math.abs(p.lat - home.lat) < 1e-6 && Math.abs(p.lon - home.lon) < 1e-6;
-  if (isHome(from)) {
-    to = home;
-    from = fromBeforeHome && !isHome(fromBeforeHome) ? fromBeforeHome : null; // null = cidade/local atual
-  } else {
-    fromBeforeHome = from;
+  const fromBlank = !fromInput.value.trim() || !from;
+  if (fromBlank) {
     from = home;
     if (isHome(to)) to = null;
+  } else {
+    to = home;
+    if (isHome(from)) from = null;
   }
   // o campo que estava com o cursor também precisa mostrar o novo valor
   if (document.activeElement === fromInput || document.activeElement === toInput) document.activeElement.blur();

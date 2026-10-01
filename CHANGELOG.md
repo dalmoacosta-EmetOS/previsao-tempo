@@ -2,6 +2,12 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.2.2 — 30/09/2026 · Regra da Casa definida pelo Dalmo
+- Ao tocar em "🏠 Casa":
+  - se o **De** está em branco (vazio, ou só com a sugestão automática da cidade atual), a Casa vai para o **De**;
+  - se o **De** tem algum dado, a Casa vai para o **Para**.
+- Exceção: se o De já é a própria Casa, ela vai para o Para e o De volta à sugestão, para não virar "casa → casa".
+
 ## 6.2.1 — 30/09/2026 · Casa sempre como saída primeiro
 - Correção (teste do Dalmo no Mac e no iPhone): tocar em "🏠 Casa" jogava o endereço para o **destino**.
   - Agora o 1º toque coloca a Casa sempre na **saída**.
