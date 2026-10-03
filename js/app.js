@@ -1,30 +1,30 @@
 // Controlador: liga eventos → serviços → estado → interface.
-import { getState, setState, subscribe } from './state.js?v=6.2.2';
-import { load, save } from './storage.js?v=6.2.2';
-import { getOfficialAlerts } from './api/official-alerts.js?v=6.2.2';
-import { getForecast } from './api/forecast.js?v=6.2.2';
-import { getAirQuality } from './api/air-quality.js?v=6.2.2';
-import { reverseGeocode } from './api/geocoding.js?v=6.2.2';
-import { resolveWeatherNow } from './domain/scene.js?v=6.2.2';
-import { applyScene, DEMO_SCENES } from './ui/background.js?v=6.2.2';
-import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=6.2.2';
-import { renderHourly } from './ui/hourly.js?v=6.2.2';
-import { renderDaily } from './ui/daily.js?v=6.2.2';
-import { renderDetails } from './ui/details.js?v=6.2.2';
-import { renderAlerts } from './ui/alerts.js?v=6.2.2';
-import { renderError, showToast } from './ui/status.js?v=6.2.2';
-import { setupSearch } from './ui/search.js?v=6.2.2';
-import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=6.2.2';
-import { mountRadar, updateRadar } from './ui/radar.js?v=6.2.2';
-import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=6.2.2';
-import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=6.2.2';
-import { renderFavorites } from './ui/favorites.js?v=6.2.2';
-import { mountTrip, updateTrip } from './ui/trip.js?v=6.2.2';
-import { mountSettings } from './ui/settings.js?v=6.2.2';
-import { t, applyStatic } from './i18n/index.js?v=6.2.2';
-import { setOneUnit } from './units-settings.js?v=6.2.2';
+import { getState, setState, subscribe } from './state.js?v=6.3.0';
+import { load, save } from './storage.js?v=6.3.0';
+import { getOfficialAlerts } from './api/official-alerts.js?v=6.3.0';
+import { getForecast } from './api/forecast.js?v=6.3.0';
+import { getAirQuality } from './api/air-quality.js?v=6.3.0';
+import { reverseGeocode } from './api/geocoding.js?v=6.3.0';
+import { resolveWeatherNow } from './domain/scene.js?v=6.3.0';
+import { applyScene, DEMO_SCENES } from './ui/background.js?v=6.3.0';
+import { renderCurrent, renderHeroSkeleton } from './ui/current.js?v=6.3.0';
+import { renderHourly } from './ui/hourly.js?v=6.3.0';
+import { renderDaily } from './ui/daily.js?v=6.3.0';
+import { renderDetails } from './ui/details.js?v=6.3.0';
+import { renderAlerts } from './ui/alerts.js?v=6.3.0';
+import { renderError, showToast } from './ui/status.js?v=6.3.0';
+import { setupSearch } from './ui/search.js?v=6.3.0';
+import { renderCityBar, setupScrollHelpers } from './ui/navigation.js?v=6.3.0';
+import { mountRadar, updateRadar } from './ui/radar.js?v=6.3.0';
+import { placeFromUrl, urlForPlace, placeKey } from './domain/place-url.js?v=6.3.0';
+import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=6.3.0';
+import { renderFavorites } from './ui/favorites.js?v=6.3.0';
+import { mountTrip, updateTrip } from './ui/trip.js?v=6.3.0';
+import { mountSettings } from './ui/settings.js?v=6.3.0';
+import { t, applyStatic } from './i18n/index.js?v=6.3.0';
+import { setOneUnit } from './units-settings.js?v=6.3.0';
 
-export const VERSION = '6.2.2';
+export const VERSION = '6.3.0';
 
 // Cidade reserva quando a localização não está disponível (ADR-008).
 const FALLBACK_PLACE = { name: 'Boston', region: 'Massachusetts', country: '', lat: 42.3601, lon: -71.0589 };
@@ -194,7 +194,7 @@ function init() {
 
   // Modo demonstração: ?demo=chuva | neve | tempestade | noite | sol | nublado | neblina | parcial
   const demoKey = new URLSearchParams(location.search).get('demo');
-  if (demoKey && DEMO_SCENES[demoKey]) {
+  if (demoKey && Object.hasOwn(DEMO_SCENES, demoKey)) {
     setState({ demo: DEMO_SCENES[demoKey] });
     $('demo-badge').hidden = false;
     $('demo-badge').textContent = `DEMO · ${demoKey}`;

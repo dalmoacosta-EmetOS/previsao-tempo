@@ -1,4 +1,4 @@
-import { getJSON } from './http.js?v=6.2.2';
+import { getJSON } from './http.js?v=6.3.0';
 
 // Previsão hora a hora para vários pontos numa única chamada (Open-Meteo, grátis).
 // Devolve a SÉRIE inteira de cada ponto: assim dá para testar outros horários de saída

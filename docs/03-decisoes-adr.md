@@ -466,3 +466,30 @@ Formato: contexto → decisão → alternativas → consequências. Uma decisão
 As três exigem chave. A chave deve ficar num intermediário no servidor, nunca no site (ADR-043).
 
 **Privacidade:** o link de viagem compartilhado pode conter um endereço completo, por exemplo o de casa. Decisão do Dalmo (30/09): fica assim. Quem compartilha escolhe com quem, normalmente pessoas de confiança. Só será revisto se algum usuário pedir.
+
+## ADR-050 — Correções do pen test OSSTMM e fluxo de publicação protegido (v6.3.0)
+**Status:** Aceita · 03/10/2026 · pedido do Dalmo: pen test OSSTMM, depois corrigir e retestar.
+
+**Evidência:** relatório de 03/10 na 6.2.2: 33/42 vetores resistiram e 11 limitações foram registradas (1 alta, 4 médias, 5 baixas, 1 informativa). Os relatórios estão em [docs/seguranca/](seguranca/).
+
+**Decisões:**
+- **Texto externo é limpo na entrada** (`js/domain/text.js → cleanText`), em todos os serviços: Open-Meteo, BigDataCloud, Photon, Overpass e links.
+  - Saem controles C0/C1, DEL, U+2028/2029, marcas bidi e `< >`.
+  - O gerador de `.ics` trata também `\r` isolado.
+- **Coordenadas só em decimal** (`parseCoord`).
+- **Chaves vindas do armazenamento** são conferidas com `Object.hasOwn` (idioma, unidades, demo).
+- **Radar:** host `*.rainviewer.com` em HTTPS e caminho simples. Caso contrário, o radar fica vazio, sem quebrar o resto.
+- **Service worker:**
+  - a página é guardada com chave `index.html`, sem parâmetros;
+  - a busca de cidades não é guardada;
+  - ficam no máximo 30 respostas de previsão.
+- **Publicação protegida:**
+  - o `main` só aceita commits que já passaram em `e2e` e `analyze` (ruleset `proteger-main`);
+  - o trabalho vai para um ramo `trabalho/…` (o CodeQL passou a rodar lá também) e, com tudo verde, o mesmo commit é promovido ao `main`.
+- **O pen test virou teste de regressão:** roda em `npm test` no GitHub.
+
+**Riscos aceitos por ora (registrados):**
+- L-07: cabeçalhos de servidor, só na AWS.
+- L-08: dados a terceiros, por design. Exige política de privacidade antes de vender.
+- L-09: CSP com estilo inline, por causa do mapa.
+- L-11: serviços gratuitos sem garantia.

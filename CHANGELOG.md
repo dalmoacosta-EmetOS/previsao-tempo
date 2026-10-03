@@ -2,6 +2,16 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.3.0 — 03/10/2026 · Correções do teste de invasão (OSSTMM)
+- Pen test OSSTMM 3 em 03/10: 33 de 42 vetores resistiram na 6.2.2. No reteste da 6.3.0, **43 de 43** resistiram (um vetor novo foi incluído). Relatórios em [docs/seguranca/](docs/seguranca/) → ADR-050.
+- **L-03:** nomes vindos de serviços de mapa e de links perdem caracteres de controle, marcas de direção de texto e `< >`. Um `\r` sozinho não cria mais linha falsa no convite de calendário nem no e-mail.
+- **L-04:** idioma ou unidades salvos como `__proto__`, `constructor`, `toString` etc. não derrubam mais o site.
+- **L-05:** o radar só carrega imagens da própria RainViewer, em HTTPS.
+- **L-06:** coordenadas do link só valem em número decimal. Vazio, hexadecimal e notação científica são recusados.
+- **L-10:** o modo sem internet guarda a página uma vez só, sem o endereço da viagem, e não guarda buscas digitadas. Ficam no máximo 30 previsões.
+- **GitHub (ações do Dalmo):** 2 fatores, passkey e códigos de recuperação; `main` protegido (testes e CodeQL obrigatórios); relato privado de falhas e alertas do Dependabot ligados; 5 atualizações aprovadas; app do Claude limitado aos 3 repositórios.
+- O roteiro do pen test (`tests/pentest.test.js`) passou a rodar no GitHub junto com os testes. Se um vetor voltar a falhar, a publicação é barrada.
+
 ## 6.2.2 — 30/09/2026 · Regra da Casa definida pelo Dalmo
 - Ao tocar em "🏠 Casa":
   - se o **De** está em branco (vazio, ou só com a sugestão automática da cidade atual), a Casa vai para o **De**;

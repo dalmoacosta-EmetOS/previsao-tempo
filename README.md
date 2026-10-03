@@ -6,7 +6,7 @@
 
 Nasceu como Exercício 1 do Treinamento de IA (nota **A+**, versão congelada **3.6.1**) e hoje é **candidato a produto** — ver [roteiro](docs/06-produto-roadmap.md).
 
-**Autor:** Dalmo Costa · **Início:** 27/09/2026 · **Versão atual:** 6.2.2 · [Histórico de versões](CHANGELOG.md)
+**Autor:** Dalmo Costa · **Início:** 27/09/2026 · **Versão atual:** 6.3.0 · [Histórico de versões](CHANGELOG.md)
 
 ## O que faz
 - **Agora:** céu animado, temperatura, sensação, chuva da próxima hora, gráfico das próximas 2 horas e resumo automático.
@@ -24,7 +24,7 @@ Nasceu como Exercício 1 do Treinamento de IA (nota **A+**, versão congelada **
 4. [Plano e testes](docs/04-plano-e-testes.md)
 5. [Diário de bordo](docs/05-diario-de-bordo.md)
 6. [Produto e roteiro](docs/06-produto-roadmap.md)
-7. [Segurança](docs/07-seguranca.md) · [Política de segurança](SECURITY.md)
+7. [Segurança](docs/07-seguranca.md) · [Política de segurança](SECURITY.md) · [Testes de invasão (PDF)](docs/seguranca/)
 8. [Idiomas e unidades](docs/08-idiomas-e-unidades.md) — padrão reutilizável EMET OS
 9. [Concorrentes](docs/09-concorrentes.md)
 10. [Identidade visual — pesquisa de cores](docs/10-identidade-visual.md)

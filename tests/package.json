@@ -3,7 +3,8 @@
   "private": true,
   "description": "Testes de ponta a ponta do site, com as APIs simuladas (ADR-029).",
   "scripts": {
-    "test": "node dicionarios.test.mjs && node e2e.test.js"
+    "test": "node dicionarios.test.mjs && node e2e.test.js && node pentest.test.js",
+    "pentest": "node pentest.test.js"
   },
   "devDependencies": {
     "axe-core": "^4.13.0",

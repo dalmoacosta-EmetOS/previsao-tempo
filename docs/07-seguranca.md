@@ -52,11 +52,14 @@ Isso elimina as categorias de ataque mais comuns (vazamento de banco, roubo de s
 
 | Item | Onde | Por quê |
 |---|---|---|
-| ☐ **Autenticação em 2 fatores** no GitHub | Settings → Password and authentication | Senha vazada sozinha não basta para invadir |
-| ☐ Limitar o app do Claude **só a este repositório** | Settings → Applications → Claude → Repository access | Hoje ele pode mexer em todos os seus repositórios |
-| ☐ **Proteger o ramo `main`** (exigir testes verdes antes de mudar) | Repo → Settings → Branches | Ninguém publica versão quebrada ou maliciosa sem passar pelos testes |
-| ☐ Ativar **Private vulnerability reporting** | Repo → Settings → Code security | Pesquisadores relatam falhas em privado |
-| ☐ Conferir **Secret scanning** ativo | Repo → Settings → Code security | Avisa se alguma senha/chave for enviada por engano |
+| ☑ **Autenticação em 2 fatores** no GitHub (+ passkey e códigos de recuperação), feito em 03/10 | Settings → Password and authentication | Senha vazada sozinha não basta para invadir |
+| ☑ App do Claude limitado aos **3 repositórios do Dalmo**, feito em 03/10 | Settings → Applications → Claude → Repository access | Repositórios novos não ficam abertos automaticamente |
+| ☑ **`main` protegido** (ruleset `proteger-main`: `e2e` e `analyze` obrigatórios, sem force push nem exclusão), feito em 03/10 | Repo → Settings → Rules → Rulesets | Ninguém publica versão quebrada ou maliciosa sem passar pelos testes |
+| ☑ **Private vulnerability reporting** e **Dependabot alerts/security updates** ligados, feito em 03/10 | Repo → Settings → Advanced Security | Pesquisadores relatam falhas em privado; dependências vulneráveis geram aviso |
+| ☑ **Secret scanning** e push protection ativos | Repo → Settings → Advanced Security | Avisa ou bloqueia se alguma senha/chave for enviada por engano |
+| ☐ Verificação em 2 etapas na **conta Google** (o login do GitHub é pelo Google) | myaccount.google.com → Segurança | Quem entra no Gmail entra no GitHub |
+
+**Testes de invasão:** OSSTMM 3 em 03/10/2026 ([relatórios](seguranca/)). Na 6.2.2, 33/42 vetores resistiram. Na 6.3.0, 43/43. O roteiro `tests/pentest.test.js` roda a cada envio.
 
 ## 5. Quando virar produto na AWS (plano)
 

@@ -2,7 +2,8 @@
 // Fonte: OpenStreetMap via Overpass API (grátis, sem chave, dados colaborativos).
 // Limites honestos: o mapa é feito por voluntários — pode faltar posto ou balança, e não
 // sabemos se a balança está aberta agora (isso só serviços pagos, como PrePass/Drivewyze nos EUA).
-import { t } from '../i18n/index.js?v=6.2.2';
+import { t } from '../i18n/index.js?v=6.3.0';
+import { cleanText } from '../domain/text.js?v=6.3.0';
 
 const OVERPASS = 'https://overpass-api.de/api/interpreter';
 const R = 6371;
@@ -29,7 +30,7 @@ function kmAlong(coords, cum, p) {
   return { km: cum[best], offKm: bestD };
 }
 
-const clean = (s) => String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').slice(0, 60);
+const clean = (s) => cleanText(s, 60);
 
 // Rotas longas (5.5): uma consulta única sobre 1.000+ km passava do limite do serviço e falhava
 // (vídeo do Dalmo: Sobradinho → Florianópolis). Agora a rota vira trechos de até ~350 km,

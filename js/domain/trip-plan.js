@@ -2,15 +2,17 @@
 // vê a mesma viagem recalculada com a previsão MAIS NOVA. O "atualizar" é o próprio link.
 // Tudo o que vem do endereço é validado: números dentro do mundo, nomes curtos, veículo conhecido.
 
-import { t } from '../i18n/index.js?v=6.2.2';
+import { t } from '../i18n/index.js?v=6.3.0';
+import { cleanText, parseCoord } from './text.js?v=6.3.0';
 
 const VEH = ['car', 'moto', 'large'];
-const cut = (s, n = 80) => String(s ?? '').replace(/[\u0000-\u001f<>]/g, '').slice(0, n);
-const num = (v) => (v === null || v === '' ? NaN : Number(v));
+const cut = (s, n = 80) => cleanText(s, n);
 
 function readPoint(q, key) {
-  const [la, lo] = (q.get(key) || '').split(',').map(num);
-  if (!Number.isFinite(la) || !Number.isFinite(lo) || Math.abs(la) > 90 || Math.abs(lo) > 180) return null;
+  const parts = (q.get(key) || '').split(',');
+  if (parts.length !== 2) return null;
+  const la = parseCoord(parts[0], 90), lo = parseCoord(parts[1], 180);
+  if (!Number.isFinite(la) || !Number.isFinite(lo)) return null;
   return { lat: la, lon: lo, name: cut(q.get(`${key}n`)) || t('plan.place'), region: cut(q.get(`${key}r`)), country: cut(q.get(`${key}c`)) };
 }
 
@@ -19,7 +21,7 @@ export function planFromUrl(search) {
   if (q.get('viagem') !== '1') return null;
   const from = readPoint(q, 'de'), to = readPoint(q, 'para');
   if (!from || !to) return null;
-  const saida = num(q.get('saida'));
+  const saida = /^\d{1,9}$/.test(q.get('saida') || '') ? Number(q.get('saida')) : NaN;
   const vehicle = VEH.includes(q.get('veiculo')) ? q.get('veiculo') : 'car';
   return { from, to, departMs: Number.isFinite(saida) && saida > 0 ? saida * 60000 : null, vehicle };
 }
@@ -46,7 +48,9 @@ export function planToUrl(plan, baseHref) {
 /** Arquivo de calendário (.ics) com alertas 48 h e 2 h antes e o link para atualizar (pedido do Dalmo, 4.1). */
 export function planToIcs(plan, url, summaryText) {
   const z = (ms) => new Date(ms).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
-  const esc = (s) => String(s).replace(/\\/g, '\\\\').replace(/([,;])/g, '\\$1').replace(/\r?\n/g, '\\n');
+  // \r sozinho também vira quebra de linha no .ics (L-03); outros controles saem
+  const esc = (s) => String(s).replace(/\\/g, '\\\\').replace(/([,;])/g, '\\$1').replace(/\r\n|\r|\n|\u2028|\u2029/g, '\\n')
+    .replace(/[\u0000-\u001f\u007f-\u009f]/g, ' ');
   const end = plan.departMs + (plan.durationS || 3600) * 1000;
   return [
     'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Weather Forecast//Viagem//PT', 'CALSCALE:GREGORIAN',

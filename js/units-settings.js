@@ -1,7 +1,7 @@
 // Unidades por medida (ADR-045). Automático = costume do PAÍS configurado no aparelho
 // (EUA: °F, milhas, polegadas · Reino Unido: °C, milhas, mm · resto do mundo: °C, km, mm).
 // Independente do idioma: um brasileiro nos EUA pode ler em português com milhas na estrada.
-import { load, save } from './storage.js?v=6.2.2';
+import { load, save } from './storage.js?v=6.3.0';
 
 export const SYSTEMS = {
   metric: { temp: 'C', dist: 'km', precip: 'mm' },
@@ -32,7 +32,7 @@ export function autoSystem(region = deviceRegion()) {
 /** Configuração salva: { mode: 'auto'|'metric'|'us'|'uk'|'custom', custom: {temp,dist,precip} } */
 function stored() {
   const s = load('units');
-  if (s && typeof s === 'object' && (SYSTEMS[s.mode] || s.mode === 'auto' || s.mode === 'custom')) return s;
+  if (s && typeof s === 'object' && (Object.hasOwn(SYSTEMS, s.mode) || s.mode === 'auto' || s.mode === 'custom')) return s;
   // Quem já tinha escolhido °C/°F antes da 5.0 (chave antiga 'unit') mantém a escolha
   const old = load('unit');
   if (old === 'C' || old === 'F') return { mode: 'custom', custom: { ...SYSTEMS[autoSystem()], temp: old } };

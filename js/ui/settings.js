@@ -3,9 +3,9 @@
 //  • Unidades: automático (costume do país do aparelho), Métrico, EUA, Reino Unido ou
 //    Personalizado (temperatura, distância/velocidade e chuva escolhidas uma a uma).
 // Trocar recarrega a página: todos os textos e números são refeitos no novo padrão.
-import { el, fill } from './dom.js?v=6.2.2';
-import { t, LANGS, getLang, isManualLang, setLang, clearLang } from '../i18n/index.js?v=6.2.2';
-import { getUnits, getUnitsMode, setUnitsMode } from '../units-settings.js?v=6.2.2';
+import { el, fill } from './dom.js?v=6.3.0';
+import { t, LANGS, getLang, isManualLang, setLang, clearLang } from '../i18n/index.js?v=6.3.0';
+import { getUnits, getUnitsMode, setUnitsMode } from '../units-settings.js?v=6.3.0';
 
 const GLOBE = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c3 3.2 3 14.8 0 18M12 3c-3 3.2-3 14.8 0 18" fill="none" stroke="currentColor" stroke-width="2"/></svg>';
 

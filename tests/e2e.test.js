@@ -734,7 +734,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   // ADR-040: segurança
   t = await page(browser, { mobile: true, url: '/?cidade=%3Cscript%3Ewindow.__xss%3D2%3C%2Fscript%3E&lat=42.4&lon=-71.1' });
   await t.p.waitForTimeout(900);
-  check('Segurança: nome no link entra como texto (sem executar)', (await t.p.evaluate(() => window.__xss)) === undefined && (await t.p.textContent('.hero__city')).includes('<script>'), await t.p.textContent('.hero__city'));
+  check('Segurança: nome no link entra como texto (sem executar)', (await t.p.evaluate(() => window.__xss)) === undefined && /script window/.test(await t.p.textContent('.hero__city')) && !(await t.p.textContent('.hero__city')).includes('<'), await t.p.textContent('.hero__city'));
   await t.p.fill('#search-input', 'hack'); await t.p.waitForTimeout(700); await t.p.keyboard.press('Enter'); await t.p.waitForTimeout(700);
   check('Segurança: nome vindo da API entra como texto', (await t.p.evaluate(() => window.__xss)) === undefined && (await t.p.locator('img[src="x"]').count()) === 0);
   await t.p.locator('#radar').scrollIntoViewIfNeeded(); await t.p.waitForTimeout(1500);
@@ -992,6 +992,27 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   t = await page(browser, { mobile: false, locale: 'en-US', url: '/?viagem=1&de=42.36,-71.06&den=Boston&para=41.76,-72.68&paran=Hartford&veiculo=car' });
   await t.p.waitForSelector('.trip__stats', { timeout: 15000 });
   check('Link de plano respeita o idioma de quem abre', /Plan opened from the link/.test(await t.p.textContent('.trip__out')) && / mi /.test(await t.p.textContent('.trip__stats')));
+  await t.ctx.close();
+
+  // Pen test OSSTMM (2026-10-03): correções L-03, L-04, L-06
+  t = await page(browser, { mobile: false, bypassCSP: true, init: () => { localStorage.setItem('previsao-tempo:lang', '"__proto__"'); localStorage.setItem('previsao-tempo:units', '{"mode":"constructor"}'); } });
+  check('L-04: idioma "__proto__" salvo não derruba o site', (await t.p.textContent('#hourly h2')) === 'Próximas 24 horas' && t.errors.length === 0, t.errors.join(' | '));
+  const sec = await t.p.evaluate(async () => {
+    const tp = await import('./js/domain/trip-plan.js?v=teste');
+    const pu = await import('./js/domain/place-url.js?v=teste');
+    const geo = await import('./js/domain/text.js?v=teste');
+    const plan = { from: { name: 'Rio\rX-INJ:1', lat: 1, lon: 1 }, to: { name: 'B\u2028C', lat: 2, lon: 2 }, departMs: Date.UTC(2026, 9, 10, 12), vehicle: 'car' };
+    const ics = tp.planToIcs(plan, 'https://x.example/', 'ok');
+    return {
+      icsLines: ics.split('\r\n').filter((l) => /^X-INJ/.test(l)).length + (ics.replace(/\r\n/g, '').match(/\r|\n|\u2028/g) || []).length,
+      hex: pu.placeFromUrl('?lat=0x1f&lon=10'), empty: pu.placeFromUrl('?lat=&lon='), ok: !!pu.placeFromUrl('?lat=-42.43&lon=-71.07&cidade=A%0DB'),
+      name: pu.placeFromUrl('?lat=1&lon=1&cidade=A%0DB%E2%80%AEC')?.name,
+      tripHex: tp.planFromUrl('?viagem=1&de=0x1,1&para=2,2'), clean: geo.cleanText('a\u0085b\u202ec<d>'),
+    };
+  });
+  check('L-03: nome com \\r ou \\u2028 não cria linha nova no .ics', sec.icsLines === 0, JSON.stringify(sec));
+  check('L-03: caracteres de controle e de direção saem do nome', sec.name === 'A B C' && sec.clean === 'a b c d', JSON.stringify(sec));
+  check('L-06: coordenada hexadecimal ou vazia é recusada', sec.hex === null && sec.empty === null && sec.tripHex === null && sec.ok, JSON.stringify(sec));
   await t.ctx.close();
 
   await browser.close();

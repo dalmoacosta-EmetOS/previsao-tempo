@@ -1,12 +1,14 @@
 // Idiomas (ADR-045). O site abre no idioma do aparelho; se não tivermos esse idioma, em INGLÊS.
 // A pessoa pode trocar à mão (🌐) — pensado para o imigrante: um brasileiro nos EUA escolhe português.
 // A escolha manual fica salva no aparelho e vale mais que a detecção automática.
-import { load, save } from '../storage.js?v=6.2.2';
-import pt from './pt.js?v=6.2.2';
-import en from './en.js?v=6.2.2';
-import es from './es.js?v=6.2.2';
+import { load, save } from '../storage.js?v=6.3.0';
+import pt from './pt.js?v=6.3.0';
+import en from './en.js?v=6.3.0';
+import es from './es.js?v=6.3.0';
 
 export const DICTS = { pt, en, es };
+// Só idiomas que existem de fato: "__proto__" ou "constructor" vindos do armazenamento não valem (L-04)
+const known = (code) => typeof code === 'string' && Object.hasOwn(DICTS, code);
 export const LANGS = [
   { code: 'pt', label: 'Português', locale: 'pt-BR' },
   { code: 'en', label: 'English', locale: 'en-US' },
@@ -22,15 +24,15 @@ function deviceLanguages() {
 export function detectLang(list = deviceLanguages()) {
   for (const l of list) {
     const base = String(l || '').slice(0, 2).toLowerCase();
-    if (DICTS[base]) return base;
+    if (known(base)) return base;
   }
   return FALLBACK;
 }
 
-let lang = DICTS[load('lang')] ? load('lang') : detectLang();
+let lang = known(load('lang')) ? load('lang') : detectLang();
 
 export const getLang = () => lang;
-export const isManualLang = () => !!DICTS[load('lang')];
+export const isManualLang = () => known(load('lang'));
 
 /** Formato de datas e números: o do aparelho, se for do mesmo idioma (en-GB mantém dia/mês); senão o padrão do idioma. */
 export function locale() {
@@ -39,7 +41,7 @@ export function locale() {
 }
 
 export function setLang(code) {
-  if (!DICTS[code]) return;
+  if (!known(code)) return;
   lang = code;
   save('lang', code);
 }
