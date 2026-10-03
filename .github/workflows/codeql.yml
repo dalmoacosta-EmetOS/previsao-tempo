@@ -4,7 +4,9 @@
 name: Segurança (CodeQL)
 on:
   push:
-    branches: [main]
+    # main + ramos de trabalho: o main é protegido (ruleset "proteger-main") e só aceita
+    # commits que já passaram em e2e e analyze num ramo trabalho/…
+    branches: [main, 'trabalho/**']
   pull_request:
   schedule:
     - cron: '17 9 * * 1'   # toda segunda-feira, além de cada envio
