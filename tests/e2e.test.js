@@ -12,7 +12,10 @@ const VERSION = fs.readFileSync(path.join(ROOT, 'js/app.js'), 'utf8').match(/VER
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.webmanifest': 'application/manifest+json' };
 
 const server = http.createServer((req, res) => {
-  const p = path.join(ROOT, decodeURIComponent(req.url.split('?')[0]) === '/' ? 'index.html' : decodeURIComponent(req.url.split('?')[0]));
+  // Só arquivos de dentro da pasta do site (nada de "../" para fora dela)
+  const rel = decodeURIComponent(req.url.split('?')[0]);
+  const p = path.resolve(ROOT, '.' + (rel === '/' ? '/index.html' : rel));
+  if (!p.startsWith(ROOT + path.sep)) { res.writeHead(403); return res.end(); }
   fs.readFile(p, (e, buf) => {
     if (e) { res.writeHead(404); return res.end(); }
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(p)] || 'application/octet-stream' });
