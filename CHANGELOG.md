@@ -2,6 +2,14 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.4.0 — 04/10/2026 · Conta opcional, planos e limite de aparelhos
+- Botão 👤 no topo: **conta opcional**. Entra com **link no e-mail (sem senha)** ou **Google**. Sem conta, o site continua igual e não contata o serviço de contas → ADR-051, [docs/12](docs/12-contas-e-planos.md).
+- **Casa, favoritas e viagens recentes sincronizadas** entre os aparelhos da pessoa. Ao entrar, os dados do aparelho e da conta são somados.
+- **Limite de aparelhos por plano** (Grátis: 2, Pro: 3). Ao entrar num aparelho novo, o mais antigo é desconectado na hora e avisado. A lista de aparelhos tem o botão "Desconectar".
+- **Planos** no banco (Grátis e Pro), com limites conferidos no servidor. Ainda sem cobrança.
+- **"Apagar minha conta e meus dados"**, com 2º toque de confirmação.
+- Segurança: banco Supabase **separado** do EMET OS, RLS em todas as tabelas, sessão conferida em cada pedido, biblioteca no próprio site (conferida byte a byte contra o npm), CSP liberando só o projeto. Pen test com 3 vetores novos (46/46).
+
 ## 6.3.0 — 03/10/2026 · Correções do teste de invasão (OSSTMM)
 - Pen test OSSTMM 3 em 03/10: 33 de 42 vetores resistiram na 6.2.2. No reteste da 6.3.0, **43 de 43** resistiram (um vetor novo foi incluído). Relatórios em [docs/seguranca/](docs/seguranca/) → ADR-050.
 - **L-03:** nomes vindos de serviços de mapa e de links perdem caracteres de controle, marcas de direção de texto e `< >`. Um `\r` sozinho não cria mais linha falsa no convite de calendário nem no e-mail.

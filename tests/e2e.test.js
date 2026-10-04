@@ -65,7 +65,7 @@ const GEO = { results: [
   { name: 'São Paulo de Olivença', admin1: 'Amazonas', country: 'Brasil', latitude: -3.37, longitude: -68.87 },
 ] };
 
-async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false, overpassDelay = 0, nwsDelay = 0, photon = null, locale = 'pt-BR', init = null }) {
+async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forecast(), geo = 'deny', failForecast = false, url = '/', radarFail = false, gridFail = false, radarNoCors = false, aqi = 42, routeFail = false, nwsAll = false, overpassFail = false, overpassDelay = 0, nwsDelay = 0, photon = null, locale = 'pt-BR', init = null, initArg, sb = null }) {
   // O "modo sem internet" (sw.js) desviaria as respostas simuladas; só fica ligado no teste dele.
   const ctx = await browser.newContext({ locale, bypassCSP, serviceWorkers: sw ? 'allow' : 'block', ...(mobile
     ? { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true }
@@ -74,7 +74,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   const p = await ctx.newPage();
   const errors = [];
   await p.addInitScript(() => { window.__csp = []; document.addEventListener('securitypolicyviolation', (e) => window.__csp.push(`${e.violatedDirective} ${e.blockedURI}`)); });
-  if (init) await p.addInitScript(init);
+  if (init) await p.addInitScript(init, initArg);
   p.on('pageerror', (e) => errors.push(e.message));
   p.on('console', (m) => m.type() === 'error' && !m.text().includes('Failed to load resource') && errors.push(m.text()));
   await p.route('https://api.open-meteo.com/**', (r) => {
@@ -147,9 +147,17 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
     { properties: { event: 'Flood Warning', severity: 'Severe', onset: new Date().toISOString(), ends: new Date(Date.now() + 3 * 3600e3).toISOString(), headline: 'Flood Warning issued by NWS Boston MA', description: 'The Flood Warning continues for the Mystic River at Malden.', instruction: 'Turn around, don\'t drown.', areaDesc: 'Middlesex, MA', senderName: 'NWS Boston/Norton MA' } },
     { properties: { event: 'Gale Warning', severity: 'Moderate', effective: new Date().toISOString(), expires: new Date(Date.now() + 6 * 3600e3).toISOString(), headline: 'Gale Warning', description: 'Northeast winds 25 to 35 kt.', areaDesc: 'Coastal waters', senderName: 'NWS Boston/Norton MA' } },
   ] } }); });
+  // Contas (ADR-051): Supabase simulado; anota cada pedido para conferir o que foi enviado
+  const sbReq = [];
+  await p.route('https://qrpuodtyevkemaykfpgn.supabase.co/**', (r) => {
+    const rq = r.request();
+    sbReq.push({ method: rq.method(), path: new URL(rq.url()).pathname, body: rq.postData() || '' });
+    if (rq.method() === 'OPTIONS') return r.fulfill({ status: 204, headers: { 'access-control-allow-origin': '*', 'access-control-allow-headers': '*', 'access-control-allow-methods': '*' } });
+    return sb ? sb(r, rq) : r.fulfill({ status: 503, body: '' });
+  });
   await p.goto(`http://localhost:${Number(process.env.PORT) || 8765}` + url);
   await p.waitForTimeout(1200);
-  return { p, ctx, errors };
+  return { p, ctx, errors, sbReq };
 }
 
 (async () => {
@@ -1016,6 +1024,69 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('L-03: nome com \\r ou \\u2028 não cria linha nova no .ics', sec.icsLines === 0, JSON.stringify(sec));
   check('L-03: caracteres de controle e de direção saem do nome', sec.name === 'A B C' && sec.clean === 'a b c d', JSON.stringify(sec));
   check('L-06: coordenada hexadecimal ou vazia é recusada', sec.hex === null && sec.empty === null && sec.tripHex === null && sec.ok, JSON.stringify(sec));
+  await t.ctx.close();
+
+  // ===== Conta opcional (ADR-051) =====
+  const SBH = { 'access-control-allow-origin': '*', 'content-type': 'application/json' };
+  const sbJson = (r, body, status = 200) => r.fulfill({ status, headers: SBH, body: JSON.stringify(body) });
+  t = await page(browser, { mobile: true });
+  check('Conta: sem sessão, nada é carregado nem enviado ao serviço de contas', t.sbReq.length === 0 && !(await t.p.evaluate(() => !!window.supabase)), JSON.stringify(t.sbReq));
+  await t.p.click('#account-btn');
+  check('Conta: painel abre com e-mail e Google', await t.p.isVisible('#acc-email') && await t.p.isVisible('#acc-google'));
+  await t.p.fill('#acc-email', 'nao-e-email'); await t.p.click('#acc-send'); await t.p.waitForTimeout(300);
+  check('Conta: e-mail inválido avisa e não envia', (await t.p.textContent('#account')).includes('Confira o e-mail') && !t.sbReq.some((x) => x.path.includes('/otp')));
+  await t.ctx.close();
+
+  t = await page(browser, { mobile: true, sb: (r) => sbJson(r, {}) });
+  await t.p.click('#account-btn'); await t.p.fill('#acc-email', 'dalmo@example.com'); await t.p.click('#acc-send');
+  await t.p.waitForSelector('.account__msg--info', { timeout: 8000 }).catch(() => {});
+  const otp = t.sbReq.find((x) => x.path === '/auth/v1/otp');
+  check('Conta: pede o link por e-mail (sem senha) e confirma o envio', !!otp && otp.body.includes('dalmo@example.com') && (await t.p.textContent('#account')).includes('Enviamos um link'), JSON.stringify(t.sbReq.map((x) => x.path)));
+  check('Conta: biblioteca carregada do próprio site, sem erros', (await t.p.evaluate(() => [...document.scripts].some((x) => /vendor\/supabase\/supabase\.js/.test(x.src)))) && t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+
+  // Sessão já salva neste aparelho: entra, registra o aparelho, junta os dados e limpa o que vem de fora
+  const b64 = (o) => Buffer.from(JSON.stringify(o)).toString('base64url');
+  const fakeJwt = `${b64({ alg: 'HS256', typ: 'JWT' })}.${b64({ sub: 'u1', session_id: 's1', role: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 })}.x`;
+  const stored = JSON.stringify({ access_token: fakeJwt, refresh_token: 'r', token_type: 'bearer', expires_in: 3600, expires_at: Math.floor(Date.now() / 1000) + 3600,
+    user: { id: 'u1', aud: 'authenticated', role: 'authenticated', email: 'dalmo@example.com', app_metadata: {}, user_metadata: {}, created_at: new Date().toISOString() } });
+  const cloud = { home: { name: 'Casa\r<b>X</b>\u202e', region: 'MA', country: 'US', lat: 42.4251, lon: -71.0662 }, favorites: [{ name: 'Lisboa', region: '', country: 'PT', lat: 38.72, lon: -9.14 }, { name: 'ruim', lat: 'x', lon: 1 }], trips: [] };
+  let kicked = false; let deleted = false;
+  const sbLogged = (r, rq) => {
+    const u = new URL(rq.url());
+    if (u.pathname === '/rest/v1/rpc/claim_device') return kicked ? sbJson(r, { code: '28000', message: 'not_authenticated' }, 401)
+      : sbJson(r, [{ session_id: 's1', label: 'iPhone · Safari', last_seen: new Date().toISOString(), is_current: true, revoked: 0 }, { session_id: '11111111-1111-1111-1111-111111111111', label: 'Mac <img src=x onerror=window.__xss=9>', last_seen: new Date(Date.now() - 86400e3).toISOString(), is_current: false, revoked: 0 }]);
+    if (u.pathname === '/rest/v1/rpc/my_plan') return sbJson(r, { id: 'free', name: 'Grátis', max_devices: 2, max_favorites: 10, max_trips: 4 });
+    if (u.pathname === '/rest/v1/rpc/delete_my_account') { deleted = true; return r.fulfill({ status: 204, headers: SBH, body: '' }); }
+    if (u.pathname === '/rest/v1/user_data') return rq.method() === 'GET' ? sbJson(r, cloud) : r.fulfill({ status: 204, headers: SBH, body: '' });
+    if (u.pathname.startsWith('/auth/v1/logout')) return r.fulfill({ status: 204, headers: SBH, body: '' });
+    return sbJson(r, {});
+  };
+  const withSession = (s) => { localStorage.setItem('previsao-tempo:auth', s); localStorage.setItem('previsao-tempo:favorites', JSON.stringify([{ name: 'Malden', region: 'MA', country: 'US', lat: 42.4251, lon: -71.0662 }])); };
+  t = await page(browser, { mobile: true, init: withSession, initArg: stored, sb: sbLogged });
+  await t.p.waitForTimeout(1500);
+  const homeLocal = await t.p.evaluate(() => JSON.parse(localStorage.getItem('previsao-tempo:home') || 'null'));
+  const favsLocal = await t.p.evaluate(() => JSON.parse(localStorage.getItem('previsao-tempo:favorites') || '[]'));
+  check('Conta: Casa da conta chega ao aparelho, sem caracteres de controle nem < >', /^Casa\b/.test(homeLocal?.name || '') && !/[\u0000-\u001f<>\u202e]/.test(homeLocal.name) && (await t.p.textContent('#trip-home-use')).includes('Casa'), JSON.stringify(homeLocal));
+  check('Conta: favoritas da conta e do aparelho são somadas; item inválido descartado', favsLocal.length === 2 && favsLocal.some((f) => f.name === 'Lisboa') && favsLocal.some((f) => f.name === 'Malden'), JSON.stringify(favsLocal));
+  check('Conta: aparelho registrado com nome do aparelho', t.sbReq.some((x) => x.path === '/rest/v1/rpc/claim_device' && /p_label/.test(x.body)));
+  check('Conta: o que mudou volta para a conta (sincroniza)', t.sbReq.some((x) => x.method === 'PATCH' && x.path === '/rest/v1/user_data' && x.body.includes('Malden')), JSON.stringify(t.sbReq.map((x) => `${x.method} ${x.path}`)));
+  await t.p.click('#account-btn');
+  const accTxt = await t.p.textContent('#account');
+  check('Conta: painel mostra e-mail, plano e aparelhos (texto, sem executar nada)', accTxt.includes('dalmo@example.com') && accTxt.includes('até 2 aparelhos') && accTxt.includes('este aparelho') && accTxt.includes('Mac img') && (await t.p.evaluate(() => window.__xss)) === undefined, accTxt.slice(0, 300));
+  await t.p.click('#acc-delete'); await t.p.waitForTimeout(200);
+  check('Conta: apagar pede um 2º toque (sem janela do navegador)', !deleted && (await t.p.textContent('#acc-delete')).includes('Toque de novo'));
+  await t.p.click('#acc-delete'); await t.p.waitForTimeout(800);
+  const afterDel = await t.p.evaluate(() => ({ home: localStorage.getItem('previsao-tempo:home'), auth: localStorage.getItem('previsao-tempo:auth') }));
+  check('Conta: apagar conta chama o servidor, limpa os dados deste aparelho e sai', deleted && afterDel.home === 'null' && !afterDel.auth && (await t.p.textContent('#account')).includes('apagados'), JSON.stringify(afterDel));
+  check('Sem erros JS (conta)', t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+
+  // Aparelho desconectado pelo limite do plano: sai sozinho e avisa
+  kicked = true;
+  t = await page(browser, { mobile: true, init: withSession, initArg: stored, sb: sbLogged });
+  await t.p.waitForTimeout(1500);
+  check('Conta: aparelho desconectado em outro lugar sai e avisa', (await t.p.isVisible('#account')) && (await t.p.textContent('#account')).includes('foi desconectado') && !(await t.p.evaluate(() => localStorage.getItem('previsao-tempo:auth'))), await t.p.textContent('#account'));
   await t.ctx.close();
 
   await browser.close();

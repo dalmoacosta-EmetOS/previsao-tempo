@@ -1,4 +1,4 @@
-import { getJSON } from './http.js?v=6.3.0';
+import { getJSON } from './http.js?v=6.4.0';
 
 // Rota de carro de A até B (ADR-039). OSRM público: grátis, sem chave, dados do OpenStreetMap.
 // Limite honesto: é um servidor de demonstração — sem garantia de disponibilidade.

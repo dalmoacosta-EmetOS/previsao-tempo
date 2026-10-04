@@ -2,8 +2,8 @@
 // Fonte: OpenStreetMap via Overpass API (grátis, sem chave, dados colaborativos).
 // Limites honestos: o mapa é feito por voluntários — pode faltar posto ou balança, e não
 // sabemos se a balança está aberta agora (isso só serviços pagos, como PrePass/Drivewyze nos EUA).
-import { t } from '../i18n/index.js?v=6.3.0';
-import { cleanText } from '../domain/text.js?v=6.3.0';
+import { t } from '../i18n/index.js?v=6.4.0';
+import { cleanText } from '../domain/text.js?v=6.4.0';
 
 const OVERPASS = 'https://overpass-api.de/api/interpreter';
 const R = 6371;

@@ -82,3 +82,7 @@ Isso elimina as categorias de ataque mais comuns (vazamento de banco, roubo de s
 - O **GitHub Pages** não permite cabeçalhos de segurança próprios (HSTS, `frame-ancestors`): parte da proteção só fica completa na AWS.
 - Dependemos de **serviços gratuitos de terceiros** (previsão, radar, rotas, nomes). Se um deles mudar ou cair, uma parte do site para — como aconteceu com o serviço de nomes em 28/09 (ADR-040, rev. 3.5.2).
 - Testes simulados **não substituem** o uso real: dois defeitos de hoje só apareceram no iPhone.
+
+## 7. Contas (6.4.0)
+
+Conta opcional no Supabase `weather-forecast`, separado do EMET OS. RLS em todas as tabelas, sessão conferida em cada pedido, limite de aparelhos aplicado pelo servidor, biblioteca no próprio site conferida contra o npm. Detalhes, avisos aceitos do linter e configuração do painel: [docs/12](12-contas-e-planos.md).

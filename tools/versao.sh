@@ -8,5 +8,6 @@ cd "$(dirname "$0")/.."
 sed -i -E "s/export const VERSION = '[^']+';/export const VERSION = '${V}';/" js/app.js
 sed -i -E "s/\?v=[0-9.]+\"/?v=${V}\"/g" index.html
 find js -name '*.js' -print0 | xargs -0 sed -i -E "s#(from '\.{1,2}/[^'?]+\.js)(\?v=[0-9.]+)?'#\1?v=${V}'#g"
+sed -i -E "s#('vendor/[^'?]+\.js)\?v=[0-9.]+'#\1?v=${V}'#g" js/account.js  # biblioteca carregada sob demanda
 sed -i -E "s/^const VERSION = '[^']+';/const VERSION = '${V}';/" sw.js
 echo "Versão ${V} carimbada:"; grep -rhoE "\?v=[0-9.]+" index.html js | sort | uniq -c

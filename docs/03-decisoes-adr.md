@@ -493,3 +493,30 @@ As três exigem chave. A chave deve ficar num intermediário no servidor, nunca 
 - L-08: dados a terceiros, por design. Exige política de privacidade antes de vender.
 - L-09: CSP com estilo inline, por causa do mapa.
 - L-11: serviços gratuitos sem garantia.
+
+## ADR-051 — Conta opcional com Supabase, planos e limite de aparelhos (v6.4.0)
+**Status:** Aceita · 04/10/2026 · pedido do Dalmo: cadastro com dados próprios, planos e controle contra empréstimo de conta.
+
+**Decisões do Dalmo (perguntas de 03/10):**
+- projeto Supabase **novo e separado** do EMET OS;
+- login por **link no e-mail + Google**, com **2 aparelhos**;
+- **contas + sincronização + estrutura de planos**, sem cobrança.
+
+**Decisões técnicas:**
+- **Conta opcional:** a biblioteca só carrega com sessão salva ou na volta do link de login. Sem conta, nada muda.
+- **Limite de aparelhos no servidor:**
+  - `claim_device` apaga sessões excedentes em `auth.sessions`;
+  - as regras RLS exigem `session_ok()` (o `session_id` do token precisa existir);
+  - o recurso "single session" do Supabase não serve aqui: é só para planos pagos e permite 1 sessão, não 2.
+- **Plano só muda pelo servidor.** Os limites são conferidos por gatilho no banco.
+- **Sincronização simples:** uma linha por pessoa (`user_data`: casa, favoritas, viagens em JSON com tamanho limitado). A união é feita no aparelho e enviada com 0,8 s de espera.
+- **Biblioteca vendorizada** (`vendor/supabase`, 2.117.2), sem CDN. O teste `vendor.test.mjs` compara com o pacote do npm.
+- **Funções que apagam sessões e contas** foram instaladas pelo Dalmo no SQL Editor. O Supabase exige confirmação humana para operações destrutivas, e essa confirmação não chega ao Claude.
+
+**Consequências:**
+- \+ dados por pessoa;
+- \+ empréstimo inconveniente;
+- \+ base pronta para cobrança.
+- − e-mail embutido do Supabase com limite baixo por hora (SMTP próprio antes de lançar);
+- − Google depende de credencial no Google Cloud (ação do Dalmo);
+- − política de privacidade continua pendente (L-08).

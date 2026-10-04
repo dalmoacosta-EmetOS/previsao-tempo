@@ -6,7 +6,7 @@
 
 Nasceu como Exercício 1 do Treinamento de IA (nota **A+**, versão congelada **3.6.1**) e hoje é **candidato a produto** — ver [roteiro](docs/06-produto-roadmap.md).
 
-**Autor:** Dalmo Costa · **Início:** 27/09/2026 · **Versão atual:** 6.3.0 · [Histórico de versões](CHANGELOG.md)
+**Autor:** Dalmo Costa · **Início:** 27/09/2026 · **Versão atual:** 6.4.0 · [Histórico de versões](CHANGELOG.md)
 
 ## O que faz
 - **Agora:** céu animado, temperatura, sensação, chuva da próxima hora, gráfico das próximas 2 horas e resumo automático.
@@ -29,6 +29,7 @@ Nasceu como Exercício 1 do Treinamento de IA (nota **A+**, versão congelada **
 9. [Concorrentes](docs/09-concorrentes.md)
 10. [Identidade visual — pesquisa de cores](docs/10-identidade-visual.md)
 11. [Plano: destaque do Planejador de viagem](docs/11-plano-destaque-viagem.md)
+12. [Contas, planos e limite de aparelhos](docs/12-contas-e-planos.md)
 
 ## Modo demonstração
 Acrescente `?demo=` ao endereço para forçar o céu: `sol`, `parcial`, `nublado`, `neblina`, `garoa`, `chuva`, `temporal`, `neve`, `tempestade`, `noite`.

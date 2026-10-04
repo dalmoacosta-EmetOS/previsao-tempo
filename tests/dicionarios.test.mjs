@@ -36,6 +36,7 @@ const placeholders = (s) => [...String(s).matchAll(/\{(\w+)\}/g)].map((m) => m[1
 const words = (s) => String(s)
   .replace(/\{\w+\}/g, ' ')
   .replace(/https?:\S+/g, ' ')
+  .replace(/\S+@\S+/g, ' ') // exemplos de e-mail (voce@exemplo.com) não são palavras
   .split(/[^\p{L}'’-]+/u)
   .map((w) => w.replace(/^[-'’]+|[-'’]+$/g, ''))
   .filter((w) => w && !/^\d/.test(w));

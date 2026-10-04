@@ -4,12 +4,12 @@
 // • Limite de aparelhos do plano: ao entrar num aparelho novo, o mais antigo é desconectado
 //   pelo servidor (claim_device) e perde acesso aos dados na hora (RLS confere a sessão).
 // • Tudo que volta do servidor é tratado como dado de fora: limpo e validado antes de usar.
-import { load, save, onSave } from './storage.js?v=6.3.0';
-import { cleanText } from './domain/text.js?v=6.3.0';
+import { load, save, onSave } from './storage.js?v=6.4.0';
+import { cleanText } from './domain/text.js?v=6.4.0';
 
 export const SB_URL = 'https://qrpuodtyevkemaykfpgn.supabase.co';
 const SB_KEY = 'sb_publishable_4PXJN_fMSJK0W74XARdC1Q_EWZhhjpe'; // chave pública (feita para ficar no site; a proteção é o RLS)
-const LIB = 'vendor/supabase/supabase.js?v=6.3.0';
+const LIB = 'vendor/supabase/supabase.js?v=6.4.0';
 const AUTH_KEY = 'previsao-tempo:auth';
 const SYNC = ['home', 'favorites', 'trips'];
 const MAX_FAV = 8, MAX_TRIPS = 4;
