@@ -1,23 +1,23 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=6.4.1';
-import { icon } from './icons.js?v=6.4.1';
-import { setupSearch } from './search.js?v=6.4.1';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=6.4.1';
-import { clock, shortDate } from '../domain/time.js?v=6.4.1';
-import { t, getLang } from '../i18n/index.js?v=6.4.1';
-import { load, save } from '../storage.js?v=6.4.1';
-import { onAccount } from '../account.js?v=6.4.1';
-import { getRoute } from '../api/route.js?v=6.4.1';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.4.1';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=6.4.1';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.4.1';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.4.1';
-import { reverseGeocode } from '../api/geocoding.js?v=6.4.1';
-import { searchPlaces } from '../api/places.js?v=6.4.1';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.4.1';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=6.4.1';
-import { addExpandControl } from './map-expand.js?v=6.4.1';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.4.1';
+import { el, fill } from './dom.js?v=6.4.2';
+import { icon } from './icons.js?v=6.4.2';
+import { setupSearch } from './search.js?v=6.4.2';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=6.4.2';
+import { clock, shortDate } from '../domain/time.js?v=6.4.2';
+import { t, getLang } from '../i18n/index.js?v=6.4.2';
+import { load, save } from '../storage.js?v=6.4.2';
+import { onAccount } from '../account.js?v=6.4.2';
+import { getRoute } from '../api/route.js?v=6.4.2';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.4.2';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=6.4.2';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.4.2';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.4.2';
+import { reverseGeocode } from '../api/geocoding.js?v=6.4.2';
+import { searchPlaces } from '../api/places.js?v=6.4.2';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.4.2';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=6.4.2';
+import { addExpandControl } from './map-expand.js?v=6.4.2';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.4.2';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick, homeBox;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)

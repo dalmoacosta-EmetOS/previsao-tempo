@@ -1376,3 +1376,8 @@ body.show-citybar .citybar__trip { display: grid; }
   .trip__head { padding-bottom: 4px; }
 }
 .trip__chip--save { border-style: dashed; color: var(--text-soft); }
+/* 6.4.2 — lista de endereços da viagem por cima dos blocos de baixo (cada .card com blur cria
+   sua própria "camada"; sem isto, a previsão por hora cobria as opções no computador) */
+#trip { position: relative; z-index: 3; }
+#trip:focus-within { z-index: 15; }
+.trip__route .search__list { max-height: min(50vh, 340px); overflow-y: auto; }

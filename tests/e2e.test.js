@@ -1026,6 +1026,23 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   check('L-06: coordenada hexadecimal ou vazia é recusada', sec.hex === null && sec.empty === null && sec.tripHex === null && sec.ok, JSON.stringify(sec));
   await t.ctx.close();
 
+  // 6.4.2: no computador, a lista de opções da viagem fica POR CIMA da previsão por hora (retorno do Dalmo)
+  const many = { features: Array.from({ length: 6 }, (_, i) => ({ type: 'Feature', geometry: { type: 'Point', coordinates: [-75 - i, 40 + i * 0.1] }, properties: { name: `Pensylvania ${i + 1}`, type: 'city', state: 'Estado', country: 'País' } })) };
+  t = await page(browser, { mobile: false, photon: many });
+  await t.p.locator('#trip').scrollIntoViewIfNeeded();
+  await t.p.fill('#trip-to', 'Pensylvania'); await t.p.waitForSelector('#trip .search__list li', { timeout: 8000 }).catch(() => {});
+  await t.p.waitForTimeout(400);
+  const onTop = await t.p.evaluate(() => {
+    const items = [...document.querySelectorAll('#trip .search__list li')];
+    if (!items.length) return 'sem-lista';
+    items[items.length - 1].scrollIntoView({ block: 'center' });
+    const last = items[items.length - 1].getBoundingClientRect();
+    const hit = document.elementFromPoint(last.left + last.width / 2, last.top + last.height / 2);
+    return hit && hit.closest('#trip .search__list') ? 'ok' : `coberta por ${hit?.closest('section')?.id || hit?.tagName || 'nada'} (topo ${Math.round(last.top)})`;
+  });
+  check('Viagem (computador): lista de endereços aparece por cima dos blocos de baixo', onTop === 'ok', onTop);
+  await t.ctx.close();
+
   // ===== Conta opcional (ADR-051) =====
   const SBH = { 'access-control-allow-origin': '*', 'content-type': 'application/json' };
   const sbJson = (r, body, status = 200) => r.fulfill({ status, headers: SBH, body: JSON.stringify(body) });
@@ -1043,6 +1060,14 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   const otp = t.sbReq.find((x) => x.path === '/auth/v1/otp');
   check('Conta: pede o link por e-mail (sem senha) e confirma o envio', !!otp && otp.body.includes('dalmo@example.com') && (await t.p.textContent('#account')).includes('Enviamos um link'), JSON.stringify(t.sbReq.map((x) => x.path)));
   check('Conta: biblioteca carregada do próprio site, sem erros', (await t.p.evaluate(() => [...document.scripts].some((x) => /vendor\/supabase\/supabase\.js/.test(x.src)))) && t.errors.length === 0, t.errors.join(' | '));
+  await t.ctx.close();
+
+  // Google ainda desligado no painel: avisa no próprio site (antes ia para uma página de erro do Supabase)
+  t = await page(browser, { mobile: true, sb: (r, rq) => (new URL(rq.url()).pathname === '/auth/v1/settings'
+    ? r.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*', 'content-type': 'application/json' }, body: JSON.stringify({ external: { google: false, email: true } }) })
+    : r.fulfill({ status: 200, headers: { 'access-control-allow-origin': '*', 'content-type': 'application/json' }, body: '{}' })) });
+  await t.p.click('#account-btn'); await t.p.click('#acc-google'); await t.p.waitForTimeout(800);
+  check('Conta: Google desligado → aviso no site, sem sair para página de erro', t.p.url().startsWith('http://localhost') && (await t.p.textContent('#account')).includes('Google ainda não está disponível'), t.p.url());
   await t.ctx.close();
 
   // Sessão já salva neste aparelho: entra, registra o aparelho, junta os dados e limpa o que vem de fora

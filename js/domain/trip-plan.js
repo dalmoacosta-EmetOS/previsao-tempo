@@ -2,8 +2,8 @@
 // vê a mesma viagem recalculada com a previsão MAIS NOVA. O "atualizar" é o próprio link.
 // Tudo o que vem do endereço é validado: números dentro do mundo, nomes curtos, veículo conhecido.
 
-import { t } from '../i18n/index.js?v=6.4.1';
-import { cleanText, parseCoord } from './text.js?v=6.4.1';
+import { t } from '../i18n/index.js?v=6.4.2';
+import { cleanText, parseCoord } from './text.js?v=6.4.2';
 
 const VEH = ['car', 'moto', 'large'];
 const cut = (s, n = 80) => cleanText(s, n);

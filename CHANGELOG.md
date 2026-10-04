@@ -2,6 +2,10 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.4.2 — 04/10/2026 · Lista de endereços por cima; aviso do Google
+- Correção (Dalmo, no Mac): ao digitar o destino, a lista de opções ficava **escondida atrás da previsão por hora**. Agora o planejador fica por cima dos blocos seguintes enquanto está em uso, e a lista ganha rolagem se for longa. Há um teste que reproduz o caso.
+- "Entrar com Google" com o Google ainda desligado no painel levava a uma página de erro do Supabase. Agora o próprio site avisa: "ainda não está disponível; use o link por e-mail".
+
 ## 6.4.1 — 04/10/2026 · Planejador em duas colunas no computador
 - Retorno do Dalmo (Mac): o planejador ficava "solto no meio da tela". No computador, ele agora ocupa a largura toda em duas colunas: **onde** (De, Para, Casa, recentes) e **quando e como** (data, hora, veículo, botão). No celular continua em uma coluna, como antes.
 - Ao lado da 🏠 Casa, quem não tem conta vê **"👤 Salvar na conta"**, que abre o painel da conta. Ela continua opcional.

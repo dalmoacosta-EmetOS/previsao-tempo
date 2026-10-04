@@ -1,6 +1,6 @@
-import { getJSON } from './http.js?v=6.4.1';
-import { getLang } from '../i18n/index.js?v=6.4.1';
-import { cleanText } from '../domain/text.js?v=6.4.1';
+import { getJSON } from './http.js?v=6.4.2';
+import { getLang } from '../i18n/index.js?v=6.4.2';
+import { cleanText } from '../domain/text.js?v=6.4.2';
 
 const SEARCH_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 // O BigDataCloud passou a redirecionar api.bigdatacloud.net → api-bdc.io (ADR-040, 3.5.2): chamamos o endereço novo direto
