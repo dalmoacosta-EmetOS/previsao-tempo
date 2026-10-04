@@ -1364,3 +1364,15 @@ body.show-citybar .citybar__trip { display: grid; }
 .account__device small { color: #4d5f78; }
 .account .account__delete { margin-top: 14px; width: 100%; color: #8a1c1c; border-color: #e7b4b4; }
 .account .account__delete.is-armed { background: #8a1c1c; color: #fff; }
+
+/* 6.4.1 — planejador no computador: largura total, duas colunas (pedido do Dalmo: "solto no meio da tela") */
+@media (min-width: 900px) {
+  #trip { grid-column: 1 / -1; padding: 22px 26px; }
+  .trip__grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 0 28px; align-items: start; }
+  .trip__grid .trip__body { margin-top: 12px; padding-left: 28px; border-left: 1px solid rgba(255, 255, 255, 0.14); }
+  .trip__grid .trip__body[hidden] { display: block; } /* no computador há espaço: data, hora e veículo sempre à vista */
+  .trip__grid .trip__body .trip__form { gap: 10px; }
+  .trip__grid .trip__go { margin-top: 6px; }
+  .trip__head { padding-bottom: 4px; }
+}
+.trip__chip--save { border-style: dashed; color: var(--text-soft); }

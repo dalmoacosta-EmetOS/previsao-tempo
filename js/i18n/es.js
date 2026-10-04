@@ -624,4 +624,5 @@ export default {
   "acc.err.google": "El acceso con Google aún no está disponible. Usa el enlace por correo.",
   "acc.err.link": "Este enlace de acceso expiró o ya se usó. Pide uno nuevo.",
   "acc.err.delete": "No se pudo borrar ahora. Inténtalo de nuevo.",
+  "acc.saveHome": "Guardar en la cuenta (todos los dispositivos)",
 };

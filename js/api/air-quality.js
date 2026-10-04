@@ -1,5 +1,5 @@
-import { getJSON } from './http.js?v=6.4.0';
-import { t } from '../i18n/index.js?v=6.4.0';
+import { getJSON } from './http.js?v=6.4.1';
+import { t } from '../i18n/index.js?v=6.4.1';
 
 // Qualidade do ar — índice AQI dos EUA (escala EPA 0–500), grátis e sem chave (ADR-031).
 // Fonte: Open-Meteo Air Quality (modelos CAMS). Pólen fica de fora: só existe para a Europa.

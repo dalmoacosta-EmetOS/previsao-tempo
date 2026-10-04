@@ -1,22 +1,23 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=6.4.0';
-import { icon } from './icons.js?v=6.4.0';
-import { setupSearch } from './search.js?v=6.4.0';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=6.4.0';
-import { clock, shortDate } from '../domain/time.js?v=6.4.0';
-import { t, getLang } from '../i18n/index.js?v=6.4.0';
-import { load, save } from '../storage.js?v=6.4.0';
-import { getRoute } from '../api/route.js?v=6.4.0';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.4.0';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=6.4.0';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.4.0';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.4.0';
-import { reverseGeocode } from '../api/geocoding.js?v=6.4.0';
-import { searchPlaces } from '../api/places.js?v=6.4.0';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.4.0';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=6.4.0';
-import { addExpandControl } from './map-expand.js?v=6.4.0';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.4.0';
+import { el, fill } from './dom.js?v=6.4.1';
+import { icon } from './icons.js?v=6.4.1';
+import { setupSearch } from './search.js?v=6.4.1';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=6.4.1';
+import { clock, shortDate } from '../domain/time.js?v=6.4.1';
+import { t, getLang } from '../i18n/index.js?v=6.4.1';
+import { load, save } from '../storage.js?v=6.4.1';
+import { onAccount } from '../account.js?v=6.4.1';
+import { getRoute } from '../api/route.js?v=6.4.1';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.4.1';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=6.4.1';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.4.1';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.4.1';
+import { reverseGeocode } from '../api/geocoding.js?v=6.4.1';
+import { searchPlaces } from '../api/places.js?v=6.4.1';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.4.1';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=6.4.1';
+import { addExpandControl } from './map-expand.js?v=6.4.1';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.4.1';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick, homeBox;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
@@ -103,15 +104,20 @@ export function mountTrip(container, { currentPlace, unit }) {
     el('span', { class: 'trip__head-icon', 'aria-hidden': 'true', html: '<svg viewBox="0 0 24 24" width="28" height="28"><path d="M4 19c4 0 4-6 8-6s4 6 8 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="4" cy="19" r="2" fill="currentColor"/><path d="M20 5c-1.7 0-3 1.3-3 3 0 2.2 3 5 3 5s3-2.8 3-5c0-1.7-1.3-3-3-3z" fill="currentColor"/></svg>' }),
     el('div', {}, [el('h2', { class: 'trip__title', text: t('trip.toggle') }), el('p', { class: 'trip__sub', text: t('trip.toggleSub') })]),
   ]);
+  // 6.4.1: no computador, duas colunas (onde → quando/como); no celular, uma coluna como antes
   fill(root,
     toggle,
-    el('div', { class: 'trip__form trip__route' }, [
-      el('label', { class: 'trip__label', for: 'trip-from' }, [el('span', { text: t('trip.from') }), el('small', { class: 'trip__limit', text: t('trip.originHint') })]), f.box,
-      el('label', { class: 'trip__label', for: 'trip-to' }, [el('span', { text: t('trip.to') })]), d.box,
+    el('div', { class: 'trip__grid' }, [
+      el('div', { class: 'trip__col' }, [
+        el('div', { class: 'trip__form trip__route' }, [
+          el('label', { class: 'trip__label', for: 'trip-from' }, [el('span', { text: t('trip.from') }), el('small', { class: 'trip__limit', text: t('trip.originHint') })]), f.box,
+          el('label', { class: 'trip__label', for: 'trip-to' }, [el('span', { text: t('trip.to') })]), d.box,
+        ]),
+        homeBox = el('div', { class: 'trip__home' }),
+        quick,
+      ]),
+      body,
     ]),
-    homeBox = el('div', { class: 'trip__home' }),
-    quick,
-    body,
     out,
   );
   [fromInput, toInput].forEach((i) => i.addEventListener('focus', () => { openBody(true);  }));
@@ -188,6 +194,9 @@ function useHome(home) {
   openBody(true);
 }
 window.addEventListener('wf:sync', () => { renderHome(); renderQuick(); }); // dados vindos da conta (ADR-051)
+// Convite discreto: quem cadastrou a Casa e não tem conta vê "Salvar na conta" (a conta é opcional)
+let signedIn = false;
+onAccount((s) => { const now = s.status === 'in'; if (now !== signedIn) { signedIn = now; renderHome(); } });
 function renderHome(editing = false) {
   if (!homeBox) return;
   const home = getHome();
@@ -212,6 +221,8 @@ function renderHome(editing = false) {
       // mousedown sem foco: o campo que a pessoa estava usando continua sendo o alvo
       onmousedown: (e) => e.preventDefault(), onclick: () => useHome(home) }, [el('strong', { text: `🏠 ${t('trip.home')}` }), el('span', { text: home.name })]),
     el('button', { type: 'button', class: 'trip__chip trip__chip--icon', id: 'trip-home-edit', 'aria-label': t('trip.homeEdit'), title: t('trip.homeEdit'), text: '✎', onclick: () => renderHome(true) }),
+    !signedIn && el('button', { type: 'button', class: 'trip__chip trip__chip--save', id: 'trip-home-account', text: `👤 ${t('acc.saveHome')}`,
+      onclick: () => { const b = document.getElementById('account-btn'); b?.scrollIntoView({ block: 'nearest' }); b?.click(); } }),
   );
 }
 

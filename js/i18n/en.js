@@ -584,4 +584,5 @@ export default {
   "acc.err.google": "Google sign-in isn't available yet. Use the email link.",
   "acc.err.link": "This sign-in link has expired or was already used. Request a new one.",
   "acc.err.delete": "Couldn't delete right now. Please try again.",
+  "acc.saveHome": "Save to account (all devices)",
 };

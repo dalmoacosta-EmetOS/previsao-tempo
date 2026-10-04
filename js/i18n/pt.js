@@ -624,4 +624,5 @@ export default {
   "acc.err.google": "O login com Google ainda não está disponível. Use o link por e-mail.",
   "acc.err.link": "Este link de acesso expirou ou já foi usado. Peça um novo.",
   "acc.err.delete": "Não foi possível apagar agora. Tente de novo.",
+  "acc.saveHome": "Salvar na conta (todos os aparelhos)",
 };

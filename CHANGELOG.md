@@ -2,6 +2,10 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.4.1 — 04/10/2026 · Planejador em duas colunas no computador
+- Retorno do Dalmo (Mac): o planejador ficava "solto no meio da tela". No computador, ele agora ocupa a largura toda em duas colunas: **onde** (De, Para, Casa, recentes) e **quando e como** (data, hora, veículo, botão). No celular continua em uma coluna, como antes.
+- Ao lado da 🏠 Casa, quem não tem conta vê **"👤 Salvar na conta"**, que abre o painel da conta. Ela continua opcional.
+
 ## 6.4.0 — 04/10/2026 · Conta opcional, planos e limite de aparelhos
 - Botão 👤 no topo: **conta opcional**. Entra com **link no e-mail (sem senha)** ou **Google**. Sem conta, o site continua igual e não contata o serviço de contas → ADR-051, [docs/12](docs/12-contas-e-planos.md).
 - **Casa, favoritas e viagens recentes sincronizadas** entre os aparelhos da pessoa. Ao entrar, os dados do aparelho e da conta são somados.
