@@ -3,12 +3,13 @@
   "private": true,
   "description": "Testes de ponta a ponta do site, com as APIs simuladas (ADR-029).",
   "scripts": {
-    "test": "node dicionarios.test.mjs && node e2e.test.js && node pentest.test.js",
+    "test": "node vendor.test.mjs && node dicionarios.test.mjs && node e2e.test.js && node pentest.test.js",
     "pentest": "node pentest.test.js"
   },
   "devDependencies": {
     "axe-core": "^4.13.0",
     "leaflet": "1.9.4",
-    "playwright": "1.63.0"
+    "playwright": "1.63.0",
+    "@supabase/supabase-js": "2.117.2"
   }
 }

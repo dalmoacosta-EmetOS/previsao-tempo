@@ -1342,3 +1342,25 @@ body.show-citybar .citybar__trip { display: grid; }
 .trip__home-edit { width: 100%; display: grid; gap: 6px; }
 .trip__home-edit .search { position: relative; z-index: 6; }
 .trip__home-actions { display: flex; gap: 6px; }
+
+/* Conta (ADR-051) */
+.account-btn.is-in { background: #fff; color: var(--bar); }
+.account-btn[aria-expanded="true"] { background: #fff; color: var(--bar); }
+.account__label { display: block; font-weight: 600; margin: 8px 0 4px; }
+.account__row { display: flex; gap: 8px; flex-wrap: wrap; }
+.account__input { flex: 1 1 200px; min-width: 0; padding: 10px 12px; border: 1px solid #b9c6d8; border-radius: 10px; font: inherit; color: #13233a; background: #fff; }
+.account__or { text-align: center; font-size: 0.8rem; color: #4d5f78; margin: 12px 0 8px; }
+.account .account__google { width: 100%; }
+.account__privacy { margin-top: 10px; }
+.account__msg { margin: 8px 0; padding: 8px 10px; border-radius: 10px; font-size: 0.86rem; }
+.account__msg--info { background: #eaf3ff; }
+.account__msg--warn { background: #fff4d6; }
+.account__msg--error { background: #fde8e8; color: #8a1c1c; }
+.account__who { font-weight: 600; margin: 0 0 4px; word-break: break-all; }
+.account__sub { font-size: 0.9rem; margin: 12px 0 6px; }
+.account__devices { list-style: none; margin: 0; padding: 0; }
+.account__device { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; padding: 8px 0; border-top: 1px solid #e3e9f1; }
+.account__dev-name { font-weight: 600; flex: 1 1 auto; }
+.account__device small { color: #4d5f78; }
+.account .account__delete { margin-top: 14px; width: 100%; color: #8a1c1c; border-color: #e7b4b4; }
+.account .account__delete.is-armed { background: #8a1c1c; color: #fff; }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <!-- Política de segurança (ADR-040): só carrega código do próprio site e só conversa com os serviços listados -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://tilecache.rainviewer.com; connect-src 'self' https://api.open-meteo.com https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://api-bdc.io https://api.bigdatacloud.net https://api.rainviewer.com https://api.weather.gov https://router.project-osrm.org https://overpass-api.de https://photon.komoot.io; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tile.openstreetmap.org https://tilecache.rainviewer.com; connect-src 'self' https://api.open-meteo.com https://air-quality-api.open-meteo.com https://geocoding-api.open-meteo.com https://api-bdc.io https://api.bigdatacloud.net https://api.rainviewer.com https://api.weather.gov https://router.project-osrm.org https://overpass-api.de https://photon.komoot.io https://qrpuodtyevkemaykfpgn.supabase.co; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Weather Forecast</title>
@@ -63,6 +63,7 @@
       </button>
 
       <button class="icon-btn lang-btn" id="lang-btn" type="button"></button>
+      <button class="icon-btn account-btn" id="account-btn" type="button" aria-label="Sua conta" data-i18n-attr="aria-label:acc.open;title:acc.open"></button>
 
       <div class="segmented" role="group" aria-label="Unidade de temperatura" data-i18n-attr="aria-label:top.tempUnit">
         <button type="button" data-unit="C" aria-pressed="true">°C</button>
@@ -74,6 +75,8 @@
     <button class="citybar" id="citybar" type="button" aria-label="Voltar ao topo" data-i18n-attr="aria-label:nav.toTop" tabindex="-1"></button>
     <!-- Idioma e unidades (ADR-045) -->
     <section class="settings" id="settings" aria-labelledby="set-title" hidden></section>
+    <!-- Conta opcional: Casa, favoritas e viagens em todos os aparelhos (ADR-051) -->
+    <section class="settings account" id="account" aria-labelledby="acc-title" hidden></section>
   </header>
 
   <main class="layout" id="app">

@@ -21,6 +21,8 @@ import { getFavorites, isFavorite, toggleFavorite } from './favorites.js?v=6.3.0
 import { renderFavorites } from './ui/favorites.js?v=6.3.0';
 import { mountTrip, updateTrip } from './ui/trip.js?v=6.3.0';
 import { mountSettings } from './ui/settings.js?v=6.3.0';
+import { mountAccount } from './ui/account.js?v=6.3.0';
+import { initAccount } from './account.js?v=6.3.0';
 import { t, applyStatic } from './i18n/index.js?v=6.3.0';
 import { setOneUnit } from './units-settings.js?v=6.3.0';
 
@@ -186,6 +188,10 @@ if (window.top !== window.self) {
 function init() {
   applyStatic();
   mountSettings($('lang-btn'), $('settings'));
+  mountAccount($('account-btn'), $('account'));
+  initAccount(); // só liga se já houver sessão ou se a pessoa voltou do link de login
+  // a conta trouxe Casa/favoritas/viagens de outro aparelho: redesenha
+  window.addEventListener('wf:sync', () => renderFavorites($('favs'), getFavorites(), getState().place, (p) => loadPlace(p)));
   subscribe(render);
   mountRadar(document.getElementById('radar'));
   mountTrip($('trip'), { currentPlace: () => getState().place, unit: () => getState().unit });

@@ -10,10 +10,18 @@ export function load(key) {
   }
 }
 
-export function save(key, value) {
+// Quem quer saber quando algo foi salvo (a conta sincroniza Casa, favoritas e viagens — ADR-051)
+const listeners = new Set();
+export function onSave(fn) {
+  listeners.add(fn);
+  return () => listeners.delete(fn);
+}
+
+export function save(key, value, { silent = false } = {}) {
   try {
     localStorage.setItem(PREFIX + key, JSON.stringify(value));
   } catch {
     /* sem armazenamento: segue sem lembrar */
   }
+  if (!silent) listeners.forEach((fn) => { try { fn(key, value); } catch { /* um ouvinte com erro não atrapalha os outros */ } });
 }

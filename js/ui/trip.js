@@ -187,6 +187,7 @@ function useHome(home) {
   syncLabels();
   openBody(true);
 }
+window.addEventListener('wf:sync', () => { renderHome(); renderQuick(); }); // dados vindos da conta (ADR-051)
 function renderHome(editing = false) {
   if (!homeBox) return;
   const home = getHome();
