@@ -1,7 +1,7 @@
 // Conversão e formatação de unidades. A API sempre entrega °C, km/h, mm e cm (ADR-004).
 // Qual unidade mostrar vem das preferências (ADR-045): cada medida pode ser escolhida à parte.
-import { getUnits } from '../units-settings.js?v=6.4.2';
-import { t, locale } from '../i18n/index.js?v=6.4.2';
+import { getUnits } from '../units-settings.js?v=6.5.0';
+import { t, locale } from '../i18n/index.js?v=6.5.0';
 
 const toF = (c) => (c * 9) / 5 + 32;
 const isNum = (v) => typeof v === 'number' && !Number.isNaN(v);
@@ -17,6 +17,11 @@ export function temp(celsius, unit = getUnits().temp) {
 export function speed(kmh) {
   if (!isNum(kmh)) return '--';
   return getUnits().dist === 'mi' ? `${Math.round(kmh / KM_PER_MI)} mph` : `${Math.round(kmh)} km/h`;
+}
+/** Velocidade só com o número, na unidade escolhida (listas compactas por hora). */
+export function speedNum(kmh) {
+  if (!isNum(kmh)) return '--';
+  return String(Math.round(getUnits().dist === 'mi' ? kmh / KM_PER_MI : kmh));
 }
 /** Só o número da velocidade na unidade escolhida (para limites em frases). */
 export const speedUnit = () => (getUnits().dist === 'mi' ? 'mph' : 'km/h');

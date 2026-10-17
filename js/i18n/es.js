@@ -625,4 +625,11 @@ export default {
   "acc.err.link": "Este enlace de acceso expiró o ya se usó. Pide uno nuevo.",
   "acc.err.delete": "No se pudo borrar ahora. Inténtalo de nuevo.",
   "acc.saveHome": "Guardar en la cuenta (todos los dispositivos)",
+  // Vento (6.5)
+  "hour.windHint": "💨 viento en {u}",
+  "hour.windTitle": "Viento {dir} {v}, ráfagas de {g}",
+  "day.wind": "viento hasta {v} · ráfagas {g}",
+  "hero.wind": "Viento {dir} {v}",
+  "hero.gustToday": "ráfagas hasta {g} hoy",
+  "hero.windChill": "El viento hace que se sienta más frío que el termómetro.",
 };

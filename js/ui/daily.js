@@ -1,11 +1,11 @@
-import { el, fill } from './dom.js?v=6.4.2';
-import { icon } from './icons.js?v=6.4.2';
-import { describe } from '../domain/weather-codes.js?v=6.4.2';
-import { temp, percent } from '../domain/units.js?v=6.4.2';
-import { dayLabel, dayMonth, longDay } from '../domain/time.js?v=6.4.2';
-import { periodSummary, splitDayNight } from '../domain/summary.js?v=6.4.2';
-import { tempTabs, pick } from './temp-tabs.js?v=6.4.2';
-import { t } from '../i18n/index.js?v=6.4.2';
+import { el, fill } from './dom.js?v=6.5.0';
+import { icon } from './icons.js?v=6.5.0';
+import { describe } from '../domain/weather-codes.js?v=6.5.0';
+import { temp, percent, speed } from '../domain/units.js?v=6.5.0';
+import { dayLabel, dayMonth, longDay } from '../domain/time.js?v=6.5.0';
+import { periodSummary, splitDayNight } from '../domain/summary.js?v=6.5.0';
+import { tempTabs, pick } from './temp-tabs.js?v=6.5.0';
+import { t } from '../i18n/index.js?v=6.5.0';
 
 const TREND_FROM = 7; // índice 7 = 8º dia (ADR-006)
 
@@ -51,6 +51,9 @@ export function renderDaily(root, { data, unit, days, tempMode, daySel, dayPart 
         ]),
         el('span', { class: 'day__max', text: temp(d.max, unit) }),
         i >= TREND_FROM && el('span', { class: 'badge', text: t('day.trend') }),
+        // 6.5: vento máximo e rajadas do dia (pedido do Dalmo)
+        d.windMax != null && el('span', { class: 'day__wind' + ((d.gustMax ?? 0) >= 50 ? ' is-gusty' : '') },
+          `💨 ${t('day.wind', { v: speed(d.windMax), g: speed(d.gustMax) })}`),
       ]),
     );
     if (open) rows.push(dayPanel(data, d, i, unit, dayPart, onDayPart));

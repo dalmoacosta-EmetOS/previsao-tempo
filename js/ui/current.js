@@ -1,11 +1,11 @@
-import { el, fill } from './dom.js?v=6.4.2';
-import { icon } from './icons.js?v=6.4.2';
-import { describe } from '../domain/weather-codes.js?v=6.4.2';
-import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=6.4.2';
-import { hourLabel } from '../domain/time.js?v=6.4.2';
-import { nowSummary } from '../domain/summary.js?v=6.4.2';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=6.4.2';
-import { t } from '../i18n/index.js?v=6.4.2';
+import { el, fill } from './dom.js?v=6.5.0';
+import { icon } from './icons.js?v=6.5.0';
+import { describe } from '../domain/weather-codes.js?v=6.5.0';
+import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=6.5.0';
+import { hourLabel } from '../domain/time.js?v=6.5.0';
+import { nowSummary } from '../domain/summary.js?v=6.5.0';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=6.5.0';
+import { t } from '../i18n/index.js?v=6.5.0';
 
 export function renderCurrent(root, { place, data, unit }, actions = {}) {
   const c = data.current;
@@ -53,6 +53,12 @@ export function renderCurrent(root, { place, data, unit }, actions = {}) {
     ]),
     el('p', { class: 'hero__line' }, [
       t('hero.feels', { t: temp(c.feels, unit) }), sep(), t('hero.max', { t: temp(today.max, unit) }), sep(), t('hero.min', { t: temp(today.min, unit) }),
+    ]),
+    // 6.5: o vento ao lado da sensação — e a explicação quando é ele que esfria a sensação
+    c.wind != null && el('p', { class: 'hero__line hero__line--wind', id: 'hero-wind' }, [
+      `💨 ${t('hero.wind', { dir: windDirection(c.windDir), v: speed(c.wind) })}`,
+      today.gustMax != null && sep(), today.gustMax != null && t('hero.gustToday', { g: speed(today.gustMax) }),
+      c.feels != null && c.temp != null && c.feels <= c.temp - 2 && c.wind >= 10 && el('small', { class: 'hero__chill', text: t('hero.windChill') }),
     ]),
     next && el('p', { class: 'hero__line hero__line--rain' }, [
       t('hero.rainNextHour', { p: percent(next.pop) }), sep(), rain(next.precip),

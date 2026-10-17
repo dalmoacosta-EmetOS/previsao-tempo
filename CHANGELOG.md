@@ -2,6 +2,12 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.5.0 — 17/10/2026 · Vento por hora, por dia e junto da sensação térmica
+- Pedido do Dalmo: o vento importa para trabalho externo e viagem, e explica a sensação térmica.
+  - **Por hora:** cada hora mostra uma seta com a direção e a velocidade. Rajadas a partir de 40 km/h (25 mph) aparecem destacadas, com o valor da rajada.
+  - **Por dia:** cada dia mostra "vento até … · rajadas …". Dias com rajadas a partir de 50 km/h ficam destacados.
+  - **No topo:** vento atual e rajadas do dia logo abaixo da sensação, com a frase "O vento deixa a sensação mais fria que o termômetro" quando é o caso.
+
 ## 6.4.2 — 04/10/2026 · Lista de endereços por cima; aviso do Google
 - Correção (Dalmo, no Mac): ao digitar o destino, a lista de opções ficava **escondida atrás da previsão por hora**. Agora o planejador fica por cima dos blocos seguintes enquanto está em uso, e a lista ganha rolagem se for longa. Há um teste que reproduz o caso.
 - "Entrar com Google" com o Google ainda desligado no painel levava a uma página de erro do Supabase. Agora o próprio site avisa: "ainda não está disponível; use o link por e-mail".

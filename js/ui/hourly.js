@@ -1,11 +1,11 @@
-import { el, fill } from './dom.js?v=6.4.2';
-import { icon } from './icons.js?v=6.4.2';
-import { describe } from '../domain/weather-codes.js?v=6.4.2';
-import { temp, percent, speed, windDirection, uvLevel, rain as rainTxt, shortDist } from '../domain/units.js?v=6.4.2';
-import { hourLabel } from '../domain/time.js?v=6.4.2';
-import { resolveWeatherNow } from '../domain/scene.js?v=6.4.2';
-import { tempTabs, pick } from './temp-tabs.js?v=6.4.2';
-import { t } from '../i18n/index.js?v=6.4.2';
+import { el, fill } from './dom.js?v=6.5.0';
+import { icon } from './icons.js?v=6.5.0';
+import { describe } from '../domain/weather-codes.js?v=6.5.0';
+import { temp, percent, speed, speedNum, speedUnit, windDirection, uvLevel, rain as rainTxt, shortDist } from '../domain/units.js?v=6.5.0';
+import { hourLabel } from '../domain/time.js?v=6.5.0';
+import { resolveWeatherNow } from '../domain/scene.js?v=6.5.0';
+import { tempTabs, pick } from './temp-tabs.js?v=6.5.0';
+import { t } from '../i18n/index.js?v=6.5.0';
 
 export function renderHourly(root, { data, unit, tempMode, hourSel, place }, onTempMode, onSelect) {
   const placeKey = place ? `${place.lat},${place.lon}` : '';
@@ -28,6 +28,8 @@ export function renderHourly(root, { data, unit, tempMode, hourSel, place }, onT
       el('span', { class: 'hour__icon', html: icon(iconFor(h, i), h.isDay), title: describe(h.code).label }),
       el('span', { class: 'hour__temp', text: temp(pick(h.temp, h.feels, tempMode), unit) }),
       el('span', { class: 'hour__pop' + ((h.pop ?? 0) >= 30 ? ' is-wet' : ''), text: percent(h.pop), title: t('w.pop') }),
+      // 6.5 (pedido do Dalmo): vento por hora — importa para trabalho externo e viagem e explica a sensação térmica
+      windBit(h),
     ])]),
   );
 
@@ -42,13 +44,27 @@ export function renderHourly(root, { data, unit, tempMode, hourSel, place }, onT
       el('h2', { text: t('hour.title') }),
       tempTabs(tempMode, onTempMode),
     ]),
-    el('p', { class: 'card__hint card__hint--line', text: t(tempMode === 'feels' ? 'hour.hintFeels' : 'hour.hintAir') }),
+    el('p', { class: 'card__hint card__hint--line', text: `${t(tempMode === 'feels' ? 'hour.hintFeels' : 'hour.hintAir')} · ${t('hour.windHint', { u: speedUnit() })}` }),
     el('ol', { class: 'hours', 'aria-label': t('hour.listAria') }, items),
     hourSel != null && data.hourly[hourSel] && hourDetail(data.hourly[hourSel], hourSel, unit, iconFor(data.hourly[hourSel], hourSel), () => onSelect(null)),
     hourSel == null && el('p', { class: 'card__hint card__hint--tip', text: t('hour.tip') }),
   );
   const list = root.querySelector('.hours');
   if (list && keep) list.scrollLeft = keep;
+}
+
+// Rajada a partir de ~40 km/h (25 mph) já atrapalha escada, andaime, pintura com spray e veículo alto
+const GUSTY = 40;
+function windBit(h) {
+  if (h.wind == null) return null;
+  const toward = ((h.windDir ?? 0) + 180) % 360;
+  const gusty = (h.gust ?? 0) >= GUSTY;
+  return el('span', { class: 'hour__wind' + (gusty ? ' is-gusty' : ''),
+    title: t('hour.windTitle', { dir: windDirection(h.windDir), v: speed(h.wind), g: speed(h.gust) }) }, [
+    el('span', { class: 'wind-arrow', style: `transform: rotate(${toward}deg)`, 'aria-hidden': 'true', text: '↑' }),
+    ` ${speedNum(h.wind)}`,
+    gusty && el('small', { text: ` (${speedNum(h.gust)})` }),
+  ]);
 }
 
 // Detalhe da hora escolhida (ADR-019)

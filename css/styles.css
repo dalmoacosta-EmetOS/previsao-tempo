@@ -1381,3 +1381,13 @@ body.show-citybar .citybar__trip { display: grid; }
 #trip { position: relative; z-index: 3; }
 #trip:focus-within { z-index: 15; }
 .trip__route .search__list { max-height: min(50vh, 340px); overflow-y: auto; }
+
+/* 6.5 — vento por hora, por dia e ao lado da sensação térmica */
+.hour__wind { display: block; font-size: 0.72rem; color: var(--text-soft); white-space: nowrap; margin-top: 2px; }
+.hour__wind .wind-arrow { display: inline-block; font-size: 0.8rem; }
+.hour__wind.is-gusty { color: #ffd166; font-weight: 700; }
+.hour.is-open .hour__wind { color: var(--bar); }
+.day__wind { grid-column: 1 / -1; font-size: 0.78rem; color: var(--text-soft); margin-top: -2px; padding-left: 2px; }
+.day__wind.is-gusty { color: #ffd166; font-weight: 600; }
+.hero__line--wind { font-size: 0.95rem; }
+.hero__chill { display: block; font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
