@@ -586,7 +586,7 @@ export default {
   "acc.err.delete": "Couldn't delete right now. Please try again.",
   "acc.saveHome": "Save to account (all devices)",
   // Vento (6.5)
-  "hour.windHint": "💨 wind in {u}",
+  "hour.windHint": "wind in {u}",
   "hour.windTitle": "Wind {dir} {v}, gusts {g}",
   "day.wind": "wind up to {v} · gusts {g}",
   "hero.wind": "Wind {dir} {v}",

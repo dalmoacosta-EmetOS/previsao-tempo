@@ -1391,3 +1391,5 @@ body.show-citybar .citybar__trip { display: grid; }
 .day__wind.is-gusty { color: #ffd166; font-weight: 600; }
 .hero__line--wind { font-size: 0.95rem; }
 .hero__chill { display: block; font-size: 0.8rem; opacity: 0.85; margin-top: 2px; }
+.wind-ico-wrap { display: inline-flex; vertical-align: -0.25em; margin-right: 6px; }
+.wind-ico { width: 1.25em; height: 1.25em; }

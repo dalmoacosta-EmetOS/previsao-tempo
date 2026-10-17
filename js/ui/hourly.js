@@ -1,11 +1,12 @@
-import { el, fill } from './dom.js?v=6.5.0';
-import { icon } from './icons.js?v=6.5.0';
-import { describe } from '../domain/weather-codes.js?v=6.5.0';
-import { temp, percent, speed, speedNum, speedUnit, windDirection, uvLevel, rain as rainTxt, shortDist } from '../domain/units.js?v=6.5.0';
-import { hourLabel } from '../domain/time.js?v=6.5.0';
-import { resolveWeatherNow } from '../domain/scene.js?v=6.5.0';
-import { tempTabs, pick } from './temp-tabs.js?v=6.5.0';
-import { t } from '../i18n/index.js?v=6.5.0';
+import { el, fill } from './dom.js?v=6.5.1';
+import { icon } from './icons.js?v=6.5.1';
+import { describe } from '../domain/weather-codes.js?v=6.5.1';
+import { temp, percent, speed, speedNum, speedUnit, windDirection, uvLevel, rain as rainTxt, shortDist } from '../domain/units.js?v=6.5.1';
+import { hourLabel } from '../domain/time.js?v=6.5.1';
+import { resolveWeatherNow } from '../domain/scene.js?v=6.5.1';
+import { tempTabs, pick } from './temp-tabs.js?v=6.5.1';
+import { windIcon } from './wind-icon.js?v=6.5.1';
+import { t } from '../i18n/index.js?v=6.5.1';
 
 export function renderHourly(root, { data, unit, tempMode, hourSel, place }, onTempMode, onSelect) {
   const placeKey = place ? `${place.lat},${place.lon}` : '';
@@ -44,7 +45,7 @@ export function renderHourly(root, { data, unit, tempMode, hourSel, place }, onT
       el('h2', { text: t('hour.title') }),
       tempTabs(tempMode, onTempMode),
     ]),
-    el('p', { class: 'card__hint card__hint--line', text: `${t(tempMode === 'feels' ? 'hour.hintFeels' : 'hour.hintAir')} · ${t('hour.windHint', { u: speedUnit() })}` }),
+    el('p', { class: 'card__hint card__hint--line' }, [`${t(tempMode === 'feels' ? 'hour.hintFeels' : 'hour.hintAir')} · `, windIcon(), t('hour.windHint', { u: speedUnit() })]),
     el('ol', { class: 'hours', 'aria-label': t('hour.listAria') }, items),
     hourSel != null && data.hourly[hourSel] && hourDetail(data.hourly[hourSel], hourSel, unit, iconFor(data.hourly[hourSel], hourSel), () => onSelect(null)),
     hourSel == null && el('p', { class: 'card__hint card__hint--tip', text: t('hour.tip') }),

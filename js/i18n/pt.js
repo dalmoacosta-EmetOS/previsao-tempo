@@ -626,7 +626,7 @@ export default {
   "acc.err.delete": "Não foi possível apagar agora. Tente de novo.",
   "acc.saveHome": "Salvar na conta (todos os aparelhos)",
   // Vento (6.5)
-  "hour.windHint": "💨 vento em {u}",
+  "hour.windHint": "vento em {u}",
   "hour.windTitle": "Vento {dir} {v}, rajadas de {g}",
   "day.wind": "vento até {v} · rajadas {g}",
   "hero.wind": "Vento {dir} {v}",

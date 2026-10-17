@@ -2,6 +2,9 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.5.1 — 17/10/2026
+- O emoji usado para o vento foi trocado por um **ícone de linhas de vento**, em traço simples, na cor do texto. Pedido do Dalmo: no Brasil, aquele emoji virou piada.
+
 ## 6.5.0 — 17/10/2026 · Vento por hora, por dia e junto da sensação térmica
 - Pedido do Dalmo: o vento importa para trabalho externo e viagem, e explica a sensação térmica.
   - **Por hora:** cada hora mostra uma seta com a direção e a velocidade. Rajadas a partir de 40 km/h (25 mph) aparecem destacadas, com o valor da rajada.
