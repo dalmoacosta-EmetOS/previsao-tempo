@@ -592,4 +592,6 @@ export default {
   "hero.wind": "Wind {dir} {v}",
   "hero.gustToday": "gusts up to {g} today",
   "hero.windChill": "The wind makes it feel colder than the thermometer.",
+  "trip.recentDel": "Remove from recent: {a} → {b}",
+  "trip.recentDelShort": "Remove",
 };

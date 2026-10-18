@@ -2,6 +2,9 @@
 
 Formato: a versão mais nova primeiro. Cada item aponta para a decisão (ADR) em [docs/03-decisoes-adr.md](docs/03-decisoes-adr.md).
 
+## 6.5.3 — 18/10/2026
+- Pedido do Dalmo: cada viagem recente tem um **×** à direita para excluí-la. Ela sai da tela e do aparelho (e da conta, para quem estiver conectado). O limite continua em **4 viagens**: a mais antiga sai quando entra uma nova.
+
 ## 6.5.2 — 18/10/2026 · Viagens recentes em lista
 - Retorno do Dalmo ("esteticamente ruim"): as viagens recentes eram pílulas de tamanhos diferentes, soltas. Agora são uma **lista arrumada**: uma linha por viagem, com ícone de rota, origem → destino alinhados, nome longo cortado com "…" e seta à direita.
 - "Salvar na conta" virou um link discreto com ícone ao lado da Casa, em vez de uma pílula grande tracejada.

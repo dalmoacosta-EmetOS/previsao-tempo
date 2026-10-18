@@ -1061,6 +1061,9 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   });
   check('Viagem: recentes em lista (mesma largura, sem vazar)', rec.n === 4 && rec.same && !rec.overflow, JSON.stringify(rec));
   await t.p.locator('#trip').screenshot({ path: `${OUT}/viagem-recentes.png` });
+  await t.p.tap('.trip__recent-row:nth-child(2) .trip__recent-del'); await t.p.waitForTimeout(200);
+  const recDel = await t.p.evaluate(() => ({ n: document.querySelectorAll('.trip__recent-item').length, saved: JSON.parse(localStorage.getItem('previsao-tempo:trips')).map((r) => r.to.name) }));
+  check('Viagem: excluir uma viagem dos recentes (tela e aparelho)', recDel.n === 3 && !recDel.saved.includes("New Jersey Turnpike Service Area") && recDel.saved.length === 3, JSON.stringify(recDel));
   await t.ctx.close();
 
   // ===== Conta opcional (ADR-051) =====

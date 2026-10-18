@@ -1,23 +1,23 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=6.5.2';
-import { icon } from './icons.js?v=6.5.2';
-import { setupSearch } from './search.js?v=6.5.2';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=6.5.2';
-import { clock, shortDate } from '../domain/time.js?v=6.5.2';
-import { t, getLang } from '../i18n/index.js?v=6.5.2';
-import { load, save } from '../storage.js?v=6.5.2';
-import { onAccount } from '../account.js?v=6.5.2';
-import { getRoute } from '../api/route.js?v=6.5.2';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.5.2';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=6.5.2';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.5.2';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.5.2';
-import { reverseGeocode } from '../api/geocoding.js?v=6.5.2';
-import { searchPlaces } from '../api/places.js?v=6.5.2';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.5.2';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=6.5.2';
-import { addExpandControl } from './map-expand.js?v=6.5.2';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.5.2';
+import { el, fill } from './dom.js?v=6.5.3';
+import { icon } from './icons.js?v=6.5.3';
+import { setupSearch } from './search.js?v=6.5.3';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=6.5.3';
+import { clock, shortDate } from '../domain/time.js?v=6.5.3';
+import { t, getLang } from '../i18n/index.js?v=6.5.3';
+import { load, save } from '../storage.js?v=6.5.3';
+import { onAccount } from '../account.js?v=6.5.3';
+import { getRoute } from '../api/route.js?v=6.5.3';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.5.3';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=6.5.3';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.5.3';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.5.3';
+import { reverseGeocode } from '../api/geocoding.js?v=6.5.3';
+import { searchPlaces } from '../api/places.js?v=6.5.3';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.5.3';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=6.5.3';
+import { addExpandControl } from './map-expand.js?v=6.5.3';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.5.3';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick, homeBox;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
@@ -238,14 +238,16 @@ function renderQuick() {
   fill(quick,
     recents.length > 0 && el('div', { class: 'trip__recent' }, [
       el('span', { class: 'trip__quick-label', text: t('trip.recent').replace(/[:：]\s*$/, '') }),
-      el('ul', { class: 'trip__recent-list' }, recents.map((r) => el('li', {}, [
+      el('ul', { class: 'trip__recent-list' }, recents.map((r, idx) => el('li', { class: 'trip__recent-row' }, [
         el('button', { type: 'button', class: 'trip__recent-item', title: `${r.from.name} → ${r.to.name}`, onclick: () => startTrip(r.from, r.to, r.vehicle) }, [
           el('span', { class: 'trip__recent-ico', 'aria-hidden': 'true', html: ROUTE_SVG }),
           el('span', { class: 'trip__recent-from', text: r.from.name }),
           el('span', { class: 'trip__recent-arrow', 'aria-hidden': 'true', text: '→' }),
           el('span', { class: 'trip__recent-to', text: r.to.name }),
-          el('span', { class: 'trip__recent-chev', 'aria-hidden': 'true', text: '›' }),
         ]),
+        // 6.5.3 (pedido do Dalmo): excluir uma viagem dos recentes
+        el('button', { type: 'button', class: 'trip__recent-del', 'aria-label': t('trip.recentDel', { a: r.from.name, b: r.to.name }), title: t('trip.recentDelShort'),
+          onclick: () => { save(RECENT_KEY, recentTrips().filter((_, k) => k !== idx)); renderQuick(); } }, '×'),
       ]))),
     ]),
     recents.length === 0 && el('button', { type: 'button', class: 'trip__chip trip__chip--example', text: `✨ ${t('trip.example', { a: ea.name, b: eb.name })}`, onclick: () => startTrip(ea, eb) }),

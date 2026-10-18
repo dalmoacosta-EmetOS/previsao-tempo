@@ -1,12 +1,12 @@
-import { el, fill } from './dom.js?v=6.5.2';
-import { windIcon } from './wind-icon.js?v=6.5.2';
-import { icon } from './icons.js?v=6.5.2';
-import { describe } from '../domain/weather-codes.js?v=6.5.2';
-import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=6.5.2';
-import { hourLabel } from '../domain/time.js?v=6.5.2';
-import { nowSummary } from '../domain/summary.js?v=6.5.2';
-import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=6.5.2';
-import { t } from '../i18n/index.js?v=6.5.2';
+import { el, fill } from './dom.js?v=6.5.3';
+import { windIcon } from './wind-icon.js?v=6.5.3';
+import { icon } from './icons.js?v=6.5.3';
+import { describe } from '../domain/weather-codes.js?v=6.5.3';
+import { temp, speed, percent, windDirection, rain } from '../domain/units.js?v=6.5.3';
+import { hourLabel } from '../domain/time.js?v=6.5.3';
+import { nowSummary } from '../domain/summary.js?v=6.5.3';
+import { resolveWeatherNow, nowcastText } from '../domain/scene.js?v=6.5.3';
+import { t } from '../i18n/index.js?v=6.5.3';
 
 export function renderCurrent(root, { place, data, unit }, actions = {}) {
   const c = data.current;

@@ -1400,7 +1400,7 @@ body.show-citybar .citybar__trip { display: grid; }
 .trip__recent-list { list-style: none; margin: 0; padding: 0; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 14px; overflow: hidden; background: rgba(255, 255, 255, 0.05); }
 .trip__recent-list li + li { border-top: 1px solid rgba(255, 255, 255, 0.1); }
 .trip__recent-item {
-  width: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto minmax(0, 1fr) 14px; align-items: center; gap: 8px;
+  width: 100%; display: grid; grid-template-columns: 22px minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 8px;
   padding: 11px 12px; background: transparent; border: 0; color: inherit; font: inherit; font-size: 0.92rem; text-align: left; cursor: pointer; min-height: 44px;
 }
 .trip__recent-item:hover, .trip__recent-item:focus-visible { background: rgba(255, 255, 255, 0.08); }
@@ -1411,3 +1411,7 @@ body.show-citybar .citybar__trip { display: grid; }
 /* "Salvar na conta": link discreto ao lado da Casa, não mais uma pílula grande tracejada */
 .trip__save-link { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; color: var(--text-soft); font: inherit; font-size: 0.82rem; text-decoration: underline; text-underline-offset: 3px; padding: 6px 4px; min-height: 36px; cursor: pointer; }
 .trip__save-ico { display: inline-flex; }
+.trip__recent-row { display: flex; align-items: stretch; }
+.trip__recent-row .trip__recent-item { flex: 1 1 auto; min-width: 0; }
+.trip__recent-del { flex: none; width: 44px; background: transparent; border: 0; border-left: 1px solid rgba(255, 255, 255, 0.1); color: var(--text-soft); font-size: 1.3rem; line-height: 1; cursor: pointer; }
+.trip__recent-del:hover, .trip__recent-del:focus-visible { background: rgba(255, 90, 90, 0.18); color: #fff; }

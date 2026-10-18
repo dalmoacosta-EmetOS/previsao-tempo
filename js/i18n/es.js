@@ -632,4 +632,6 @@ export default {
   "hero.wind": "Viento {dir} {v}",
   "hero.gustToday": "ráfagas hasta {g} hoy",
   "hero.windChill": "El viento hace que se sienta más frío que el termómetro.",
+  "trip.recentDel": "Quitar de recientes: {a} → {b}",
+  "trip.recentDelShort": "Quitar",
 };
