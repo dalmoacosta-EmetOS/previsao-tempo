@@ -1,23 +1,23 @@
 // "Tempo na viagem" (ADR-039): de A até B, a previsão de cada trecho na hora em que você passa.
-import { el, fill } from './dom.js?v=6.5.1';
-import { icon } from './icons.js?v=6.5.1';
-import { setupSearch } from './search.js?v=6.5.1';
-import { temp, percent, dist, milestone } from '../domain/units.js?v=6.5.1';
-import { clock, shortDate } from '../domain/time.js?v=6.5.1';
-import { t, getLang } from '../i18n/index.js?v=6.5.1';
-import { load, save } from '../storage.js?v=6.5.1';
-import { onAccount } from '../account.js?v=6.5.1';
-import { getRoute } from '../api/route.js?v=6.5.1';
-import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.5.1';
-import { getOfficialAlerts } from '../api/official-alerts.js?v=6.5.1';
-import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.5.1';
-import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.5.1';
-import { reverseGeocode } from '../api/geocoding.js?v=6.5.1';
-import { searchPlaces } from '../api/places.js?v=6.5.1';
-import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.5.1';
-import { loadLeaflet, BASE_TILES } from './radar.js?v=6.5.1';
-import { addExpandControl } from './map-expand.js?v=6.5.1';
-import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.5.1';
+import { el, fill } from './dom.js?v=6.5.2';
+import { icon } from './icons.js?v=6.5.2';
+import { setupSearch } from './search.js?v=6.5.2';
+import { temp, percent, dist, milestone } from '../domain/units.js?v=6.5.2';
+import { clock, shortDate } from '../domain/time.js?v=6.5.2';
+import { t, getLang } from '../i18n/index.js?v=6.5.2';
+import { load, save } from '../storage.js?v=6.5.2';
+import { onAccount } from '../account.js?v=6.5.2';
+import { getRoute } from '../api/route.js?v=6.5.2';
+import { getPointsSeries, pickAt } from '../api/route-forecast.js?v=6.5.2';
+import { getOfficialAlerts } from '../api/official-alerts.js?v=6.5.2';
+import { planFromUrl, planToUrl, planToIcs, googleCalendarUrl } from '../domain/trip-plan.js?v=6.5.2';
+import { getRoadPois, nearestFuel, fuelGaps } from '../api/road-pois.js?v=6.5.2';
+import { reverseGeocode } from '../api/geocoding.js?v=6.5.2';
+import { searchPlaces } from '../api/places.js?v=6.5.2';
+import { samplePoints, classify, tripSummary, tripScore, suggestedStops, horizonNote, VEHICLES, trafficFactor } from '../domain/route-weather.js?v=6.5.2';
+import { loadLeaflet, BASE_TILES } from './radar.js?v=6.5.2';
+import { addExpandControl } from './map-expand.js?v=6.5.2';
+import { advice, hasAdvice, SOURCES } from '../domain/safety.js?v=6.5.2';
 
 let root, from = null, to = null, fromInput, toInput, dateInput, timeInput, vehicle = 'car', vehBox, goBtn, out, getCurrent, getUnit, body, toggle, quick, homeBox;
 let cache = null; // rota + série do último cálculo (para testar outros horários sem nova chamada)
@@ -221,18 +221,33 @@ function renderHome(editing = false) {
       // mousedown sem foco: o campo que a pessoa estava usando continua sendo o alvo
       onmousedown: (e) => e.preventDefault(), onclick: () => useHome(home) }, [el('strong', { text: `🏠 ${t('trip.home')}` }), el('span', { text: home.name })]),
     el('button', { type: 'button', class: 'trip__chip trip__chip--icon', id: 'trip-home-edit', 'aria-label': t('trip.homeEdit'), title: t('trip.homeEdit'), text: '✎', onclick: () => renderHome(true) }),
-    !signedIn && el('button', { type: 'button', class: 'trip__chip trip__chip--save', id: 'trip-home-account', text: `👤 ${t('acc.saveHome')}`,
-      onclick: () => { const b = document.getElementById('account-btn'); b?.scrollIntoView({ block: 'nearest' }); b?.click(); } }),
+    !signedIn && el('button', { type: 'button', class: 'trip__save-link', id: 'trip-home-account',
+      onclick: () => { const b = document.getElementById('account-btn'); b?.scrollIntoView({ block: 'nearest' }); b?.click(); } },
+    [el('span', { class: 'trip__save-ico', html: PERSON_SVG }), el('span', { text: t('acc.saveHome') })]),
   );
 }
 
+const ROUTE_SVG = '<svg viewBox="0 0 24 24" width="18" height="18"><circle cx="6" cy="18" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="18" cy="6" r="2.2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 18h6a3.5 3.5 0 0 0 0-7h-4a3.5 3.5 0 0 1 0-7h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-dasharray="0.1 3.4"/></svg>';
+const PERSON_SVG = '<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 function renderQuick() {
   if (!quick) return;
   const recents = recentTrips();
   const [ea, eb] = EXAMPLES[getLang()] || EXAMPLES.en;
+  // 6.5.2 (Dalmo: "esteticamente ruim"): recentes viram uma lista arrumada — uma linha por viagem,
+  // origem → destino alinhados, nome longo cortado com "…", seta à direita. Antes eram "pílulas" de tamanhos soltos.
   fill(quick,
-    recents.length > 0 && el('span', { class: 'trip__quick-label', text: t('trip.recent') }),
-    recents.map((r) => el('button', { type: 'button', class: 'trip__chip', text: `${r.from.name} → ${r.to.name}`, onclick: () => startTrip(r.from, r.to, r.vehicle) })),
+    recents.length > 0 && el('div', { class: 'trip__recent' }, [
+      el('span', { class: 'trip__quick-label', text: t('trip.recent').replace(/[:：]\s*$/, '') }),
+      el('ul', { class: 'trip__recent-list' }, recents.map((r) => el('li', {}, [
+        el('button', { type: 'button', class: 'trip__recent-item', title: `${r.from.name} → ${r.to.name}`, onclick: () => startTrip(r.from, r.to, r.vehicle) }, [
+          el('span', { class: 'trip__recent-ico', 'aria-hidden': 'true', html: ROUTE_SVG }),
+          el('span', { class: 'trip__recent-from', text: r.from.name }),
+          el('span', { class: 'trip__recent-arrow', 'aria-hidden': 'true', text: '→' }),
+          el('span', { class: 'trip__recent-to', text: r.to.name }),
+          el('span', { class: 'trip__recent-chev', 'aria-hidden': 'true', text: '›' }),
+        ]),
+      ]))),
+    ]),
     recents.length === 0 && el('button', { type: 'button', class: 'trip__chip trip__chip--example', text: `✨ ${t('trip.example', { a: ea.name, b: eb.name })}`, onclick: () => startTrip(ea, eb) }),
   );
 }

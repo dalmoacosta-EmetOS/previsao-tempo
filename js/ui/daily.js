@@ -1,12 +1,12 @@
-import { el, fill } from './dom.js?v=6.5.1';
-import { icon } from './icons.js?v=6.5.1';
-import { describe } from '../domain/weather-codes.js?v=6.5.1';
-import { temp, percent, speed } from '../domain/units.js?v=6.5.1';
-import { windIcon } from './wind-icon.js?v=6.5.1';
-import { dayLabel, dayMonth, longDay } from '../domain/time.js?v=6.5.1';
-import { periodSummary, splitDayNight } from '../domain/summary.js?v=6.5.1';
-import { tempTabs, pick } from './temp-tabs.js?v=6.5.1';
-import { t } from '../i18n/index.js?v=6.5.1';
+import { el, fill } from './dom.js?v=6.5.2';
+import { icon } from './icons.js?v=6.5.2';
+import { describe } from '../domain/weather-codes.js?v=6.5.2';
+import { temp, percent, speed } from '../domain/units.js?v=6.5.2';
+import { windIcon } from './wind-icon.js?v=6.5.2';
+import { dayLabel, dayMonth, longDay } from '../domain/time.js?v=6.5.2';
+import { periodSummary, splitDayNight } from '../domain/summary.js?v=6.5.2';
+import { tempTabs, pick } from './temp-tabs.js?v=6.5.2';
+import { t } from '../i18n/index.js?v=6.5.2';
 
 const TREND_FROM = 7; // índice 7 = 8º dia (ADR-006)
 

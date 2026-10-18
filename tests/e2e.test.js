@@ -854,7 +854,7 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
   await t.p.waitForTimeout(900);
   const synced = await t.p.evaluate(() => { const d = new Date(Number(document.getElementById('trip-slider').value)); return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}` === document.getElementById('trip-time').value; });
   check('Planejador: mudar a hora à mão move a barra e refaz a viagem', synced, await t.p.inputValue('#trip-time'));
-  check('Planejador: viagem fica nos recentes', (await t.p.textContent('.trip__quick')).includes('São Paulo → Hartford'));
+  check('Planejador: viagem fica nos recentes', await t.p.evaluate(() => [...document.querySelectorAll('.trip__recent-item')].some((b) => b.title === 'São Paulo → Hartford')));
   await t.p.evaluate(() => scrollTo(0, document.getElementById('daily').offsetTop)); await t.p.waitForTimeout(500);
   check('Planejador: atalho na barra da cidade aparece ao rolar', await t.p.isVisible('#trip-jump'));
   check('Sem erros JS (planejador 6.0)', t.errors.length === 0, t.errors.join(' | '));
@@ -1041,6 +1041,26 @@ async function page(browser, { sw = false, bypassCSP = false, mobile, fc = forec
     return hit && hit.closest('#trip .search__list') ? 'ok' : `coberta por ${hit?.closest('section')?.id || hit?.tagName || 'nada'} (topo ${Math.round(last.top)})`;
   });
   check('Viagem (computador): lista de endereços aparece por cima dos blocos de baixo', onTop === 'ok', onTop);
+  await t.ctx.close();
+
+  // 6.5.2: recentes em lista arrumada no celular (nomes longos cortados, nada vaza para os lados)
+  t = await page(browser, { mobile: true, init: () => {
+    const P = (name, lat, lon) => ({ name, region: 'MA', country: 'US', lat, lon });
+    localStorage.setItem('previsao-tempo:trips', JSON.stringify([
+      { from: P('Malden', 42.42, -71.06), to: P('Worcester', 42.26, -71.8), vehicle: 'car' },
+      { from: P('20 Grover Street', 42.43, -71.07), to: P('New Jersey Turnpike Service Area', 40.7, -74.2), vehicle: 'car' },
+      { from: P('20 Grover Street', 42.43, -71.07), to: P('Falmouth', 41.55, -70.61), vehicle: 'car' },
+      { from: P('20 Grover Street', 42.43, -71.07), to: P('36 Westbrook Road', 42.3, -71.3), vehicle: 'large' },
+    ]));
+  } });
+  await t.p.locator('#trip').scrollIntoViewIfNeeded(); await t.p.waitForTimeout(300);
+  const rec = await t.p.evaluate(() => {
+    const items = [...document.querySelectorAll('.trip__recent-item')];
+    const w = items.map((b) => b.getBoundingClientRect().width);
+    return { n: items.length, same: Math.max(...w) - Math.min(...w) < 1, overflow: items.some((b) => b.scrollWidth > b.clientWidth + 1) };
+  });
+  check('Viagem: recentes em lista (mesma largura, sem vazar)', rec.n === 4 && rec.same && !rec.overflow, JSON.stringify(rec));
+  await t.p.locator('#trip').screenshot({ path: `${OUT}/viagem-recentes.png` });
   await t.ctx.close();
 
   // ===== Conta opcional (ADR-051) =====
